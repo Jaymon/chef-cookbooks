@@ -1,0 +1,135 @@
+name = cookbook_name.to_s
+n = node[name]
+u = n["user"]
+
+src_version = (n["version"] != "master") ? "release/v#{n["version"]}" : n["version"]
+
+# prerequisites
+include_recipe "zeromq"
+
+["git", "sqlite3", "libsqlite3-dev"].each do |package_name|
+  package package_name do
+    action :upgrade
+  end
+end
+
+# create the user that will manage mongrel
+user u do
+  system true
+  gid u
+  shell "/bin/false"
+end
+
+git n["src_dir"] do
+  repository n["src_repo"]
+  reference src_version
+  action :sync
+  notifies :run, "bash[install_#{name}]"
+  #not_if "which m2sh" # mongrel2 is already installed
+  not_if 'test -d "#{n["src_repo"]}"'
+end
+
+bash "install_#{name}" do
+  user "root"
+  cwd n["src_dir"]
+  code <<-EOH
+  make clean all
+  make install
+  EOH
+  action :nothing
+end
+
+# create directories
+dirs = {}
+base_dir = n["base_dir"]
+directory base_dir do
+  owner u
+  group u
+  mode "0755"
+  recursive true
+  action :create
+end
+
+# todo: these should probably be set to /var/run, var/log, and then certs and conf
+# should be off of base dir, but run and log should create a symlink from /var/log to #{base_dir}/log
+["run", "log", "conf", "certs"].each do |d|
+
+  dirs[d] = ::File.join(base_dir, d)
+  
+  directory dirs[d] do
+    owner u
+    group u
+    mode "0755"
+    recursive true
+    action :create
+  end
+  
+end
+
+# create the conf dir
+conf_db = ::File.join(base_dir, "config.sqlite")
+
+# create and load the conf files for each configuration
+n["servers"].each do |conf_uuid, conf_hash|
+
+  conf_link = ::File.join(dirs["conf"], "#{conf_uuid}.conf")
+
+  link conf_link do
+    owner u
+    group u
+    to conf_hash["conf_file"]
+    action :create
+    link_type :symbolic
+  end
+
+  # put the certs in the right spot
+  if conf_hash.has_key?("ssl_certificate") and conf_hash.has_key?("ssl_certificate_key")
+
+    ssl_certificate_link = ::File.join(dirs["certs"], "#{conf_uuid}.crt")
+    link ssl_certificate_link do
+      owner u
+      group u
+      to conf_hash["ssl_certificate"]
+      action :create
+      link_type :symbolic
+    end
+
+    ssl_certificate_key_link = ::File.join(dirs["certs"], "#{conf_uuid}.key")
+    link ssl_certificate_key_link do
+      owner u
+      group u
+      to conf_hash["ssl_certificate_key"]
+      action :create
+      link_type :symbolic
+    end
+
+  end
+
+  execute "m2sh load -config #{conf_link} -db #{conf_db}" do
+    cwd base_dir
+    retries 1
+    user u
+    group u
+    action :run
+  end
+
+end
+
+# reload
+execute "m2sh reload -db #{conf_db} -every" do
+  cwd base_dir
+  user "root"
+  group "root"
+  action :run
+  only_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
+end
+
+# start mongrel2
+execute "m2sh start -db #{conf_db} -every" do
+  cwd base_dir
+  user "root"
+  group "root"
+  action :run
+  not_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
+end
+

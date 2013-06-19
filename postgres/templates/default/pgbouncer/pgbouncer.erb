@@ -1,0 +1,44 @@
+;; database name = connect string
+;;
+;; connect string params:
+;;   dbname= host= port= user= password=
+;;   client_encoding= datestyle= timezone=
+;;   pool_size= connect_query=
+;;
+;; http://pgbouncer.projects.postgresql.org/doc/config.html
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[databases]
+<% node[:postgres][:pgbouncer][:databases].each do |db_name, db_params| %>
+<%= db_name %> = <%= db_params.map{|k,v| "#{k}=#{v}"}.join(' ') %>
+<% end %>
+
+; fallback connect string
+* = host=127.0.0.1
+
+;; Configuation section
+[pgbouncer]
+
+logfile = /var/log/postgresql/pgbouncer.log
+pidfile = /var/run/postgresql/pgbouncer.pid
+
+; unix socket is also used for -R.
+unix_socket_dir = /var/run/postgresql
+
+auth_file = /etc/pgbouncer/userlist.txt
+
+;;;
+;;; Users allowed into database 'pgbouncer'
+;;;
+
+; comma-separated list of users, who are allowed to change settings
+admin_users = postgres, <%= node[:postgres][:users].map{|k,v| "#{k}"}.join(', ') %>
+
+; comma-separated list of users who are just allowed to use SHOW command
+stats_users = postgres, <%= node[:postgres][:users].map{|k,v| "#{k}"}.join(', ') %>
+
+; start key = var settings from cookbook
+<% node[:postgres][:pgbouncer][:pgbouncer].each do |key, val| %>
+<%= key %> = <%= val %>
+<% end %>
+; stop key = var settings from cookbook
+
