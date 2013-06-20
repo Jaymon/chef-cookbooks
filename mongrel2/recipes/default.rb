@@ -24,8 +24,7 @@ git n["src_dir"] do
   repository n["src_repo"]
   reference src_version
   action :sync
-  notifies :run, "bash[install_#{name}]"
-  #not_if "which m2sh" # mongrel2 is already installed
+  notifies :run, "bash[install_#{name}]", :immediately
   not_if 'test -d "#{n["src_repo"]}"'
 end
 
@@ -36,6 +35,7 @@ bash "install_#{name}" do
   make clean all
   make install
   EOH
+  not_if "which m2sh" # mongrel2 is already installed
   action :nothing
 end
 
@@ -74,19 +74,36 @@ n["servers"].each do |conf_uuid, conf_hash|
 
   conf_link = ::File.join(dirs["conf"], "#{conf_uuid}.conf")
 
-  link conf_link do
+  # we want to fail if the configuration file doesn't exist
+  execute "test -f #{conf_hash["conf_file"]}" do
+    action :run
+    notifies :create, "link[link_#{conf_hash["conf_file"]}]", :immediately
+  end
+
+  link "link_#{conf_hash["conf_file"]}" do
+    target_file conf_link
     owner u
     group u
     to conf_hash["conf_file"]
-    action :create
+    action :nothing
     link_type :symbolic
   end
 
   # put the certs in the right spot
   if conf_hash.has_key?("ssl_certificate") and conf_hash.has_key?("ssl_certificate_key")
 
-    ssl_certificate_link = ::File.join(dirs["certs"], "#{conf_uuid}.crt")
-    link ssl_certificate_link do
+    execute "test -f #{conf_hash["ssl_certificate"]}" do
+      action :run
+      notifies :create, "link[#{conf_hash["ssl_certificate"]}]", :immediately
+    end
+
+    execute "test -f #{conf_hash["ssl_certificate_key"]}" do
+      action :run
+      notifies :create, "link[#{conf_hash["ssl_certificate_key"]}]", :immediately
+    end
+
+    link conf_hash["ssl_certificate"] do
+      target_file ::File.join(dirs["certs"], "#{conf_uuid}.crt")
       owner u
       group u
       to conf_hash["ssl_certificate"]
@@ -94,8 +111,8 @@ n["servers"].each do |conf_uuid, conf_hash|
       link_type :symbolic
     end
 
-    ssl_certificate_key_link = ::File.join(dirs["certs"], "#{conf_uuid}.key")
-    link ssl_certificate_key_link do
+    link conf_hash["ssl_certificate_key"] do
+      target_file ::File.join(dirs["certs"], "#{conf_uuid}.key")
       owner u
       group u
       to conf_hash["ssl_certificate_key"]
@@ -105,7 +122,8 @@ n["servers"].each do |conf_uuid, conf_hash|
 
   end
 
-  execute "m2sh load -config #{conf_link} -db #{conf_db}" do
+  execute "load_#{conf_uuid}" do
+    command "m2sh load -config #{conf_link} -db #{conf_db}"
     cwd base_dir
     retries 1
     user u
