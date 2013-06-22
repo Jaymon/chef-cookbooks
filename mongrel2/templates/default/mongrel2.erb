@@ -1,0 +1,89 @@
+#! /bin/bash
+# custom init.d script for mongrel2
+
+NAME="<%= @name %>"
+CHDIR="<%= @base_dir %>"
+DB="<%= @conf_db %>"
+RUNDIR="<%= @run_dir %>"
+
+# returns whether the passed in pid file is still running
+# you can use this with -n and -z of test, it will echo the pid if it is still running, or
+# be an empty length string if it isn't running 
+function is_running() {
+  if [[ $(ls "$RUNDIR" | wc -c) -eq 0 ]]; then 
+	return 1
+  else
+	return 0
+  fi 
+}
+
+function run_cmd() {
+  #sh -a -c 'cd "$CHDIR"; m2sh $1 -db "$DB" -every'
+  cwd=$PWD
+  cd "$CHDIR"
+  m2sh $1 -db "$DB" -every > /dev/null 2>&1
+  cd "$cwd"
+}
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+case "$1" in
+  
+  start)
+  
+  echo -n "Starting $NAME..."
+  run_cmd "start"
+  if is_running; then
+	echo "done."
+  else
+	echo "failed!"
+  fi
+  ;;
+  
+  stop)
+  echo -n "Stopping $NAME..."
+  run_cmd "stop"
+  if is_running; then
+	echo "failed!"
+  else
+	echo "done."
+  fi
+  ;;
+  
+  reload|force-reload)
+  echo -n "Reloading $NAME..."
+  if is_running; then
+    run_cmd "reload"
+  else
+    run_cmd "start"
+  fi
+  echo "done."
+  ;;
+  
+  restart)
+  echo -n "Restarting $NAME..."
+    run_cmd "stop"
+    sleep 1
+    run_cmd "start"
+  echo "done."
+  ;;
+  
+  status)
+  if is_running; then
+    echo "$NAME is running." 
+    exit 0
+  else
+    echo "$NAME is not running." 
+    exit 1
+  fi
+  ;;
+  *)    
+
+  echo "Usage: /etc/init.d/$NAME {start|stop|restart|reload|status}" >&2
+  exit 1
+  ;;
+    
+esac
+
+exit 0

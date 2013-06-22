@@ -129,25 +129,41 @@ n["servers"].each do |conf_uuid, conf_hash|
     user u
     group u
     action :run
+    notifies :restart, "service[#{name}]", :delayed
   end
 
 end
 
-# reload
-execute "m2sh reload -db #{conf_db} -every" do
-  cwd base_dir
-  user "root"
+template ::File.join("", "etc", "init.d", name) do
+  source "#{name}.erb"
+  owner "root"
   group "root"
-  action :run
-  only_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
+  mode "0655"
+  variables("name" => name, "base_dir" => base_dir, "conf_db" => conf_db, "run_dir" => dirs["run"])
+  notifies :restart, "service[#{name}]", :delayed
+end
+      
+service name do
+  service_name name
+  action :nothing
+  supports :status => true, :start => true, :stop => true, :restart => true
 end
 
-# start mongrel2
-execute "m2sh start -db #{conf_db} -every" do
-  cwd base_dir
-  user "root"
-  group "root"
-  action :run
-  not_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
-end
+# reload
+# execute "m2sh reload -db #{conf_db} -every" do
+#   cwd base_dir
+#   user "root"
+#   group "root"
+#   action :run
+#   only_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
+# end
+# 
+# # start mongrel2
+# execute "m2sh start -db #{conf_db} -every" do
+#   cwd base_dir
+#   user "root"
+#   group "root"
+#   action :run
+#   not_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
+# end
 
