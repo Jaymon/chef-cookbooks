@@ -1,25 +1,34 @@
-# Pip Cookbook
+# Mongrel2 Cookbook
 
-Install pip
+Installs Mongrel2
 
 ## Attributes
 
-`node["pip"][:install]` -- a list of python package names to install with pip
+`node["mongrel2"]["version"]` -- string -- what version of Mongrel2 to install
 
-`node["pip"][:upgrade]` -- a list of python package names to upgrade with pip
+`node["mongrel2"]["user"]` -- string -- the user Mongrel2 will run as
 
-a package name can be a `requirements.txt` file or a `repo+http://example.com...` url or just
-a normal `package_name`.
+`node["mongrel2"]["base_dir"]` -- string -- where Mongrel2 will be installed
 
-## LWRP
+`node["mongrel2"]["servers"]` -- hash -- the server configurations, this is in the form of: `{ "uuid" => "file/location" }` and will symlink each configuration `file/location` to the Mongrel2 config directory and use those to build the config database. You can learn more about Mongrel2's configuration files [here](http://mongrel2.org/manual/book-finalch4.html#x6-260003.4).
 
-defines a `pip` lwrp that you can use to install python packages:
+## Using
 
-    pip "package_name" do
-      action :install # or :upgrade
-      user "username" # optional
-      group "group" # optional
-    end
+Mongrel daemonization is handled by an init.d wrapper around the `m2sh` command, so you can start the server:
+
+    $ sudo /etc/init.d/mongrel2 start
+
+and stop it:
+
+    $ sudo /etc/init.d/mongrel2 stop
+  
+and restart it:
+
+    $ sudo /etc/init.d/mongrel2 restart
+  
+to see all the commands the init.d script can perform:
+
+    $ sudo /etc/init.d/mongrel2
 
 ## Platform
 
