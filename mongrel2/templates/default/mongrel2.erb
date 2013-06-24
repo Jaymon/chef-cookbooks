@@ -63,9 +63,10 @@ case "$1" in
   
   restart)
   echo -n "Restarting $NAME..."
+  if is_running; then
     run_cmd "stop"
-    sleep 1
-    run_cmd "start"
+  fi
+  run_cmd "start"
   echo "done."
   ;;
   
