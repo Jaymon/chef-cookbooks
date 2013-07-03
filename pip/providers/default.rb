@@ -1,5 +1,7 @@
 # http://docs.opscode.com/chef/lwrps_custom.html
 
+require 'date'
+
 def whyrun_supported?
   true
 end
@@ -42,8 +44,12 @@ end
 
 action :upgrade do
   p = new_resource.package_name
-  pip_cmd = "pip install --upgrade"
+
   tmp = Chef::Config[:file_cache_path]
+  tt = Time.now.strftime("%Y-%m-%d-%H_%M_%S")
+  build_tmp = ::File.join(Chef::Config[:file_cache_path], tt)
+
+  pip_cmd = "pip install --upgrade --build #{build_tmp}"
 
   if ::File.exists?(p) # file? That means it is a requirements file created from pip freeze
     pip_cmd += " -r #{p}"

@@ -8,6 +8,8 @@
 # @since  1-31-12 
 ##
 
+include_recipe "package::update"
+
 n = node["package"]
 
 

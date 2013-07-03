@@ -3,7 +3,7 @@
 ##
 
 # only do this once a day at most
-if !File.exists?(node["package"]["check_file"])
+if !::File.exists?(node["package"]["check_file"])
 
   execute "apt-get update" do
     user "root"
