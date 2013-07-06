@@ -17,7 +17,7 @@ src_extract_dir = ::File.join(src_dir, src_basename)
 # prerequisites
 ["make", "g++"].each do |package_name|
   package package_name do
-    action :upgrade
+    action :install
   end
 end
 

@@ -5,7 +5,7 @@ include_recipe "mongrel2"
 include_recipe "zeromq::python"
 
 package "python-dev" do
-  action :upgrade
+  action :install
 end
 
 execute "install_mongrel2_python_module" do

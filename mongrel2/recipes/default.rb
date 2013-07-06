@@ -9,7 +9,7 @@ include_recipe "zeromq"
 
 ["git", "sqlite3", "libsqlite3-dev"].each do |package_name|
   package package_name do
-    action :upgrade
+    action :install
   end
 end
 

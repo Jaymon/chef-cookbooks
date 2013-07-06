@@ -7,10 +7,10 @@
 
 name = cookbook_name.to_s
 n = node[name]
-tmp = Chef::Config[:file_cache_path]
+#tmp = Chef::Config[:file_cache_path]
 
 package "python-pip" do
-  action :upgrade
+  action :install
 end
 
 # update pip

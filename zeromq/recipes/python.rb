@@ -4,7 +4,7 @@
 include_recipe "pip" # to make this work, you need depends "pip" in metadata
 
 package "python-dev" do
-  action :upgrade
+  action :install
 end
 
 pip "pyzmq" do
