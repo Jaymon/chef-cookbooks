@@ -22,7 +22,12 @@ This cookbook creates an `environ` resource and provider that can be used in oth
       value 'environment variable value'
     end
 
+Using the environ resource will also set `ENVIRONMENT_VARIABLE_NAME` in the Ruby environment, so it would be available in Ruby's `ENV` variable. See [here](https://github.com/customink-webops/magic_shell) and [here](http://stackoverflow.com/questions/6284517/how-can-you-use-a-chef-recipe-to-set-an-environment-variable) for more details.
+
 ## Platform
 
 Ubuntu 12.04, nothing else has been tested
 
+## Notes
+
+Currently, this is limited to "global" environment variables, but [magic shell](https://github.com/customink-webops/magic_shell) could point the way on adding user specific global variables.

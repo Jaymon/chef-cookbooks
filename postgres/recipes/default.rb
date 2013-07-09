@@ -9,12 +9,30 @@
 # it would work, so the only way to execute these commands as the postgres user is to do the sudo hack
 ##
 
+# Even though I'd been using this recipe for quite a while, all of a sudden Postgres is
+# snippy about the locale of the box to use unicode, so let's set it
+locales = ["LC_COLLATE", "LC_CTYPE", "LC_ALL", "LANG", "LANGUAGE"]
+locales_prev = {}
+
+ruby_block "set postgres locale" do
+  block do
+    locales.each do |locale|
+      if ENV.has_key?(locale)
+        locales_prev[locale] = ENV[locale]
+      end
+
+      ENV[locale] = "en_US.utf8"
+    end
+  end
+  action :create
+end
+
 package "postgresql" do
-  action :upgrade
+  action :install
 end
 
 package "postgresql-contrib" do
-  action :upgrade
+  action :install
 end
 
 # add the postgres users and passwords
@@ -46,7 +64,8 @@ node["postgres"]["databases"].each do |username, dbnames|
 
   Array(dbnames).each do |dbname|
 
-    cmd = "createdb -E UNICODE -O #{username} #{dbname}"
+    #cmd = "createdb --template=template0 -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
+    cmd = "createdb -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
     not_cmd = "psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""
     execute "sudo -u postgres #{cmd}" do
       user "root"
@@ -60,6 +79,9 @@ node["postgres"]["databases"].each do |username, dbnames|
 end
     
 # add the .psqlrc file to all the users if it doesn't already exist
+# I can't find a reliable way to know where to place a global psqlrc file, this is the 
+# closest I've found: http://comments.gmane.org/gmane.comp.db.postgresql.admin/30740
+# so I'll just put one in every user
 users_home = Dir.glob("/home/*/")
 users_home << "/root/"
 users_home.each do |user_home|
@@ -99,7 +121,22 @@ end
 # http://wiki.opscode.com/display/chef/Resources#Resources-Service
 service "postgres" do
   service_name "postgresql"
-  supports :restart => true, :reload => false
-  action :enable
+  supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
+  action :nothing
+end
+
+ruby_block "reset previous locale" do
+  block do 
+    # remove previous locales
+    locales.each do |locale|
+      ENV.delete(locale)
+    end
+
+    # restore previous values
+    locales_prev.each do |locale, locale_val|
+      ENV[locale] = locale_val
+    end
+  end
+  action :create
 end
 
