@@ -14,6 +14,8 @@ hooks for manipulating environments and environment variables
 
 `node["environ"]["python"]["sitecustomize"]` -- the path to a python module that will be symbolic linked to the python site-packages directory.
 
+`node["environ"]["python"]["usercustomize"]` -- a hash of `username => path to module` that will be symbolic linked to the user's user site directory.
+
 ## Resource and Provider
 
 This cookbook creates an `environ` resource and provider that can be used in other cookbooks to set environment variables:
