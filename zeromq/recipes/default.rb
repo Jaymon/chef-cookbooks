@@ -1,12 +1,9 @@
 ##
-# arbitrarily add packages 
-# 
-# this is for when you want to add a whole bunch of packages and you don't want to
-# create a recipe for each package
+# Install ZeroMQ
 ##
 
-#name = cookbook_name.to_s
-name = "zeromq"
+name = cookbook_name.to_s
+#name = "zeromq"
 n = node[name]
 src_dir = Chef::Config[:file_cache_path]
 src_basename = "zeromq-#{n["version"]}"
