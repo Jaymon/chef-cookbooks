@@ -21,7 +21,9 @@ function run_cmd() {
   #sh -a -c 'cd "$CHDIR"; m2sh $1 -db "$DB" -every'
   cwd=$PWD
   cd "$CHDIR"
-  m2sh $1 -db "$DB" -every > /dev/null 2>&1
+  #m2sh $1 -db "$DB" -every > /dev/null 2>&1
+  m2sh $1 -db "$DB" -every > /var/log/syslog 2>&1
+  #m2sh $1 -db "$DB" -every 2>&1 | logger
   cd "$cwd"
 }
 

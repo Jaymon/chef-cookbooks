@@ -107,7 +107,7 @@ n["servers"].each do |conf_uuid, conf_hash|
       owner u
       group u
       to conf_hash["ssl_certificate"]
-      action :create
+      action :nothing
       link_type :symbolic
     end
 
@@ -116,7 +116,7 @@ n["servers"].each do |conf_uuid, conf_hash|
       owner u
       group u
       to conf_hash["ssl_certificate_key"]
-      action :create
+      action :nothing
       link_type :symbolic
     end
 
