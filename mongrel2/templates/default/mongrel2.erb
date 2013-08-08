@@ -10,11 +10,17 @@ RUNDIR="<%= @run_dir %>"
 # you can use this with -n and -z of test, it will echo the pid if it is still running, or
 # be an empty length string if it isn't running 
 function is_running() {
-  if [[ $(ls "$RUNDIR" | wc -c) -eq 0 ]]; then 
-	return 1
+  if [[ $(ls "$RUNDIR"/*.pid | wc -c) -eq 0 ]]; then 
+    # it is not running
+    return 1
   else
-	return 0
+    pid=$(cat "$RUNDIR"/*.pid)
+    if [[ $(ps -p $pid > /dev/null; echo $?) -eq 0 ]]; then
+      return 0
+    fi
   fi 
+
+  return 1
 }
 
 function run_cmd() {
@@ -34,57 +40,57 @@ case "$1" in
   
   start)
   
-  echo -n "Starting $NAME..."
-  run_cmd "start"
-  if is_running; then
-	echo "done."
-  else
-	echo "failed!"
-  fi
+    echo -n "Starting $NAME..."
+    run_cmd "start"
+    if is_running; then
+      echo "done."
+    else
+      echo "failed!"
+    fi
   ;;
   
   stop)
-  echo -n "Stopping $NAME..."
-  run_cmd "stop"
-  if is_running; then
-	echo "failed!"
-  else
-	echo "done."
-  fi
+    echo -n "Stopping $NAME..."
+    run_cmd "stop"
+    if is_running; then
+      echo "failed!"
+    else
+      echo "done."
+    fi
   ;;
   
   reload|force-reload)
-  echo -n "Reloading $NAME..."
-  if is_running; then
-    run_cmd "reload"
-  else
-    run_cmd "start"
-  fi
-  echo "done."
+    echo -n "Reloading $NAME..."
+    if is_running; then
+      run_cmd "reload"
+    else
+      run_cmd "start"
+    fi
+    echo "done."
   ;;
   
   restart)
-  echo -n "Restarting $NAME..."
-  if is_running; then
-    run_cmd "stop"
-  fi
-  run_cmd "start"
-  echo "done."
+    echo -n "Restarting $NAME..."
+    if is_running; then
+      run_cmd "stop"
+    fi
+    run_cmd "start"
+    echo "done."
   ;;
   
   status)
-  if is_running; then
-    echo "$NAME is running." 
-    exit 0
-  else
-    echo "$NAME is not running." 
-    exit 1
-  fi
+    if is_running; then
+      echo "$NAME is running." 
+      exit 0
+    else
+      echo "$NAME is not running." 
+      exit 1
+    fi
   ;;
-  *)    
 
-  echo "Usage: /etc/init.d/$NAME {start|stop|restart|reload|status}" >&2
-  exit 1
+  *)    
+    echo "Usage: /etc/init.d/$NAME {start|stop|restart|reload|status}" >&2
+    exit 1
   ;;
     
 esac
