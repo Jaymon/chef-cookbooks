@@ -6,6 +6,7 @@ src_version = (n["version"] != "master") ? "release/v#{n["version"]}" : n["versi
 
 # prerequisites
 include_recipe "zeromq"
+include_recipe "#{name}::src"
 
 ["git", "sqlite3", "libsqlite3-dev"].each do |package_name|
   package package_name do
@@ -20,14 +21,6 @@ user u do
   shell "/bin/false"
 end
 
-git n["src_dir"] do
-  repository n["src_repo"]
-  reference src_version
-  action :sync
-  notifies :run, "bash[install_#{name}]", :immediately
-  not_if 'test -d "#{n["src_repo"]}"'
-end
-
 bash "install_#{name}" do
   user "root"
   cwd n["src_dir"]
@@ -36,7 +29,7 @@ bash "install_#{name}" do
   make install
   EOH
   not_if "which m2sh" # mongrel2 is already installed
-  action :nothing
+  action :run
 end
 
 # create directories
