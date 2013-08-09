@@ -29,29 +29,39 @@ if n.has_key?("usercustomize")
     # this command possibly only works if chef is run as root (which is probably always, but I'm noting it anyway)
     # http://unix.stackexchange.com/questions/1087/su-options-running-command-as-another-user
     python_site_packages = %x(su -c 'python -c "import site; print site.USER_SITE"' #{username}).strip()
-    usercustomize = ::File.join(python_site_packages, "usercustomize.py")
 
-    directory python_site_packages do
-      owner username
-      group username
-      recursive true
-      action :create
-    end
+    if !python_site_packages.empty?
+      usercustomize = ::File.join(python_site_packages, "usercustomize.py")
 
-    # name has to be unique otherwise resource will keep getting updated in the loop
-    execute "assure_usercustomize_for_#{username}" do
-      command "test -f #{f}"
-      action :run
-      notifies :create, "link[link:#{usercustomize}]", :immediately
-    end
+      directory python_site_packages do
+        owner username
+        group username
+        recursive true
+        action :create
+      end
 
-    link "link:#{usercustomize}" do
-      target_file usercustomize
-      owner username
-      group username
-      to f
-      action :nothing
-      link_type :symbolic
+      # name has to be unique otherwise resource will keep getting updated in the loop
+      execute "assure_usercustomize_for_#{username}" do
+        command "test -f #{f}"
+        action :run
+        notifies :create, "link[link:#{usercustomize}]", :immediately
+      end
+
+      link "link:#{usercustomize}" do
+        target_file usercustomize
+        owner username
+        group username
+        to f
+        action :nothing
+        link_type :symbolic
+      end
+
+    else
+
+      log "Python usercustomize failed for #{username}" do
+        level :warn
+      end
+
     end
   end
 end

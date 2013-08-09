@@ -10,4 +10,6 @@ supports          "ubuntu", "12.04"
 depends           "zeromq"
 
 recipe            "mongrel2", "install mongrel2"
+recipe            "mongrel2::python", "install mongrel2 python bindings"
+recipe            "mongrel2::src", "if you just need the mongrel source code somewhere"
 

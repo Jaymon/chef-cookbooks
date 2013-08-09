@@ -142,21 +142,3 @@ service name do
   supports :status => true, :start => true, :stop => true, :restart => true
 end
 
-# reload
-# execute "m2sh reload -db #{conf_db} -every" do
-#   cwd base_dir
-#   user "root"
-#   group "root"
-#   action :run
-#   only_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
-# end
-# 
-# # start mongrel2
-# execute "m2sh start -db #{conf_db} -every" do
-#   cwd base_dir
-#   user "root"
-#   group "root"
-#   action :run
-#   not_if "test $(ls #{dirs["run"]} | wc -c) -gt 0"
-# end
-
