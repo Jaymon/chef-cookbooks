@@ -1,35 +1,36 @@
 #! /bin/bash
 # custom init.d script for mongrel2
 
-NAME="<%= @name %>"
 CHDIR="<%= @base_dir %>"
 DB="<%= @conf_db %>"
 RUNDIR="<%= @run_dir %>"
 
-# returns whether the passed in pid file is still running
-# you can use this with -n and -z of test, it will echo the pid if it is still running, or
-# be an empty length string if it isn't running 
+# returns whether the name $1 is running by checking the pid file in RUNDIR
 function is_running() {
-  if [[ $(ls "$RUNDIR"/*.pid | wc -c) -eq 0 ]]; then 
-    # it is not running
-    return 1
-  else
-    pid=$(cat "$RUNDIR"/*.pid)
-    if [[ $(ps -p $pid > /dev/null; echo $?) -eq 0 ]]; then
-      return 0
+  if [[ -f "$RUNDIR"/"$1".pid ]]; then
+    pid=$(cat "$RUNDIR"/"$1".pid)
+    if [[ -n "$pid" ]]; then
+      if [[ $(ps -p $pid > /dev/null; echo $?) -eq 0 ]]; then
+        # running, pid file exists and there is a process with the pid
+        return 0
+      fi
     fi
-  fi 
 
+  fi
+
+  # not running
   return 1
+
 }
 
 function run_cmd() {
-  #sh -a -c 'cd "$CHDIR"; m2sh $1 -db "$DB" -every'
+  run_raw_cmd "$@" > /var/log/syslog 2>&1
+}
+
+function run_raw_cmd() {
   cwd=$PWD
   cd "$CHDIR"
-  #m2sh $1 -db "$DB" -every > /dev/null 2>&1
-  m2sh $1 -db "$DB" -every > /var/log/syslog 2>&1
-  #m2sh $1 -db "$DB" -every 2>&1 | logger
+  m2sh $1 -db "$DB" -name $2 
   cd "$cwd"
 }
 
@@ -39,53 +40,61 @@ set -e
 case "$1" in
   
   start)
-  
-    echo -n "Starting $NAME..."
-    run_cmd "start"
-    if is_running; then
-      echo "done."
-    else
-      echo "failed!"
-    fi
+    <% @names.each do |name| %>
+      NAME=<%= name %>
+      echo -n "Starting $NAME..."
+      run_cmd "start" $NAME
+      if is_running $NAME; then
+        echo "done."
+      else
+        echo "failed!"
+      fi
+    <% end %>
   ;;
   
   stop)
-    echo -n "Stopping $NAME..."
-    run_cmd "stop"
-    if is_running; then
-      echo "failed!"
-    else
-      echo "done."
-    fi
+    <% @names.each do |name| %>
+      NAME=<%= name %>
+      echo -n "Stopping $NAME..."
+      if is_running $NAME; then
+        run_cmd "stop" $NAME
+        echo "done."
+      else
+        echo "not running"
+      fi
+    <% end %>
   ;;
   
   reload|force-reload)
-    echo -n "Reloading $NAME..."
-    if is_running; then
-      run_cmd "reload"
-    else
-      run_cmd "start"
-    fi
-    echo "done."
+    <% @names.each do |name| %>
+      NAME=<%= name %>
+      echo -n "Reloading $NAME..."
+      if is_running $NAME; then
+        run_cmd "reload" $NAME
+      else
+        run_cmd "start" $NAME
+      fi
+      echo "done."
+    <% end %>
   ;;
   
   restart)
-    echo -n "Restarting $NAME..."
-    if is_running; then
-      run_cmd "stop"
-    fi
-    run_cmd "start"
-    echo "done."
+    <% @names.each do |name| %>
+      NAME=<%= name %>
+      echo -n "Restarting $NAME..."
+      if is_running $NAME; then
+        run_cmd "stop" $NAME
+      fi
+      run_cmd "start" $NAME
+      echo "done."
+    <% end %>
   ;;
   
   status)
-    if is_running; then
-      echo "$NAME is running." 
-      exit 0
-    else
-      echo "$NAME is not running." 
-      exit 1
-    fi
+    <% @names.each do |name| %>
+      NAME=<%= name %>
+      run_raw_cmd "running" $NAME
+    <% end %>
   ;;
 
   *)    

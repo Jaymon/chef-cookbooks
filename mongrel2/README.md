@@ -10,9 +10,13 @@ Installs Mongrel2
 
 `node["mongrel2"]["base_dir"]` -- string -- where Mongrel2 will be installed
 
-`node["mongrel2"]["servers"]` -- hash -- the server configurations, this is in the form of: `{ "uuid" => "file/location" }` and will symlink each configuration `file/location` to the Mongrel2 config directory and use those to build the config database. You can learn more about Mongrel2's configuration files [here](http://mongrel2.org/manual/book-finalch4.html#x6-260003.4).
+`node["mongrel2"]["conf_file"]` -- string -- the path to the configuration file mongrel2 will use to create the database. You can learn more about Mongrel2's configuration files [here](http://mongrel2.org/manual/book-finalch4.html#x6-260003.4).
 
-## Using
+`node["mongrel2"]["servers"]` -- list -- the list of server **names** that the mongrel2 conf file specifies
+
+`node["mongrel2"]["certs"]` -- hash -- the key is the uuid.crt or uuid.key and the value is the location to the .crt or .key file
+
+## Using 
 
 Mongrel daemonization is handled by an init.d wrapper around the `m2sh` command, so you can start the server:
 
