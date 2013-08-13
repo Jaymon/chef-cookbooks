@@ -44,11 +44,7 @@ case "$1" in
       NAME=<%= name %>
       echo -n "Starting $NAME..."
       run_cmd "start" $NAME
-      if is_running $NAME; then
-        echo "done."
-      else
-        echo "failed!"
-      fi
+      echo "done."
     <% end %>
   ;;
   
