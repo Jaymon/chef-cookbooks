@@ -46,3 +46,9 @@ bash "install_zeromq" do
   #not_if { ::File.exists?("/usr/local/include/zmq.h") }
   not_if "test -f /usr/local/include/zmq.h"
 end
+
+# this is sometimes needed, sometimes not (eg ec2 boxes need it)
+execute "ldconfig -v" do
+  user "root"
+  group "root"
+end
