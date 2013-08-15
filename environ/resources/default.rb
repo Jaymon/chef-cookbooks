@@ -1,5 +1,5 @@
 # http://docs.opscode.com/chef/lwrps_custom.html
-actions :set
+actions :set, :file
 default_action :set
 
 attribute :name, :kind_of => String, :name_attribute => true

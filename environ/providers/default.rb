@@ -7,11 +7,11 @@ end
 class Environ
   attr_accessor :hash, :file
 
-  def initialize()
+  def initialize(file="/etc/environment")
     @hash = {}
     @hash_changed = false
     @file_loaded = false
-    @file = "/etc/environment"
+    @file = file
   end
 
   def read_file?()
@@ -25,9 +25,12 @@ class Environ
     @hash_changed = false
 
     ::IO.foreach(@file) do |line|
-      key, val = line.split('=')
-      #p "load #{key} = #{val}"
-      @hash[key.strip()] = val.strip()
+      # we only want KEY=val lines, everything else is ignored (could be comments or whitespace)
+      if line.match(/^[a-z0-9_]+=/i)
+        key, val = line.split('=')
+        #p "load #{key} = #{val}"
+        @hash[key.strip()] = val.strip()
+      end
 
     end
 
@@ -67,6 +70,12 @@ class Environ
 
   end
 
+  def merge(hash)
+    self.read_file()
+    @hash = @hash.merge(hash)
+    return true
+  end
+
 end
 
 e = Environ.new
@@ -79,7 +88,7 @@ action :set do
 
     ENV[env_name] = env_val # keep the RUBY env in sync
 
-    converge_by("set #{env_name}=#{env_val}") do
+    converge_by("set in #{e.file} #{env_name}=#{env_val}") do
       template e.file do
         backup false
         owner "root"
@@ -91,6 +100,38 @@ action :set do
 
   else
     Chef::Log.info "nothing to do - #{env_name}=#{env_val}."
+  end
+
+end
+
+action :file do
+  # file name is default name, but could be value
+  file_name = new_resource.name
+  if !::File.exists?(file_name)
+    file_name = new_resource.value
+  end
+
+  e_new = Environ.new(file_name)
+  e_new.read_file
+
+  if e.merge(e_new.hash)
+
+    e.hash.each do |k, v|
+      ENV[k] = v # keep the RUBY env in sync
+    end
+
+    converge_by("merge #{file_name} into #{e.file}") do
+      template e.file do
+        backup false
+        owner "root"
+        group "root"
+        source "environment.erb"
+        variables "hash" => e.hash
+      end
+    end
+
+  else
+    Chef::Log.info "nothing to do"
   end
 
 end

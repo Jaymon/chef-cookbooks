@@ -4,13 +4,20 @@ hooks for manipulating environments and environment variables
 
 ## Attributes
 
-`node["environ"]["global"][:set]` -- a list of global environment variables to set
+`node["environ"]["global"][:set]` -- a hash of global environment variables to set
 
 **NOTE** -- You have to add quotes around values that have spaces, so:
 
     node["environ"]["global"][:set] = {
       "ENV_NAME" => '"this is a value with spaces"'
     }
+
+`node["environ"]["global"][:file]` -- a list of files to merge into the global environment variables
+
+    node["environ"]["global"][:file] = [
+      '/path/to/first/env/file',
+      '/path/to/second/env/file',
+    ]
 
 `node["environ"]["python"]["sitecustomize"]` -- the path to a python module that will be symbolic linked to the python site-packages directory.
 
@@ -33,3 +40,4 @@ Ubuntu 12.04, nothing else has been tested
 ## Notes
 
 Currently, this is limited to "global" environment variables, but [magic shell](https://github.com/customink-webops/magic_shell) could point the way on adding user specific global variables.
+
