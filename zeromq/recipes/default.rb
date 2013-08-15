@@ -48,11 +48,6 @@ bash "install_zeromq" do
 end
 
 # this is sometimes needed, sometimes not (eg ec2 boxes need it)
-# execute "ldconfig -v" do
-#   user "root"
-#   group "root"
-# end
-
 execute "ldconfig" do
   user "root"
   group "root"
