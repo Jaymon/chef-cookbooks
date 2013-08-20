@@ -1,0 +1,15 @@
+start on started network-services
+stop on stopping network-services
+respawn
+
+setuid <%= @user %>
+setgid <%= @user %>
+
+<% if defined?(@base_dir) %>
+chdir <%= @base_dir %>
+<% end %>
+
+script
+  exec <%= @command %>
+end script
+

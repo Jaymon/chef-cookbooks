@@ -5,6 +5,7 @@ u = n["user"]
 # prerequisites
 include_recipe "zeromq"
 
+# http://mongrel2.org/manual/book-finalch3.html
 ["git", "sqlite3", "libsqlite3-dev"].each do |package_name|
   package package_name do
     action :install

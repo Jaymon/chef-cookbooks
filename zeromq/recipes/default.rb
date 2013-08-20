@@ -12,7 +12,11 @@ src_filepath = ::File.join(src_dir, src_tarfile)
 src_extract_dir = ::File.join(src_dir, src_basename)
 
 # prerequisites
-["make", "g++"].each do |package_name|
+# not sure if uuid-dev or uuid-runtime are needed, they haven't seemed to be in
+# vagrant boxes, but I'm trying to get more stable provisioning in AWS EC2 which
+# seems to be more failure prone
+# http://zeromq.org/area:download
+["make", "g++", "uuid-dev"].each do |package_name|
   package package_name do
     action :install
   end
@@ -52,3 +56,4 @@ execute "ldconfig" do
   user "root"
   group "root"
 end
+
