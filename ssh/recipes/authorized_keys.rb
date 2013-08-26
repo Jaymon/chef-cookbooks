@@ -5,9 +5,10 @@ n = node[name][recipe_name.to_s]
 authorized_keys = []
 n.each do |key_file|
 
-  if ::File.exists?(key_file)
-    authorized_keys << File.open(key_file, "r").read
-  end
+  authorized_keys << File.open(key_file, "r").read.strip
+#   if ::File.exists?(key_file)
+#     authorized_keys << File.open(key_file, "r").read
+#   end
 
 end
 
@@ -48,6 +49,7 @@ if authorized_keys.length > 0
 
 
     # http://stackoverflow.com/questions/15292579/
+    authorized_keys << "" # we want a newline at the end
     file key_file do
       content authorized_keys.join("\n")
       owner username

@@ -3,13 +3,15 @@
 ##
 include_recipe "pip" # to make this work, you need depends "pip" in metadata
 
-package "python-dev" do
+# package "python-dev" do
+#   action :install
+# end
+
+pip "tornado" do
   action :install
 end
 
-pip "pyzmq" do
+pip "pynsq" do
   action :install
-  user "root"
-  group "root"
 end
 

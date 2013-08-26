@@ -59,6 +59,7 @@ bash "move_nsq_executables" do
     fi
   done
   EOH
+  not_if { ::Dir[::File.join(src_extract_dir, "bin", "*")].empty? }
 end
 
 directory n['share_dir'] do
@@ -76,6 +77,7 @@ bash "move_nsq_share" do
     mv -u share/* \"#{n['share_dir']}\"
   EOH
   cwd src_extract_dir
+  not_if { ::Dir[::File.join(src_extract_dir, "share", "*")].empty? }
 end
 
 directory n['data_dir'] do
