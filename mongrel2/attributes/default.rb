@@ -9,7 +9,7 @@ default[name]["version"] = "1.8.0"
 default[name]["user"] = "www-data"
 
 # the base_dir will correspond to your chroot in your conf file
-default[name]["base_dir"] = ::File.join("", "etc", name)
+default[name]["base_dir"] = ::File.join("", "opt", name)
 
 # these will be in the form of: "uuid" => "file location"
 default[name]["servers"] = {}
