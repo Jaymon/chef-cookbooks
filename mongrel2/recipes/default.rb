@@ -43,59 +43,7 @@ directory base_dir do
   action :create
 end
 
-# /var/run/mongrel2 and /var/log/mongrel2 will be symlinked to base_dir/run, and base_dir/log
-# ["run", "log"].each do |d|
-# 
-#   dir_d = ::File.join("", "var", d, name)
-#   
-#   directory dir_d do
-#     owner u
-#     group u
-#     mode "0755"
-#     mode "0777"
-#     recursive true
-#     action :create
-#   end
-# 
-#   dirs[d] = ::File.join(base_dir, d)
-# 
-#   link "link_#{dir_d}" do
-#     target_file dirs[d]
-#     owner u
-#     group u
-#     to dir_d
-#     action :create
-#     link_type :symbolic
-#   end
-#   
-# end
-
-["run", "log"].each do |d|
-
-  dirs[d] = ::File.join(base_dir, d)
-
-  directory dirs[d] do
-    owner u
-    group u
-    mode "0755"
-    mode "0777"
-    recursive true
-    action :create
-  end
-
-  dir_d = ::File.join("", "var", d, name)
-
-  link "link_#{dir_d}" do
-    target_file dir_d
-    owner u
-    group u
-    to dirs[d]
-    action :create
-    link_type :symbolic
-  end
-  
-end
-["conf", "certs"].each do |d|
+["run", "log", "conf", "certs"].each do |d|
 
   dirs[d] = ::File.join(base_dir, d)
   

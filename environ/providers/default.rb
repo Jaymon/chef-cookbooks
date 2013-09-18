@@ -7,11 +7,19 @@ end
 class Environ
   attr_accessor :hash, :file
 
-  def initialize(file="/etc/environment")
+  def initialize(file, error_on_missing=true)
     @hash = {}
     @hash_changed = false
     @file_loaded = false
     @file = file
+    if error_on_missing
+      if !::File.file?(file)
+        raise ::Errno::ENOENT.new("#{file} does not exist")
+      end
+
+    else
+      @file_loaded = true
+    end
   end
 
   def read_file?()
@@ -25,11 +33,19 @@ class Environ
     @hash_changed = false
 
     ::IO.foreach(@file) do |line|
-      # we only want KEY=val lines, everything else is ignored (could be comments or whitespace)
+      # we only want environment KEY=val lines, ignore comments and/or whitespace
       if line.match(/^[a-z0-9_]+=/i)
+        # line matches: ENV_NAME=...
         key, val = line.split('=')
         #p "load #{key} = #{val}"
         @hash[key.strip()] = val.strip()
+
+      elsif line.match(/^export\s+[a-z0-9_]+=/i)
+        # line matches: export ENV_NAME=...
+        discarded, env_segment = line.split(/\s+/, 2) 
+        key, val = env_segment.split('=')
+        @hash[key.strip()] = val.strip()
+
       end
 
     end
@@ -78,7 +94,7 @@ class Environ
 
 end
 
-e = Environ.new
+e = Environ.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
 
 action :set do
   env_name = new_resource.name
