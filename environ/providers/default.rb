@@ -109,6 +109,7 @@ action :set do
         backup false
         owner "root"
         group "root"
+        mode "0644"
         source "environment.erb"
         variables "hash" => e.hash
       end
@@ -142,6 +143,7 @@ action :file do
         owner "root"
         group "root"
         source "environment.erb"
+        mode "0644"
         variables "hash" => e.hash
       end
     end
