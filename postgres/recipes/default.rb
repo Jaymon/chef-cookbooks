@@ -11,6 +11,9 @@
 
 # Even though I'd been using this recipe for quite a while, all of a sudden Postgres is
 # snippy about the locale of the box to use unicode, so let's set it
+name = cookbook_name.to_s
+n = node[name]
+
 locales = ["LC_COLLATE", "LC_CTYPE", "LC_ALL", "LANG", "LANGUAGE"]
 locales_prev = {}
 
@@ -36,7 +39,7 @@ package "postgresql-contrib" do
 end
 
 # add the postgres users and passwords
-node["postgres"]["users"].each do |username, password|
+n["users"].each do |username, password|
 
   # add the user
   # http://www.postgresql.org/docs/8.1/static/app-createuser.html
@@ -60,7 +63,7 @@ node["postgres"]["users"].each do |username, password|
 end
     
 # add databases
-node["postgres"]["databases"].each do |username, dbnames|
+n["databases"].each do |username, dbnames|
 
   Array(dbnames).each do |dbname|
 
@@ -99,14 +102,14 @@ users_home.each do |user_home|
   end
   
   # add a .pgpass file if the user is one of the postgres users
-  if node["postgres"]["users"].has_key?(user)
+  if n["users"].has_key?(user)
   
     # http://wiki.opscode.com/display/ChefCN/Templates
     template File.join(user_home,".pgpass") do
       source "pgpass.erb"
       variables(
         :username => user,
-        :password => node["postgres"]["users"][user]
+        :password => n["users"][user]
       )
       owner user
       group user
