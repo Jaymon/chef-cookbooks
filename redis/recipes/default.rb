@@ -29,6 +29,13 @@ package 'redis-server' do
   action :install
 end
 
+# redis always gives a warning about this, TODO, make this an option?
+execute "sysctl vm.overcommit_memory=1" do
+  user "root"
+  group "root"
+  action :run
+end
+
 if n.has_key?('conf_file') and !n['conf_file'].empty?
 
   # get rid of original conf file if it exists and is not already backed up
@@ -49,13 +56,16 @@ if n.has_key?('conf_file') and !n['conf_file'].empty?
   end
 
   link "link_#{n["conf_file"]}" do
-    target_file '/etc/redis/redis.conf'
+    target_file redis_conf_path
     owner "root"
     group "root"
     to n["conf_file"]
     action :nothing
     link_type :symbolic
   end
+
+  # TODO -- save an md5 hash of the linked conf file and check it every run, if
+  # it is different than before, then restart redis
 
 end
 
