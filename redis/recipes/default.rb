@@ -36,17 +36,24 @@ execute "sysctl vm.overcommit_memory=1" do
   action :run
 end
 
+redis_conf_path = n['dest_conf_file']
+# back up original conf file if it exists and is not already backed up
+redis_confbak_path = "#{n['dest_conf_file']}.bak"
+
+execute "cp #{redis_conf_path} #{redis_confbak_path}" do
+  user "root"
+  group "root"
+  action :run
+  not_if "test -f #{redis_confbak_path}"
+end
+
 if n.has_key?('conf_file') and !n['conf_file'].empty?
 
-  # get rid of original conf file if it exists and is not already backed up
-  redis_conf_path = n['dest_conf_file']
-  redis_confbak_path = "#{n['dest_conf_file']}.bak"
-
-  execute "mv #{redis_conf_path} #{redis_confbak_path}" do
+  file redis_conf_path do
     user "root"
     group "root"
-    action :run
-    not_if "test -f #{redis_confbak_path}"
+    action :delete
+    force_unlink true
   end
 
   # we want to fail if the configuration file is defined but doesn't exist
@@ -66,6 +73,18 @@ if n.has_key?('conf_file') and !n['conf_file'].empty?
 
   # TODO -- save an md5 hash of the linked conf file and check it every run, if
   # it is different than before, then restart redis
+
+end
+
+if n.has_key?('include_conf_files')
+
+  n["include_conf_files"].each do |conf_file|
+
+    execute "echo 'include #{conf_file}' >> #{redis_conf_path}" do
+      not_if "grep '#{conf_file}' #{redis_conf_path}"
+    end
+
+  end
 
 end
 
