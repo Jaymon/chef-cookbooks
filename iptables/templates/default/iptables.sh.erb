@@ -1,0 +1,42 @@
+#!/bin/sh
+# borrowed from: http://jerrywalsh.org/2012/howto-secure-your-linux-box-with-iptables-0112.html
+# other helpful links:
+# http://www.etoyoc.com/linux/iptables-lockdown.html
+
+# set -x
+
+# flush rules
+iptables -F
+
+# Log dropped connections
+#iptables -N LOGDROP
+
+# allow localhost connections to the loopback interface 
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT ! -i lo -d 127.0.0.0/8 -j REJECT
+
+# allow connections which are already established
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# allow all outbound connections
+iptables -A OUTPUT -j ACCEPT
+
+# open these ports to the public
+<% @open_ports.each do |val| %>
+iptables -A INPUT -p tcp --dport <%= val %> -j ACCEPT
+<% end %>
+
+# allow full access to these ip addresses
+<% @whitelist.each do |val| %>
+iptables -A INPUT -s <%= val %> -j ACCEPT
+<% end %>
+
+# ignore all inbound traffic
+iptables -A INPUT -j DROP
+# politely reject all forward traffic attempts
+iptables -A FORWARD -j REJECT
+# allow all outbound traffic
+iptables -A OUTPUT -j ACCEPT
+
+# set +x
+
