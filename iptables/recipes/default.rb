@@ -2,7 +2,7 @@ name = cookbook_name.to_s
 n = node[name]
 
 # you can really bite yourself in the foot here if you haven't opened at least ssh
-if !n['open_ports'].empty? or !n['white_list'].empty?
+if !n['open_ports'].empty? or !n['whitelist'].empty?
 
   service_name = "iptables-config"
   config = ::File.join("", "opt", "#{service_name}.sh")
