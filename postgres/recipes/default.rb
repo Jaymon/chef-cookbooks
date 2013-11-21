@@ -120,12 +120,28 @@ users_home.each do |user_home|
   end
 
 end
-    
+
 # http://wiki.opscode.com/display/chef/Resources#Resources-Service
 service "postgres" do
   service_name "postgresql"
   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
   action :nothing
+end
+
+# make sure postgres can listen to remote machines
+# http://stackoverflow.com/questions/1287067/unable-to-connect-postgresql-to-remote-database-using-pgadmin
+execute "find /etc/postgresql -name postgresql.conf | xargs sed -i -e \"s/#listen_addresses = 'localhost'/listen_addresses = '*'/\"" do
+  user "root"
+  action :run
+  not_if "find /etc/postgresql -name postgresql.conf | xargs grep \"listen_addresses = '\\*'\""
+  notifies :restart, "service[postgres]", :delayed
+end
+
+execute "find /etc/postgresql -name pg_hba.conf | xargs sed -ie \"$ a\host all all 0.0.0.0/0 md5\"" do
+  user "root"
+  action :run
+  not_if "find /etc/postgresql -name pg_hba.conf | xargs grep \"host all all 0.0.0.0/0 md5\""
+  notifies :restart, "service[postgres]", :delayed
 end
 
 ruby_block "reset previous locale" do
