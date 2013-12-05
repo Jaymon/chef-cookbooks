@@ -30,3 +30,6 @@ stop the server:
 
 Ubuntu 12.04, nothing else has been tested
 
+# Known bugs
+
+if you change the name of the conf_file, the old conf file will still be included and the new conf file will be included underneath it, causing problems, this could be solved by creating a `-------start redis cookbook additions---------...------end redis cookbook additions---------` area that gets cleared on ever run.
