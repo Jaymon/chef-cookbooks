@@ -14,19 +14,19 @@ package "python-pip" do
 end
 
 # update pip
-pip "pip" do
+pip "pip==1.4.1" do
   user "root"
   group "root"
   action :upgrade
 end
 
 # update setuptools
-pip "distribute" do
-  user "root"
-  group "root"
-  action :upgrade
-  flags "--no-use-wheel"
-end
+# pip "distribute" do
+#   user "root"
+#   group "root"
+#   action :upgrade
+#   flags "--no-use-wheel"
+# end
 
 [:install, :upgrade].each do |p_action|
   if n.has_key?(p_action)
