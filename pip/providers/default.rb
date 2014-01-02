@@ -54,7 +54,14 @@ action :upgrade do
   tt = Time.now.strftime("%Y-%m-%d-%H_%M_%S")
   build_tmp = ::File.join(Chef::Config[:file_cache_path], tt)
 
-  pip_cmd = "pip install --upgrade --build #{build_tmp}"
+  pip_cmd = "pip install --upgrade"
+
+  # add flags
+  if new_resource.flags
+    pip_cmd += " " + new_resource.flags
+  end
+
+  pip_cmd += " --build #{build_tmp}"
 
   if ::File.exists?(p) # file? That means it is a requirements file created from pip freeze
     pip_cmd += " -r #{p}"
