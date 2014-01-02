@@ -11,6 +11,11 @@ action :install do
   pip_cmd = "pip install"
   tmp = Chef::Config[:file_cache_path]
 
+  # add flags
+  if new_resource.flags
+    pip_cmd += " " + new_resource.flags
+  end
+
   if ::File.exists?(p) # file? That means it is a requirements file created from pip freeze
     pip_cmd += " -r #{p}"
   

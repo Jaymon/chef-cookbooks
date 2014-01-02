@@ -20,6 +20,14 @@ pip "pip" do
   action :upgrade
 end
 
+# update setuptools
+pip "distribute" do
+  user "root"
+  group "root"
+  action :upgrade
+  flags "--no-use-wheel"
+end
+
 [:install, :upgrade].each do |p_action|
   if n.has_key?(p_action)
     n[p_action].each do |p|
