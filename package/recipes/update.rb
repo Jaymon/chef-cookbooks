@@ -2,7 +2,7 @@
 # update the apt-get repos, that's it
 ##
 
-# only do this once a day at most
+# only do this at some interval
 if !::File.exists?(node["package"]["check_file"])
 
   execute "apt-get update" do
