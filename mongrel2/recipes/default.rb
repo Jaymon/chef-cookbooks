@@ -108,18 +108,35 @@ execute "load_config" do
   notifies :restart, "service[#{name}]", :delayed
 end
 
-# TODO -- make a codeblock that will query sqlite and pull the server names out so
-# they don't have to be specified in the conf
+# build the server list for the init.d script
+# TODO -- strip out lines that are commented out (basically, if the line starts with
+# an #, then ignore it)
+servers = []
+contents = ::File.read(n["conf_file"])
+contents.scan(/uuid\s*\=\s*\"([^\"]+)\"/).each do |uuid|
+  p uuid
+  servers << uuid[0]
+end
 
 template ::File.join("", "etc", "init.d", name) do
   source "#{name}.erb"
   owner "root"
   group "root"
   mode "0655"
-  variables("names" => n['servers'], "base_dir" => base_dir, "conf_db" => conf_db, "run_dir" => dirs["run"])
+  variables("names" => servers, "base_dir" => base_dir, "conf_db" => conf_db, "run_dir" => dirs["run"])
   notifies :restart, "service[#{name}]", :delayed
 end
-      
+
+# add an upstart wrapper around the init.d script
+cookbook_file ::File.join("", "etc", "init", "mongrel2.conf") do
+  backup false
+  source "mongrel2.conf"
+  owner user
+  group user
+  mode "0644"
+  action :create_if_missing
+end
+  
 service name do
   service_name name
   action :nothing

@@ -13,27 +13,21 @@ package "python-pip" do
   action :install
 end
 
-# update pip
-pip "pip==1.4.1" do
-  user "root"
-  group "root"
+# update pip and the tools pip needs to work
+pip "pip" do
   action :upgrade
 end
 
-# update setuptools
-# pip "distribute" do
-#   user "root"
-#   group "root"
-#   action :upgrade
-#   flags "--no-use-wheel"
-# end
+pip "setuptools" do
+  action :upgrade
+  flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
+end
 
+# install any python modules specified
 [:install, :upgrade].each do |p_action|
   if n.has_key?(p_action)
     n[p_action].each do |p|
       pip p do
-        user "root"
-        group "root"
         action p_action
       end
     end
