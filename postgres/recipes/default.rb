@@ -13,6 +13,11 @@
 # snippy about the locale of the box to use unicode, so let's set it
 name = cookbook_name.to_s
 n = node[name]
+cmd_user = "sudo -u postgres"
+
+# p "============================================================================"
+# p n
+# p "============================================================================"
 
 locales = ["LC_COLLATE", "LC_CTYPE", "LC_ALL", "LANG", "LANGUAGE"]
 locales_prev = {}
@@ -38,24 +43,25 @@ package "postgresql-contrib" do
   action :install
 end
 
+
+###############################################################################
 # add the postgres users and passwords
+###############################################################################
 n["users"].each do |username, password|
 
   # add the user
   # http://www.postgresql.org/docs/8.1/static/app-createuser.html
   cmd = "createuser --no-superuser --createdb --no-createrole --echo #{username}"
   not_cmd = "psql -c \"select usename from pg_user where usename='#{username}'\" -d template1 | grep -w \"#{username}\""
-  execute "sudo -u postgres #{cmd}" do
-    user "root"
+  execute "#{cmd_user} #{cmd}" do
     action :run
     #ignore_failure true
-    not_if "sudo -u postgres #{not_cmd}"
+    not_if "#{cmd_user} #{not_cmd}"
   end
   
   # set the user's password, we run this every time so updated passwords get changed
   cmd = "psql -c \"ALTER USER #{username} WITH PASSWORD '#{password}'\" -d template1"
-  execute "sudo -u postgres #{cmd}" do
-    user "root"
+  execute "#{cmd_user} #{cmd}" do
     action :run
     #ignore_failure true
   end
@@ -70,17 +76,20 @@ n["databases"].each do |username, dbnames|
     #cmd = "createdb --template=template0 -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
     cmd = "createdb -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
     not_cmd = "psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""
-    execute "sudo -u postgres #{cmd}" do
-      user "root"
+    execute "#{cmd_user} #{cmd}" do
       action :run
       #ignore_failure true
-      not_if "sudo -u postgres #{not_cmd}"
+      not_if "#{cmd_user} #{not_cmd}"
     end
     
   end
 
 end
     
+
+###############################################################################
+# add psqlrc files for all users on the system
+###############################################################################
 # add the .psqlrc file to all the users if it doesn't already exist
 # I can't find a reliable way to know where to place a global psqlrc file, this is the 
 # closest I've found: http://comments.gmane.org/gmane.comp.db.postgresql.admin/30740
@@ -122,27 +131,85 @@ users_home.each do |user_home|
 end
 
 # http://wiki.opscode.com/display/chef/Resources#Resources-Service
-service "postgres" do
+service name do
   service_name "postgresql"
   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
   action :nothing
 end
 
-# make sure postgres can listen to remote machines
-# http://stackoverflow.com/questions/1287067/unable-to-connect-postgresql-to-remote-database-using-pgadmin
-execute "find /etc/postgresql -name postgresql.conf | xargs sed -i.bak -e \"s/#listen_addresses = 'localhost'/listen_addresses = '*'/\"" do
-  user "root"
-  action :run
-  not_if "find /etc/postgresql -name postgresql.conf | xargs grep \"listen_addresses = '\\*'\""
-  notifies :restart, "service[postgres]", :delayed
+###############################################################################
+# reconfigure postgres
+###############################################################################
+if n.has_key?("conf")
+
+  # build a config file mapping we can manipulate
+  conf_lines = []
+  conf_lookup = {}
+  cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
+  ::File.read(n["conf_file"]).each_line.with_index do |conf_line, index|
+    if conf_line.match(/^\S+\s*=/)
+      conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
+      conf_val, conf_comment = conf_val.split(/#/, 2)
+
+      #conf_val.rstrip!
+      if conf_comment
+        conf_comment.rstrip!
+      else
+        conf_comment = ''
+      end
+
+      if conf_var[0] == '#'
+        conf_var = conf_var[1..-1]
+      end
+      conf_lookup[conf_var] = [index, conf_comment]
+
+    end
+
+    conf_lines << conf_line
+
+  end
+
+  # modify our config file and write it out to our temp conf file
+  n["conf"].each do |key, val|
+    conf_line = "#{key} = #{val}"
+    if conf_lookup.has_key?(key)
+      cb = conf_lookup[key]
+      if !cb[1].empty?
+        conf_line += " ##{cb[1]}"
+      end
+      conf_lines[cb[0]] = conf_line
+
+    else
+      conf_lines << conf_line
+
+    end
+
+  end
+
+  ::File.open(cache_conf_file, "w+") do |f|
+    f.puts(conf_lines)
+  end
+
+  remote_file n['conf_file'] do
+    backup false
+    source "file://#{cache_conf_file}"
+    mode "0644"
+    notifies :restart, "service[#{name}]", :delayed
+  end
+
 end
 
+
+# make sure postgres can listen to remote machines
+# http://stackoverflow.com/questions/1287067/unable-to-connect-postgresql-to-remote-database-using-pgadmin
+# TODO -- I don't like how this is handled
 execute "find /etc/postgresql -name pg_hba.conf | xargs sed  -i.bak -e \"$ a\host all all 0.0.0.0/0 md5\"" do
   user "root"
   action :run
   not_if "find /etc/postgresql -name pg_hba.conf | xargs grep \"host all all 0.0.0.0/0 md5\""
   notifies :restart, "service[postgres]", :delayed
 end
+
 
 ruby_block "reset previous locale" do
   block do 

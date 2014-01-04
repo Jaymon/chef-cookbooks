@@ -23,6 +23,16 @@ So if you wanted to have your created users create a couple of databases:
       "bar" => "bar_db"
     }
 
+`default["postgres"]["conf"]` -- A hash of variables and their values
+
+For strings, you need to make sure the single quotes are there, so to change logging, you would do:
+
+    default["postgres"]["conf"] = {
+      "log_statement" => "'mod'"
+    }
+
+Notice that `'mod'` is the value, not `mod`.
+
 ## Platform
 
 Ubuntu 12.04, nothing else has been tested
