@@ -2,7 +2,9 @@ name = cookbook_name.to_s
 n = node[name]
 u = n["user"]
 
+###############################################################################
 # prerequisites
+###############################################################################
 include_recipe "zeromq"
 
 # http://mongrel2.org/manual/book-finalch3.html
@@ -12,8 +14,6 @@ include_recipe "zeromq"
   end
 end
 
-include_recipe "#{name}::src"
-
 # create the user that will manage mongrel
 user u do
   system true
@@ -21,8 +21,13 @@ user u do
   shell "/bin/false"
 end
 
+
+###############################################################################
+# get the source and install it
+###############################################################################
+include_recipe "#{name}::src"
+
 bash "install_#{name}" do
-  user "root"
   cwd n["src_dir"]
   code <<-EOH
   make clean all
@@ -32,7 +37,10 @@ bash "install_#{name}" do
   action :run
 end
 
+
+###############################################################################
 # create directories
+###############################################################################
 dirs = {}
 base_dir = n["base_dir"]
 directory base_dir do
@@ -57,64 +65,60 @@ end
   
 end
 
-# create the conf dir
+
+###############################################################################
+# configure mongrel
+###############################################################################
 conf_db = ::File.join(base_dir, "config.sqlite")
-conf_link = ::File.join(dirs["conf"], "config.conf")
-
-# we want to fail if the configuration file doesn't exist
-execute "test -f #{n["conf_file"]}" do
-  action :run
-  notifies :create, "link[link_#{n["conf_file"]}]", :immediately
-end
-
-link "link_#{n["conf_file"]}" do
-  target_file conf_link
-  owner u
-  group u
-  to n["conf_file"]
-  action :nothing
-  link_type :symbolic
-end
+conf_file_dest = ::File.join(dirs["conf"], "config.conf")
 
 # put the certs in the right spot
 if n.has_key?("certs")
   n['certs'].each do |cert_name, cert_file|
 
-    execute "test -f #{cert_file}" do
-      action :run
-      notifies :create, "link[#{cert_file}]", :immediately
-    end
-
-    link cert_file do
-      target_file ::File.join(dirs["certs"], "#{cert_name}")
-      owner u
+    remote_file ::File.join(dirs["certs"], "#{cert_name}") do
+      backup false
+      user u
       group u
-      to cert_file
-      action :nothing
-      link_type :symbolic
+      source "file://#{cert_file}"
+      mode "0644"
+      #notifies :restart, "service[#{name}]", :delayed
     end
-
 
   end
 end
 
+remote_file conf_file_dest do
+  backup false
+  user u
+  group u
+  source "file://#{n["conf_file"]}"
+  mode "0644"
+  #notifies :restart, "service[#{name}]", :delayed
+  notifies :run, "execute[load_config]", :immediately
+end
+
 execute "load_config" do
-  command "m2sh load -config #{conf_link} -db #{conf_db}"
+  command "m2sh load -config #{conf_file_dest} -db #{conf_db}"
   cwd base_dir
   retries 1
   user u
   group u
-  action :run
+  action :nothing
   notifies :restart, "service[#{name}]", :delayed
 end
 
+
+###############################################################################
+# build/place the init/upstart scripts, and set up the service
+###############################################################################
 # build the server list for the init.d script
 # TODO -- strip out lines that are commented out (basically, if the line starts with
 # an #, then ignore it)
 servers = []
 contents = ::File.read(n["conf_file"])
 contents.scan(/uuid\s*\=\s*\"([^\"]+)\"/).each do |uuid|
-  p uuid
+  #p uuid
   servers << uuid[0]
 end
 
@@ -136,7 +140,7 @@ cookbook_file ::File.join("", "etc", "init", "mongrel2.conf") do
   mode "0644"
   action :create_if_missing
 end
-  
+
 service name do
   service_name name
   action :nothing
