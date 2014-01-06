@@ -76,6 +76,12 @@ conf_file_dest = ::File.join(dirs["conf"], "config.conf")
 if n.has_key?("certs")
   n['certs'].each do |cert_name, cert_file|
 
+    # TODO -- remove this when all web servers have been updated
+    cert_file_dest = ::File.join(dirs["certs"], "#{cert_name}")
+    execute "rm #{cert_file_dest}" do
+      only_if "test -L #{cert_file_dest}"
+    end
+
     remote_file ::File.join(dirs["certs"], "#{cert_name}") do
       backup false
       user u
@@ -86,6 +92,11 @@ if n.has_key?("certs")
     end
 
   end
+end
+
+# TODO -- remove this when all web servers have been updated
+execute "rm #{conf_file_dest}" do
+  only_if "test -L #{conf_file_dest}"
 end
 
 remote_file conf_file_dest do
