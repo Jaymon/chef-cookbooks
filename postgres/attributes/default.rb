@@ -8,7 +8,7 @@ default[name]["users"] = {"postgres" => "postgres"}
 default[name]["databases"] = {}
 
 version_str = %x(dpkg -s postgresql|grep Version)
-if verstion_str
+if version_str
   version = version_str.match(/^Version:\s*([\d\.]+)/i)[1]
 
   default[name]["version"] = version
