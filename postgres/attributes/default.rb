@@ -8,10 +8,12 @@ default[name]["users"] = {"postgres" => "postgres"}
 default[name]["databases"] = {}
 
 version_str = %x(dpkg -s postgresql|grep Version)
-version = version_str.match(/^Version:\s*([\d\.]+)/i)[1]
+if verstion_str
+  version = version_str.match(/^Version:\s*([\d\.]+)/i)[1]
 
-default[name]["version"] = version
-default[name]["conf_file"] = ::File.join("", "etc", "postgresql", version, "main", "postgresql.conf")
+  default[name]["version"] = version
+  default[name]["conf_file"] = ::File.join("", "etc", "postgresql", version, "main", "postgresql.conf")
+end
 
 default[name]["conf"] = {}
 default[name]["conf"]["listen_addresses"] = "'*'"
