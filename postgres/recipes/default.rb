@@ -13,7 +13,8 @@
 # snippy about the locale of the box to use unicode, so let's set it
 name = cookbook_name.to_s
 n = node[name]
-cmd_user = "sudo -u postgres"
+u = "postgres"
+cmd_user = "sudo -u #{u}"
 
 # p "============================================================================"
 # p n
@@ -142,58 +143,76 @@ end
 ###############################################################################
 if n.has_key?("conf")
 
-  # build a config file mapping we can manipulate
-  conf_lines = []
-  conf_lookup = {}
+  # the code to configure postgres is kind of a chicken/egg problem, on first run
+  # there is no postgres.conf file to read from, so you can't have this code run
+  # until postgres is actually installed, so on first run through, the cache_conf_file
+  # and n['conf_file'] are pointing to files that don't actually exist, which is 
+  # why we use a ruby_block and notifications
+
   cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
-  ::File.read(n["conf_file"]).each_line.with_index do |conf_line, index|
-    if conf_line.match(/^\S+\s*=/)
-      conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
-      conf_val, conf_comment = conf_val.split(/#/, 2)
 
-      #conf_val.rstrip!
-      if conf_comment
-        conf_comment.rstrip!
-      else
-        conf_comment = ''
+  ruby_block "configure postgres" do
+    block do
+
+      # build a config file mapping we can manipulate
+      conf_lines = []
+      conf_lookup = {}
+      ::File.read(n["conf_file"]).each_line.with_index do |conf_line, index|
+        if conf_line.match(/^\S+\s*=/)
+          conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
+          conf_val, conf_comment = conf_val.split(/#/, 2)
+
+          #conf_val.rstrip!
+          if conf_comment
+            conf_comment.rstrip!
+          else
+            conf_comment = ''
+          end
+
+          if conf_var[0] == '#'
+            conf_var = conf_var[1..-1]
+          end
+          conf_lookup[conf_var] = [index, conf_comment]
+
+        end
+
+        conf_lines << conf_line
+
       end
 
-      if conf_var[0] == '#'
-        conf_var = conf_var[1..-1]
+      # modify our config file and write it out to our temp conf file
+      n["conf"].each do |key, val|
+        conf_line = "#{key} = #{val}"
+        if conf_lookup.has_key?(key)
+          cb = conf_lookup[key]
+          if !cb[1].empty?
+            conf_line += " ##{cb[1]}"
+          end
+          conf_lines[cb[0]] = conf_line
+
+        else
+          conf_lines << conf_line
+
+        end
+
       end
-      conf_lookup[conf_var] = [index, conf_comment]
+
+      ::File.open(cache_conf_file, "w+") do |f|
+        f.puts(conf_lines)
+      end
 
     end
+    notifies :create, "remote_file[#{n['conf_file']}]", :delayed
 
-    conf_lines << conf_line
-
-  end
-
-  # modify our config file and write it out to our temp conf file
-  n["conf"].each do |key, val|
-    conf_line = "#{key} = #{val}"
-    if conf_lookup.has_key?(key)
-      cb = conf_lookup[key]
-      if !cb[1].empty?
-        conf_line += " ##{cb[1]}"
-      end
-      conf_lines[cb[0]] = conf_line
-
-    else
-      conf_lines << conf_line
-
-    end
-
-  end
-
-  ::File.open(cache_conf_file, "w+") do |f|
-    f.puts(conf_lines)
   end
 
   remote_file n['conf_file'] do
     backup false
     source "file://#{cache_conf_file}"
+    owner u
+    group u
     mode "0644"
+    action :nothing
     notifies :restart, "service[#{name}]", :delayed
   end
 
