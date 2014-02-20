@@ -123,6 +123,32 @@ end
 ###############################################################################
 # build/place the init/upstart scripts, and set up the service
 ###############################################################################
+
+# compile a list of all directories to mount into m2's chrooted directory so m2
+# has access to them
+prestart_cmd = ""
+poststop_cmd = ""
+if n.has_key?('static_dirs') and !n['static_dirs'].empty?
+
+  n['static_dirs'].each do |rel_dir, orig_dir|
+
+    static_dir = ::File.join(base_dir, rel_dir)
+
+    directory static_dir do
+      owner u
+      group u
+      mode "0755"
+      recursive true
+      action :create
+    end
+
+    prestart_cmd += "mount --bind #{orig_dir} #{static_dir}\n"
+    poststop_cmd += "umount #{static_dir}\n"
+
+  end
+  
+end
+
 # build the server list for the init.d script
 # TODO -- strip out lines that are commented out (basically, if the line starts with
 # an #, then ignore it)
@@ -143,17 +169,20 @@ template ::File.join("", "etc", "init.d", name) do
 end
 
 # add an upstart wrapper around the init.d script
-cookbook_file ::File.join("", "etc", "init", "mongrel2.conf") do
+template ::File.join("", "etc", "init", "mongrel2.conf") do
   backup false
-  source "mongrel2.conf"
+  source "#{name}.conf.erb"
   owner user
   group user
   mode "0644"
-  action :create_if_missing
+  variables("prestart" => prestart_cmd, "poststop" => poststop_cmd)
+  action :create
+  notifies :restart, "service[#{name}]", :delayed
 end
 
 service name do
   service_name name
+  provider Chef::Provider::Service::Upstart
   action :nothing
   supports :status => true, :start => true, :stop => true, :restart => true
 end

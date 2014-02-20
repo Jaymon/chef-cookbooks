@@ -1,0 +1,24 @@
+start on (starting network-interface
+          or starting network-manager
+          or starting networking)
+
+stop on runlevel [!023456]
+
+console output
+
+pre-start script
+  <% if defined?(@prestart) %>
+  <%= @prestart %>
+  <% end %>
+  /etc/init.d/mongrel2 start
+end script
+
+#pre-start exec /etc/init.d/mongrel2 start
+#post-stop exec /etc/init.d/mongrel2 stop
+
+post-stop script
+  <% if defined?(@poststop) %>
+  <%= @poststop %>
+  <% end %>
+  /etc/init.d/mongrel2 stop
+end script

@@ -11,9 +11,8 @@ default[name]["user"] = "www-data"
 # the base_dir will correspond to your chroot in your conf file
 default[name]["base_dir"] = ::File.join("", "opt", name)
 
-# these will be in the form of: "uuid" => "file location"
-default[name]["servers"] = {}
-
+# these will be in the form of: relative/path/to/base_dir => /full/actual/path
+default[name]["static_dirs"] = {}
 
 # I wouldn't override these unless you know what you're doing:
 default[name]["src_dir"] = ::File.join(Chef::Config[:file_cache_path], name)
