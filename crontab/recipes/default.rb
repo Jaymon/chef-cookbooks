@@ -22,6 +22,8 @@ if n.has_key?('env') and !n['env'].empty?
 
 end
 
+cron_logdir = n.fetch('logdir', '')
+
 n['users'].each do |username, cron_jobs|
 
   cron_jobs.each do |cron_name, options|
@@ -41,6 +43,21 @@ n['users'].each do |username, cron_jobs|
     end
 
     cron_cmd += options['command']
+
+    if cron_logdir
+
+      cron_user_logdir = ::File.join(cron_logdir, username)
+
+      directory cron_user_logdir do
+        owner username
+        group username
+        mode '0777'
+        recursive true
+      end
+
+      cron_cmd += " >> #{::File.join(cron_user_logdir, cron_name)}.log 2>&1"
+
+    end
 
     minute, hour, day_of_month, month, day_of_week = options['schedule'].split(%r{\s+}, 5)
 
