@@ -19,13 +19,19 @@ So, you would configure it like this (in an environment file):
       "repo" => {
         "name_of_repo" => {
           "dir" => base_dir,
+          "repo" => 'git@something.git',
           "type" => "python",
-          "action" => :sync,
           "user" => username,
           "branch" => branch,
         }
       }
     }
+
+every repo will be available for listeners in other recipes using:
+
+    git[name_of_repo]
+
+That way you can have other recipes listen for changes to whatever dir and restart services or something.
 
 ## Platform
 
