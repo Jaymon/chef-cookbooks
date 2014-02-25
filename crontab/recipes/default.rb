@@ -2,6 +2,8 @@ name = cookbook_name.to_s
 n = node[name]
 
 # TODO -- completely clear the crontab file? Otherwise what happens if we remove a cronjob?
+# looks like you could actually go through the crontab and just remove the ones that chef
+# manages, and leave any manual ones, which might be the best way to do it
 
 
 # add the environment to the beginning of the command
