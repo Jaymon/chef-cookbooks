@@ -20,6 +20,12 @@ execute "nr apt update" do
 end
 
 package "newrelic-sysmond" do
+  notifies :run, "execute[nr configure]", :immediately
+end
+
+execute "nr configure" do
+  command "nrsysmond-config --set license_key=#{n['key']}"
+  action :nothing
 end
 
 service "newrelic-sysmond" do
