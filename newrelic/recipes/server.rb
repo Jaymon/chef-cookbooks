@@ -23,9 +23,10 @@ package "newrelic-sysmond" do
   notifies :run, "execute[nr configure]", :immediately
 end
 
+conf_file = ::File.join("", "etc", "nrsysmond.cfg")
 execute "nr configure" do
   command "nrsysmond-config --set license_key=#{n['key']}"
-  action :nothing
+  not_if "grep \"#{n['key']}\" #{conf_file}"
 end
 
 service "newrelic-sysmond" do
