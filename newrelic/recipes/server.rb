@@ -2,7 +2,7 @@
 name = cookbook_name.to_s
 n = node[name]
 
-nr_deb_file = ::File.join("", "etc", "sources.list.d", "newrelic.list")
+nr_deb_file = ::File.join("", "etc", "apt", "sources.list.d", "newrelic.list")
 execute "echo deb http://apt.newrelic.com/debian/ newrelic non-free >> #{nr_deb_file}" do
   not_if "test -f #{nr_deb_file}"
   notifies :run, "execute[nr add gpg key]", :immediately
