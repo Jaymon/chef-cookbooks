@@ -141,13 +141,14 @@ end
 ###############################################################################
 # reconfigure postgres
 ###############################################################################
-if n.has_key?("conf")
 
-  # the code to configure postgres is kind of a chicken/egg problem, on first run
-  # there is no postgres.conf file to read from, so you can't have this code run
-  # until postgres is actually installed, so on first run through, the cache_conf_file
-  # and n['conf_file'] are pointing to files that don't actually exist, which is 
-  # why we use a ruby_block and notifications
+# the code to configure postgres is kind of a chicken/egg problem, on first run
+# there is no postgres.conf file to read from, so you can't have this code run
+# until postgres is actually installed, so on first run through, the cache_conf_file
+# and n['conf_file'] are pointing to files that don't actually exist, which is 
+# why we use a ruby_block and notifications
+
+if n.has_key?("conf")
 
   cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
 
@@ -207,7 +208,6 @@ if n.has_key?("conf")
   end
 
   remote_file n['conf_file'] do
-    backup false
     source "file://#{cache_conf_file}"
     owner u
     group u
@@ -218,18 +218,141 @@ if n.has_key?("conf")
 
 end
 
-
-# make sure postgres can listen to remote machines
+###############################################################################
+# reconfigure pg_hba
+###############################################################################
 # http://stackoverflow.com/questions/1287067/unable-to-connect-postgresql-to-remote-database-using-pgadmin
-# TODO -- I don't like how this is handled
-execute "find /etc/postgresql -name pg_hba.conf | xargs sed  -i.bak -e \"$ a\host all all 0.0.0.0/0 md5\"" do
-  user "root"
-  action :run
-  not_if "find /etc/postgresql -name pg_hba.conf | xargs grep \"host all all 0.0.0.0/0 md5\""
-  notifies :restart, "service[postgres]", :delayed
+if n.has_key?("hba")
+
+  # the code to configure postgres is kind of a chicken/egg problem, on first run
+  # there is no postgres.conf file to read from, so you can't have this code run
+  # until postgres is actually installed, so on first run through, the cache_conf_file
+  # and n['conf_file'] are pointing to files that don't actually exist, which is 
+  # why we use a ruby_block and notifications
+
+  cache_hba_file = ::File.join(Chef::Config[:file_cache_path], "pg_hba.conf")
+
+  ruby_block "configure pg_hba" do
+    block do
+      # build a file mapping we can manipulate
+      conf_lines = []
+      conf_lookup = []
+      ::File.read(n["hba_file"]).each_line.with_index do |conf_line, index|
+        conf_line.strip!
+        conf_lines << conf_line
+
+        if conf_line =~ /^#/
+          next
+
+        elsif conf_line =~ /^\s*$/
+          next
+
+        else
+          conf_line.strip!
+          conn_type, database, user, remainder = conf_line.split(/\s+/, 4)
+          ip6 = false
+
+          if conn_type == 'local'
+            method, options = remainder.split(/\s+/, 2)
+            address = ''
+
+          else
+            address, method, options = remainder.split(/\s+/, 3)
+            if address =~ /^::/
+              ip6 = true
+            end
+
+          end
+
+          options ||= ''
+
+          d = {
+            'index' => index,
+            'ip6' => ip6,
+            'connection' => conn_type,
+            'database' => database,
+            'user' => user,
+            'method' => method,
+            'address' => address,
+            'options' => options
+          }
+          conf_lookup << d
+        end
+      end
+
+      default_row = {
+        'method' => '',
+        'address' => '',
+        'options' => ''
+      }
+
+      n['hba'].each do |row|
+        index = -1
+        conf_lookup.each do |conf_row|
+          is_match = true
+          ['connection', 'database', 'user'].each do |k|
+            if conf_row[k] != row[k]
+              is_match = false
+              break
+            end
+          end
+
+          if is_match
+            if row['address'] =~ /^::/
+              if conf_row['ip6']
+                index = conf_row['index']
+                break
+              end
+
+            else
+              index = conf_row['index']
+              break
+            end
+
+          end
+
+        end
+
+        ncrow = default_row.merge(row)
+        ncl = "#{ncrow['connection']} " + 
+          "#{ncrow['database']} " + 
+          "#{ncrow['user']} " + 
+          "#{ncrow['address']} " +
+          "#{ncrow['method']} " + 
+          "#{ncrow['options']}"
+
+        if index >= 0
+          conf_lines[index] = ncl
+
+        else
+          conf_lines << ncl
+
+        end
+
+      end
+
+      ::File.open(cache_hba_file, "w+") do |f|
+        f.puts(conf_lines)
+      end
+
+    end
+    notifies :create, "remote_file[#{n['hba_file']}]", :delayed
+  end
+
+  remote_file n['hba_file'] do
+    source "file://#{cache_hba_file}"
+    owner u
+    group u
+    mode "0644"
+    action :nothing
+    notifies :restart, "service[#{name}]", :delayed
+  end
+
 end
 
-
+###############################################################################
+# cleanup
+###############################################################################
 ruby_block "reset previous locale" do
   block do 
     # remove previous locales

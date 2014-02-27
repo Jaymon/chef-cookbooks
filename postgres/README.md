@@ -31,7 +31,19 @@ For strings, you need to make sure the single quotes are there, so to change log
       "log_statement" => "'mod'"
     }
 
-Notice that `'mod'` is the value, not `mod`.
+Notice that `'mod'` is the value (it has quotes), not `mod`.
+
+`default["postgres"]["hba"]` -- A list of hashes with the following keys:
+
+* connection -- required -- possible values: `local`, `host`, `hostssl`, or `hostnossl`.
+* database -- required
+* user -- required
+* method -- required
+* address -- required if connetion does not have the value of `local`
+* options -- optional -- space separated NAME=VALUE options
+
+Refer to the comments in the installed `pg_hba.conf` file or the **Client Authentication** section in the postgres manual.
+
 
 ## Platform
 
