@@ -10,13 +10,13 @@ end
 
 execute "nr add gpg key" do
   command "wget -O- https://download.newrelic.com/548C16BF.gpg | apt-key add -"
-  action :none
+  action :nothing
   notifies :run, "execute[nr apt update]", :immediately
 end
 
 execute "nr apt update" do
   command "apt-get update"
-  action :none
+  action :nothing
 end
 
 package "newrelic-sysmond" do
