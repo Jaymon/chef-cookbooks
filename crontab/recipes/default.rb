@@ -10,17 +10,24 @@ n = node[name]
 cron_env = ""
 if n.has_key?('env') and !n['env'].empty?
   e = n['env']
-  if ::File.exists?(e)
-    if ::File.directory?(e)
-      cron_env += "for f in #{::File.join(e, "*")}; do . $f; done;"
+  if ::File.directory?(e)
+    cron_env += "for f in #{::File.join(e, "*")}; do . $f; done;"
 
-    else
-      cron_env += ". $f;"
-
-    end
   else
-    ::Chef::Application.fatal!("#{e} is NOT a file or directory")
+    cron_env += ". $f;"
   end
+
+#   if ::File.exists?(e)
+#     if ::File.directory?(e)
+#       cron_env += "for f in #{::File.join(e, "*")}; do . $f; done;"
+# 
+#     else
+#       cron_env += ". $f;"
+# 
+#     end
+#   else
+#     ::Chef::Application.fatal!("#{e} is NOT a file or directory")
+#   end
 
 end
 
@@ -30,18 +37,20 @@ n['users'].each do |username, cron_jobs|
 
   cron_jobs.each do |cron_name, options|
     cron_cmd = cron_env
-    p options
 
     # change to the right directory
     if options.has_key?('dir') and !options['dir'].empty?
       d = options['dir']
-      if ::File.directory?(d)
-        cron_cmd += "cd #{d};"
-
-      else
-        ::Chef::Application.fatal!("#{d} is NOT a valid directory")
-
-      end
+      cron_cmd += "cd #{d};"
+#       if ::File.directory?(d)
+#         cron_cmd += "cd #{d};"
+# 
+#       else
+#         #::Chef::Application.fatal!("#{d} is NOT a valid directory")
+#         # this turned out to be a bad idea, because this is calculated before the
+#         # chef run is done, so lots of times directories aren't created yet and stuff
+# 
+#       end
     end
 
     cron_cmd += options['command']
