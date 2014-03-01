@@ -36,6 +36,8 @@ if current_hostname != new_hostname
   end
 
   if sub_count == 0
+    # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/set-hostname.html
+    # http://askubuntu.com/questions/59458/unable-to-resolve-host-none
     hosts_lines.each_index do |i|
       if hosts_lines[i].include?('127.0.1.1')
         ipaddr, hname, aliases = hosts_lines[i].split(%r{\s+})

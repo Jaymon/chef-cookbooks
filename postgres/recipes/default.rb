@@ -77,6 +77,9 @@ n["databases"].each do |username, dbnames|
     #cmd = "createdb --template=template0 -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
     cmd = "createdb -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
     not_cmd = "psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""
+    # test to see if this works
+    # http://stackoverflow.com/questions/8392973/understanding-chef-only-if-not-if
+    #not_cmd = 'psql --list|grep #{dbname}', :user => username
     execute "#{cmd_user} #{cmd}" do
       action :run
       #ignore_failure true

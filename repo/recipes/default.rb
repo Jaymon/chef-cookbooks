@@ -21,6 +21,18 @@ n.each do |key, options|
     execute "find #{d} -name '*.pyc' -delete" do
     end
 
+    # move back onto the deploy branch on every run
+    # I have a tendency to test some code by switching branches and then just pulling
+    # directly, but after a new chef run, chef git resource will just reset hard 
+    # whatever the current branch is instead of the deploy branch it originally
+    # created, this will move back to that deploy branch so I know things have been
+    # reset
+    execute "git checkout deploy" do
+      cwd d
+      only_if "test -d .git", :cwd => d
+      not_if "git status | grep \"On branch deploy\"", :cwd => d
+    end
+
     git key do
       destination d
       repository options["repo"]
