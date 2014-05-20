@@ -11,7 +11,7 @@ default[name]["user"] = "www-data"
 # the base_dir will correspond to your chroot in your conf file
 default[name]["base_dir"] = ::File.join("", "opt", name)
 
-# these will be in the form of: relative/path/to/base_dir => /full/actual/path
+# these will be in the form of: server_name => {relative/path/to/base_dir => /full/actual/path}
 default[name]["static_dirs"] = {}
 
 # I wouldn't override these unless you know what you're doing:
