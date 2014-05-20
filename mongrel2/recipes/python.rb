@@ -1,8 +1,8 @@
 name = cookbook_name.to_s
-n = node[name]
 
 include_recipe "zeromq::python"
 include_recipe "#{name}::src"
+n = node[name]
 
 package "python-dev" do
   action :install
