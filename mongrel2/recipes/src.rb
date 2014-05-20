@@ -1,12 +1,16 @@
 name = cookbook_name.to_s
 n = node[name]
 
-src_version = (n["version"] != "master") ? "release/v#{n["version"]}" : n["version"]
+#src_version = (n["version"] != "master") ? "release/v#{n["version"]}" : n["version"]
 
-git n["src_dir"] do
+src_dir = ::File.join(::Chef::Config[:file_cache_path], name, n["version"])
+
+git src_dir do
   repository n["src_repo"]
-  revision src_version
+  revision n["branch"]
   action :sync
-  not_if 'test -d "#{n["src_repo"]}"'
+  depth 1
+  enable_submodules true
+  #not_if 'test -d "#{n["src_repo"]}"'
 end
 

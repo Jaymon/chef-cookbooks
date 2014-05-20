@@ -27,13 +27,16 @@ end
 ###############################################################################
 include_recipe "#{name}::src"
 
+# let's install if versions don't match, or mongrel has never been installed
+not_if_cmd = "which m2sh && m2sh version | grep \"#{n["version"]}\""
+
 bash "install_#{name}" do
   cwd n["src_dir"]
   code <<-EOH
   make clean all
   make install
   EOH
-  not_if "which m2sh" # mongrel2 is already installed
+  not_if not_if_cmd
   action :run
 end
 
@@ -126,64 +129,106 @@ end
 
 # compile a list of all directories to mount into m2's chrooted directory so m2
 # has access to them
-prestart_cmd = ""
-poststop_cmd = ""
+server_commands = {}
 if n.has_key?('static_dirs') and !n['static_dirs'].empty?
 
-  n['static_dirs'].each do |rel_dir, orig_dir|
+  n['static_dirs'].each do |server_name, server_static_dirs|
+    prestart_cmd = ""
+    poststop_cmd = ""
 
-    static_dir = ::File.join(base_dir, rel_dir)
+    server_static_dirs.each do |rel_dir, orig_dir|
 
-    directory static_dir do
-      owner u
-      group u
-      mode "0755"
-      recursive true
-      action :create
+      static_dir = ::File.join(base_dir, rel_dir)
+
+      directory static_dir do
+        owner u
+        group u
+        mode "0755"
+        recursive true
+        action :create
+      end
+
+      prestart_cmd += "mount --bind #{orig_dir} #{static_dir}\n"
+      poststop_cmd += "umount #{static_dir}\n"
+
     end
 
-    prestart_cmd += "mount --bind #{orig_dir} #{static_dir}\n"
-    poststop_cmd += "umount #{static_dir}\n"
+    server_commands[server_name] = {
+      'prestart_cmd' => prestart_cmd,
+      'poststop_cmd' => poststop_cmd
+    }
 
   end
-  
+
 end
 
 # build the server list for the init.d script
-# TODO -- strip out lines that are commented out (basically, if the line starts with
-# an #, then ignore it)
 servers = []
 contents = ::File.read(n["conf_file"])
-contents.scan(/uuid\s*\=\s*\"([^\"]+)\"/).each do |uuid|
-  #p uuid
-  servers << uuid[0]
+
+# we have to fail if mongrel is not configured to run non-daemonly
+if !contents.match(/server\.daemonize[^0]+0/)
+  ::Chef::Application.fatal!("#{name} configuration at #{n["conf_file"]} must have \"server.daemonize\": 0 option set")
 end
 
-template ::File.join("", "etc", "init.d", name) do
-  source "#{name}.erb"
-  owner "root"
-  group "root"
-  mode "0655"
-  variables("names" => servers, "base_dir" => base_dir, "conf_db" => conf_db, "run_dir" => dirs["run"])
-  notifies :restart, "service[#{name}]", :delayed
+# p "==========================================================================="
+# p "==========================================================================="
+# p "==========================================================================="
+contents.scan(/(^.*uuid\s*\=\s*\"([^\"]+)\")/).each do |uuid|
+  #p uuid
+  if !uuid[0].match(/^\s*#/)
+    servers << uuid[1]
+  end
+end
+
+# p "==========================================================================="
+# p "==========================================================================="
+# p "==========================================================================="
+# p servers
+# p server_commands
+# p "==========================================================================="
+# p "==========================================================================="
+# p "==========================================================================="
+
+servers.each do |server_name|
+
+  prestart_cmd = ""
+  poststop_cmd = ""
+  if server_commands.has_key?(server_name)
+    prestart_cmd = server_commands[server_name]['prestart_cmd']
+    poststop_cmd = server_commands[server_name]['poststop_cmd']
+  end
+
+  template ::File.join("", "etc", "init", "m2-#{server_name}.conf") do
+    source "m2.conf.erb"
+    mode "0644"
+    variables(
+      "prestart" => prestart_cmd,
+      "poststop" => poststop_cmd,
+      "server_name" => server_name,
+      "base_dir" => base_dir,
+      "conf_db" => conf_db,
+      "user" => u
+    )
+    notifies :restart, "service[#{name}]", :delayed
+  end
+
 end
 
 # add an upstart wrapper around the init.d script
 template ::File.join("", "etc", "init", "mongrel2.conf") do
-  backup false
   source "#{name}.conf.erb"
-  owner user
-  group user
   mode "0644"
-  variables("prestart" => prestart_cmd, "poststop" => poststop_cmd)
-  action :create
+  variables(
+    "servers" => servers
+  )
   notifies :restart, "service[#{name}]", :delayed
 end
 
 service name do
   service_name name
   provider Chef::Provider::Service::Upstart
-  action :nothing
+  action :start
   supports :status => true, :start => true, :stop => true, :restart => true
 end
 
