@@ -9,18 +9,25 @@ name = cookbook_name.to_s
 n = node[name]
 #tmp = Chef::Config[:file_cache_path]
 
-package "python-pip" do
-  action :install
-end
-
 # update pip and the tools pip needs to work
-pip "pip" do
-  action :upgrade
-end
+if !::File.exists?(n["check_file"])
+  package "python-pip" do
+    action :install
+  end
 
-pip "setuptools" do
-  action :upgrade
-  flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
+  pip "pip" do
+    action :upgrade
+  end
+
+  pip "setuptools" do
+    action :upgrade
+    flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
+  end
+
+  execute "touch #{node["package"]["check_file"]}" do
+    action :run
+  end
+
 end
 
 # install any python modules specified
