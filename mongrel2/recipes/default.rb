@@ -111,11 +111,6 @@ if n.has_key?("certs")
   end
 end
 
-# TODO -- remove this when all web servers have been updated
-execute "rm #{conf_file_dest}" do
-  only_if "test -L #{conf_file_dest}"
-end
-
 remote_file conf_file_dest do
   backup false
   user u
@@ -185,9 +180,6 @@ if !contents.match(/server\.daemonize[^0]+0/)
   ::Chef::Application.fatal!("#{name} configuration at #{n["conf_file"]} must have \"server.daemonize\": 0 option set")
 end
 
-# p "==========================================================================="
-# p "==========================================================================="
-# p "==========================================================================="
 contents.scan(/(^.*uuid\s*\=\s*\"([^\"]+)\")/).each do |uuid|
   #p uuid
   if !uuid[0].match(/^\s*#/)
