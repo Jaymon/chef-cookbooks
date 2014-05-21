@@ -51,6 +51,7 @@ bash "install_#{name}" do
   EOH
   not_if not_if_cmd
   action :run
+  notifies :stop, "service[#{name}]", :immediately
 end
 
 

@@ -4,7 +4,7 @@ name = "mongrel2"
 
 default[name] = {}
 
-default[name]["version"] = "1.9.2"
+default[name]["version"] = "1.9.1"
 default[name]["branch"] = "master"
 default[name]["user"] = "www-data"
 

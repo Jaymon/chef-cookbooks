@@ -9,8 +9,8 @@ default[name][:remove] = []
 default[name][:purge] = []
 
 # create the check file, this is a sentinal to keep update from running every provision
-require 'date'
-tt = ::Time.now.strftime("%Y-%W")
+#require 'date'
+tt = ::Time.now.strftime("%Y-%m")
 #tf = ::File.join(Dir.tmpdir, "apt-get-update-#{tt}")
 tf = ::File.join(Chef::Config[:file_cache_path], "apt-get-update-#{tt}")
 
