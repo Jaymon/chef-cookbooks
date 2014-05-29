@@ -14,11 +14,12 @@ include_recipe "zeromq"
   end
 end
 
-# create the user that will manage mongrel
+# create the user that will manage mongrel (if they don't already exist)
 user u do
   system true
   gid u
   shell "/bin/false"
+  not_if "id -u #{u}"
 end
 
 
@@ -26,22 +27,6 @@ end
 # get the source and install it
 ###############################################################################
 include_recipe "#{name}::src"
-n = node[name]
-
-# p "==========================================================================="
-# p "==========================================================================="
-# # p "==========================================================================="
-# p n
-# p "==========================================================================="
-# p node[name]
-# # p servers
-# # p server_commands
-# p "==========================================================================="
-# p "==========================================================================="
-# # p "==========================================================================="
-
-# let's install if versions don't match, or mongrel has never been installed
-not_if_cmd = "which m2sh && m2sh version | grep \"#{n["version"]}\""
 
 bash "install_#{name}" do
   cwd n["src_dir"]
@@ -49,9 +34,9 @@ bash "install_#{name}" do
   make clean all
   make install
   EOH
-  not_if not_if_cmd
-  action :run
+  action :nothing
   notifies :stop, "service[#{name}]", :immediately
+  subscribes :run, "git[#{n['src_dir']}]", :immediately
 end
 
 
@@ -82,7 +67,6 @@ end
   
 end
 
-
 ###############################################################################
 # configure mongrel
 ###############################################################################
@@ -92,13 +76,6 @@ conf_file_dest = ::File.join(dirs["conf"], "config.conf")
 # put the certs in the right spot
 if n.has_key?("certs")
   n['certs'].each do |cert_name, cert_file|
-
-    # TODO -- remove this when all web servers have been updated
-    cert_file_dest = ::File.join(dirs["certs"], "#{cert_name}")
-    execute "rm #{cert_file_dest}" do
-      only_if "test -L #{cert_file_dest}"
-    end
-
     remote_file ::File.join(dirs["certs"], "#{cert_name}") do
       backup false
       user u
@@ -131,6 +108,25 @@ execute "load_config" do
   notifies :restart, "service[#{name}]", :delayed
 end
 
+###############################################################################
+# Make sure permissiona are kosher
+###############################################################################
+# make sure config db belongs to the right user
+execute "chown #{u} #{conf_db}" do
+  ignore_failure true
+end
+execute "chgrp #{u} #{conf_db}" do
+  ignore_failure true
+end
+
+# make sure logs belong to the right user
+the_files = ::File.join(dirs['log'], '*')
+execute "chown -f #{u} #{the_files} || true" do
+  ignore_failure true
+end
+execute "chgrp -f #{u} #{the_files} || true" do
+  ignore_failure true
+end
 
 ###############################################################################
 # build/place the init/upstart scripts, and set up the service

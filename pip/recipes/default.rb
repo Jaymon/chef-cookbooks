@@ -24,7 +24,7 @@ if !::File.exists?(n["check_file"])
     flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
   end
 
-  execute "touch #{node["package"]["check_file"]}" do
+  execute "touch #{n["check_file"]}" do
     action :run
   end
 
