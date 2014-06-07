@@ -1,0 +1,11 @@
+# redis-server - Redis Datastore Server
+#
+# Redis is a key value in memory persistent datastore
+
+start on (local-filesystems and runlevel [2345])
+stop on runlevel [016]
+setuid <%= @username %>
+respawn
+limit nofile 20000 65000
+exec <%= @exec %> <%= @conf %>
+

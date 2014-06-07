@@ -3,77 +3,115 @@
 ##
 
 name = cookbook_name.to_s
-n = node[name]
+#n = node[name]
+
+# we make a clone of the values here so that they are mutable
+n = node[name].to_hash
+u = n['user']
+
 not_if_cmd = "which redis-server"
 
-# this is actually called software-properties-common in >=12.10
-package 'python-software-properties' do
-  action :install
-end
+###############################################################################
+# Initial setup and pre-requisites
+###############################################################################
 
-execute "add-apt-repository -y ppa:rwky/redis" do
-  action :run
-  not_if not_if_cmd
-end
-
-execute "apt-get update" do
-  action :run
-  not_if not_if_cmd
-end
-
+# TODO -- remove when main server updated
 package 'redis-server' do
-  action :install
+  action :purge
 end
 
 # redis always gives a warning about this, TODO, make this an option?
 execute "sysctl vm.overcommit_memory=1" do
   action :run
+  not_if not_if_cmd
 end
 
-redis_home_dir = n["redis_home_dir"]
-redis_conf_path = n['redis_conf_file']
-
-# back up original conf file if it exists and is not already backed up
-redis_confbak_path = "#{n['dest_conf_file']}.bak"
-execute "cp #{redis_conf_path} #{redis_confbak_path}" do
-  action :run
-  not_if "test -f #{redis_confbak_path}"
-end
-
-###############################################################################
-# completely change out the redis conf file
-###############################################################################
-if n.has_key?('conf_file') and !n['conf_file'].empty?
-
-  remote_file redis_conf_path do
-    backup false
-    source "file://#{n["conf_file"]}"
-    #checksum ::Digest::SHA256.file(conf_file_dest).hexdigest
-    mode "0644"
-    notifies :restart, "service[#{name}]", :delayed
+['git', 'make', 'tcl8.5'].each do |p|
+  package p do
   end
+end
 
+# create the user that will manage redis
+group u do
+  not_if "id -u #{u}"
+end
+
+user u do
+  system true
+  gid u
+  shell "/bin/false"
+  not_if "id -u #{u}"
+end
+
+branch = "tags/#{n['version']}"
+git n['src_dir'] do
+  repository n["src_repo"]
+  revision branch
+  action :sync
+  depth 1
+  enable_submodules true
+  notifies :run, "execute[redis test]", :immediately
 end
 
 
 ###############################################################################
-# add included conf files to the redis conf file
+# Installation
 ###############################################################################
-if n.has_key?('include_conf_files')
+execute "redis test" do
+  command "make test"
+  cwd n['src_dir']
+  action :nothing
+  notifies :run, "execute[redis install]", :immediately
+end
 
-  redis_conf_dir = ::File.join(redis_home_dir, "conf.d")
+execute "redis install" do
+  command "make install"
+  cwd n['src_dir']
+  action :nothing
+  notifies :restart, "service[#{name}]", :delayed
+end
 
-  directory redis_conf_dir do
+
+###############################################################################
+# create directories and put things in the right place
+###############################################################################
+dirs = {
+  'etc' => [::File.join("", "etc", "redis"), nil, nil],
+  'log' =>  [::File.join("", "var", "log", "redis"), u, u],
+  'run' =>  [::File.join("", "var", "run", "redis"), u, u],
+  'lib' => [::File.join("", "var", "lib", "redis"), u, u],
+  'conf.d' =>  [::File.join("", "etc", "redis", "conf.d"), nil, nil],
+}
+
+dirs.each do |k, d|
+  directory d[0] do
+    owner d[1]
+    group d[2]
     mode "0755"
     recursive true
     action :create
   end
+end
+
+# TODO -- should this be regenerated on any version changes?
+redis_conf = ::File.join(dirs['etc'][0], 'redis.conf')
+remote_file redis_conf do
+  source "file://#{::File.join(n['src_dir'], 'redis.conf')}"
+  mode "0644"
+  action :create_if_missing
+end
+
+
+###############################################################################
+# reconfigure redis
+###############################################################################
+if n.has_key?('include_conf_files')
 
   conf_file_dests = []
 
   # copy each conf file to the right place
   n["include_conf_files"].each do |conf_file_src|
-    conf_file_dest = ::File.join(redis_conf_dir, ::File.basename(conf_file_src))
+    conf_file_dest = ::File.join(dirs['conf.d'][0], ::File.basename(conf_file_src))
 
     # why do we move the files instead of include them from their original path?
     # Because chef will only move the file if it changed, and chef moving it will
@@ -90,43 +128,104 @@ if n.has_key?('include_conf_files')
 
   end
 
-  ruby_block "add includes to conf" do
-    block do
-      conf_lines = []
-      sentinal_start = "######################### redis chef cookbook start ###########################"
-      sentinal_stop = "########################## redis chef cookbook stop ###########################"
-      in_sentinal = false
-      ::File.read(redis_conf_path).each_line do |conf_line|
-        conf_line.strip!
-        if conf_line == sentinal_start
-          in_sentinal = true
-        end
-
-        if !in_sentinal
-          conf_lines << conf_line
-        end
-
-        if conf_line == sentinal_stop
-          in_sentinal = false
-        end
-
-      end
-
-      conf_lines << sentinal_start
-      conf_file_dests.each do |conf_file|
-        conf_lines << "include #{conf_file}"
-
-      end
-      conf_lines << sentinal_stop
-
-      ::File.open(redis_conf_path, "w") do |f|
-        f.puts(conf_lines)
-      end
-    end
-  end
+  # prepare the files so they can be added to the config
+  n['conf'] ||= {}
+  n['conf']['include'] ||= []
+  n['conf']['include'] += conf_file_dests
 
 end
 
+if n.has_key?("conf")
+  cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "redis.conf")
+  ruby_block "configure redis" do
+    block do
+      # build a config file mapping we can manipulate
+      conf_lines = []
+      conf_lookup = {}
+
+      ::File.read(redis_conf).each_line.with_index do |conf_line, index|
+
+        # this builds a hash of key => value pairs for every config var it finds
+        if conf_line.match(/^[^#]\S+\s/)
+          conf_var, conf_val = conf_line.split(/\s+/, 2)
+          conf_lookup[conf_var] ||= []
+          #if !conf_lookup.has_key?(conf_var)
+          #  conf_lookup[conf_var] = []
+          #end
+          conf_lookup[conf_var] << index
+        end
+
+        conf_line.rstrip!
+        conf_lines << conf_line
+
+      end
+
+      # go in and change any values to the new values in the Node
+      new_conf_lookup = {}
+      new_conf_ignore = Set.new
+      n["conf"].each do |key, val|
+
+        # make sure we've got an array
+        if val.kind_of?(Array)
+          vals = val
+        else
+          vals = [val]
+        end
+
+        new_conf_lines = []
+        vals.each do |v|
+          new_conf_lines << "#{key} #{v}"
+        end
+
+        if conf_lookup.has_key?(key)
+          new_conf_lookup[conf_lookup[key][0]] = new_conf_lines
+          new_conf_ignore.merge(conf_lookup[key])
+        else
+          # just put lines without previous values at the end of all lines
+          conf_lines += [""] + new_conf_lines
+        end
+      end
+
+      ::File.open(cache_conf_file, "w+") do |f|
+        conf_lines.each_with_index do |conf_line, index|
+          if new_conf_lookup.has_key?(index)
+            f.puts(new_conf_lookup[index])
+          else
+            if !new_conf_ignore.member?(index)
+              f.puts(conf_line)
+            end
+          end
+        end
+      end
+
+    end
+    notifies :create, "remote_file[#{redis_conf}]", :immediately
+
+  end
+
+  remote_file redis_conf do
+    source "file://#{cache_conf_file}"
+    mode "0644"
+    action :nothing
+    notifies :restart, "service[#{name}]", :delayed
+  end
+end 
+
+# move the upstart script into place
+exec = ::File.join("", "usr", "local", "bin", "redis-server")
+template ::File.join("etc", "init", "redis-server.conf") do
+  source "redis-server.conf.erb"
+  mode "0644"
+  variables(
+    "exec" => exec,
+    "username" => u,
+    'conf' => redis_conf
+  )
+  notifies :stop, "service[#{name}]", :delayed
+  notifies :start, "service[#{name}]", :delayed
+end
+
+# TODO -- log rotate?
 
 service "#{name}" do
   provider Chef::Provider::Service::Upstart

@@ -4,7 +4,12 @@ Install Redis
 
 ## Attributes
 
-`node["redis"]["conf_file"]` -- a redis configuration file
+`node["redis"]["version"]` -- string -- a redis version string like `2.8.10`
+
+`node["redis"]["conf"]` -- hash -- redis configuration values you would like to change
+
+`node["redis"]["include_conf_files"]` -- list -- a list of configuration files you would like to include in the configuration file, this is handy for you to create a config that overrides the default redis conf file.
+
 
 ## Managing
 
@@ -30,6 +35,3 @@ stop the server:
 
 Ubuntu 12.04, nothing else has been tested
 
-# Known bugs
-
-if you change the name of the conf_file, the old conf file will still be included and the new conf file will be included underneath it, causing problems, this could be solved by creating a `-------start redis cookbook additions---------...------end redis cookbook additions---------` area that gets cleared on ever run.
