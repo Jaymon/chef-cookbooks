@@ -10,6 +10,7 @@ default[name]["user"] = "redis"
 default[name]["conf"] = {
   'dir' => ::File.join("", "var", "lib", "redis"),
   'dbfilename' => 'redis.db',
+  'logfile' => '/var/log/redis/redis.log'
 }
 
 # these will be added to the dest_conf_file using Redis's include feature
