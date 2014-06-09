@@ -9,7 +9,7 @@ default[name]["user"] = "redis"
 # I wouldn't mess with these specific values, but that's just me
 default[name]["conf"] = {
   'dir' => ::File.join("", "var", "lib", "redis"),
-  'dbfilename' => 'redis.db',
+  'dbfilename' => 'redis.db', # this is for compatibility with Chris's ubuntu packages
   'logfile' => '/var/log/redis/redis.log'
 }
 
