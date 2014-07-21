@@ -38,6 +38,18 @@ So, you would configure the crontab like this (in an environment file):
       }
     )
 
+## Removing Cron Jobs
+
+The recipe will try and remove any stray cron jobs after you've removed or commented out from the configuration, but in order to do that it needs to know there were cron jobs there in the first place, so if you are removing all your cron jobs you need to leave the `users` dict with the `username` keys intact:
+
+      "crontab" => {
+        "users" => {
+          "username" => {}
+        }
+      }
+
+Otherwise the cron jobs will remain even though they've been removed in your configuration
+
 ## Platform
 
 Ubuntu 12.04, nothing else has been tested

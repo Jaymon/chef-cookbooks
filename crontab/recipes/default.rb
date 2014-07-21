@@ -1,10 +1,7 @@
+require 'set'
+
 name = cookbook_name.to_s
 n = node[name]
-
-# TODO -- completely clear the crontab file? Otherwise what happens if we remove a cronjob?
-# looks like you could actually go through the crontab and just remove the ones that chef
-# manages, and leave any manual ones, which might be the best way to do it
-
 
 # add the environment to the beginning of the command
 cron_env = ""
@@ -16,41 +13,29 @@ if n.has_key?('env') and !n['env'].empty?
   else
     cron_env += ". $f;"
   end
-
-#   if ::File.exists?(e)
-#     if ::File.directory?(e)
-#       cron_env += "for f in #{::File.join(e, "*")}; do . $f; done;"
-# 
-#     else
-#       cron_env += ". $f;"
-# 
-#     end
-#   else
-#     ::Chef::Application.fatal!("#{e} is NOT a file or directory")
-#   end
-
 end
 
 cron_logdir = n.fetch('logdir', '')
 
 n['users'].each do |username, cron_jobs|
 
+  existing_cron_jobs = Set.new
+  crontab = %x(sudo -u #{username} crontab -l)
+  crontab.each_line do |line|
+    m = /^#\s+Chef\s+Name:\s+(\S+)/i.match(line)
+    if m
+      existing_cron_jobs.add(m[1])
+    end
+  end
+
   cron_jobs.each do |cron_name, options|
     cron_cmd = cron_env
+    existing_cron_jobs.delete(cron_name)
 
     # change to the right directory
     if options.has_key?('dir') and !options['dir'].empty?
       d = options['dir']
       cron_cmd += "cd #{d};"
-#       if ::File.directory?(d)
-#         cron_cmd += "cd #{d};"
-# 
-#       else
-#         #::Chef::Application.fatal!("#{d} is NOT a valid directory")
-#         # this turned out to be a bad idea, because this is calculated before the
-#         # chef run is done, so lots of times directories aren't created yet and stuff
-# 
-#       end
     end
 
     cron_cmd += options['command']
@@ -84,4 +69,13 @@ n['users'].each do |username, cron_jobs|
     end
 
   end
+
+  # remove any remaining cron jobs because they are no longer active
+  existing_cron_jobs.each do |cron_name|
+    cron cron_name do
+      action :delete
+      user username
+    end
+  end
+
 end
