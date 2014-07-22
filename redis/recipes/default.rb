@@ -26,7 +26,7 @@ execute "sysctl vm.overcommit_memory=1" do
   not_if not_if_cmd
 end
 
-['git', 'make', 'tcl8.5'].each do |p|
+['git', 'make', 'tcl8.5', 'build-essential'].each do |p|
   package p do
   end
 end
