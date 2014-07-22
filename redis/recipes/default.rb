@@ -15,11 +15,6 @@ not_if_cmd = "which redis-server"
 # Initial setup and pre-requisites
 ###############################################################################
 
-# TODO -- remove when main server updated
-package 'redis-server' do
-  action :purge
-end
-
 # redis always gives a warning about this, TODO, make this an option?
 execute "sysctl vm.overcommit_memory=1" do
   action :run
