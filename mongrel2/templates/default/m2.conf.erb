@@ -3,6 +3,7 @@ stop on stopping mongrel2
 chdir <%= @base_dir %>
 setgid <%= @user %>
 respawn
+limit nofile 100000 100000
 
 console output
 
