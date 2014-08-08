@@ -6,6 +6,6 @@ start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
 setuid <%= @username %>
 respawn
-limit nofile 20000 65000
+limit nofile 65000 65000
 exec <%= @exec %> <%= @conf %>
 

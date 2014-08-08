@@ -7,6 +7,7 @@ n.each do |key, options|
 
   u = options['user']
   d = options['dir']
+  pip_file = ::File.join(d, "requirements.txt")
 
   directory d do
     owner u
@@ -33,7 +34,7 @@ n.each do |key, options|
       not_if "git status | grep \"On branch deploy\"", :cwd => d
     end
 
-    git key do
+    r = git key do
       destination d
       repository options["repo"]
       user u
@@ -41,13 +42,25 @@ n.each do |key, options|
       revision options["branch"]
       action :sync
       depth 2
+      notifies :install, "pip[#{pip_file}]", :immediately
+    end
+
+    if options.has_key?("notifies")
+      options['notifies'].each do |params|
+        r.notifies(*params)
+      end
+    end
+
+  else
+    execute key do
+      command "true"
+      notifies :install, "pip[#{pip_file}]", :immediately
     end
 
   end
 
-  pip_file = ::File.join(d, "requirements.txt")
   pip pip_file do
-    action :install
+    action :nothing
     only_if { ::File.exists?(pip_file) }
   end
 

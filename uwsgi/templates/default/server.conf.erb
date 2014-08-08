@@ -1,0 +1,30 @@
+# simple uWSGI script
+# http://uwsgi-docs.readthedocs.org/en/latest/Upstart.html
+
+description "uwsgi upstart for <%= @server_name %>"
+start on runlevel [2345]
+stop on runlevel [06]
+
+<% if defined?(@chdir) %>
+chdir <%= @chdir %>
+<% end %>
+<% if defined?(@uid) %>
+setuid <%= @uid %>
+<% end %>
+<% if defined?(@gid) %>
+setgid <%= @gid %>
+<% end %>
+
+respawn
+limit nofile 100000 100000
+
+#console output
+
+script
+  for f in /etc/profile.d/*; do
+     . $f
+  done
+  exec <%= @exec_str %>
+end script
+
+
