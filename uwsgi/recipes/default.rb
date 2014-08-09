@@ -24,21 +24,21 @@ end
 n['servers'].each do |server_name, _server_config|
   variables = {}
   server_config = _server_config.to_hash
-  ['chdir', 'uid', 'gid'].each do |key|
+  ['chdir'].each do |key|
     if server_config.has_key?(key)
       variables[key] = server_config[key]
       server_config.delete(key)
     end
   end
 
-  if variables.has_key?("uid")
+  if server_config.has_key?("uid")
     # create the user that will manage uwsgi (if they don't already exist)
-    u = variables['uid']
-    variables['gid'] = variables.fetch("gid", u)
+    u = server_config['uid']
+    server_config['gid'] = server_config.fetch("gid", u)
     user name do
       username u
       system true
-      gid variables['gid']
+      gid server_config['gid']
       shell "/bin/false"
       not_if "id -u #{u}"
     end
