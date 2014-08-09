@@ -15,7 +15,8 @@ include_recipe "zeromq"
 end
 
 # create the user that will manage mongrel (if they don't already exist)
-user u do
+user name do
+  username u
   system true
   gid u
   shell "/bin/false"

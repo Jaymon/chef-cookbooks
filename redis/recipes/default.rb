@@ -31,7 +31,8 @@ group u do
   not_if "id -u #{u}"
 end
 
-user u do
+user name do
+  username u
   system true
   gid u
   shell "/bin/false"
@@ -88,13 +89,13 @@ dirs.each do |k, d|
   end
 end
 
-# TODO -- should this be regenerated on any version changes?
 redis_conf = ::File.join(dirs['etc'][0], 'redis.conf')
-remote_file redis_conf do
-  source "file://#{::File.join(n['src_dir'], 'redis.conf')}"
-  mode "0644"
-  action :create_if_missing
-end
+# This is also done at 201 now after configuration changes, remove this on next pass
+# remote_file redis_conf do
+#   source "file://#{::File.join(n['src_dir'], 'redis.conf')}"
+#   mode "0644"
+#   action :create_if_missing
+# end
 
 
 ###############################################################################

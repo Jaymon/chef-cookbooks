@@ -35,7 +35,8 @@ n['servers'].each do |server_name, _server_config|
     # create the user that will manage uwsgi (if they don't already exist)
     u = variables['uid']
     variables['gid'] = variables.fetch("gid", u)
-    user u do
+    user name do
+      username u
       system true
       gid variables['gid']
       shell "/bin/false"
