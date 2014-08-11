@@ -42,7 +42,6 @@ n.each do |key, options|
       revision options["branch"]
       action :sync
       depth 2
-      notifies :install, "pip[#{pip_file}]", :immediately
     end
 
     if options.has_key?("notifies")
@@ -51,17 +50,21 @@ n.each do |key, options|
       end
     end
 
-  else
-    execute key do
-      command "true"
-      notifies :install, "pip[#{pip_file}]", :immediately
-    end
+  end
 
+  # we are going to be a little trixy here, what we are going to do is have chef
+  # manage a seninal requirements.txt file, if that file has changed it will kick
+  # off running pip
+  pip_sentinal_file = ::File.join(Chef::Config[:file_cache_path], "requirements-sentinal.text")
+  remote_file pip_sentinal_file do
+    backup false
+    source "file://#{pip_file}"
+    notifies :install, "pip[#{pip_file}]", :immediately
+    only_if { ::File.exists?(pip_file) }
   end
 
   pip pip_file do
     action :nothing
-    only_if { ::File.exists?(pip_file) }
   end
 
 end
