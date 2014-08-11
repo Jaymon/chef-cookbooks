@@ -55,7 +55,7 @@ n.each do |key, options|
   # we are going to be a little trixy here, what we are going to do is have chef
   # manage a seninal requirements.txt file, if that file has changed it will kick
   # off running pip
-  pip_sentinal_file = ::File.join(Chef::Config[:file_cache_path], "requirements-sentinal.text")
+  pip_sentinal_file = ::File.join(Chef::Config[:file_cache_path], "#{key}-requirements-sentinal.text")
   remote_file pip_sentinal_file do
     backup false
     source "file://#{pip_file}"
