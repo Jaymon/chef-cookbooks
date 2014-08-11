@@ -6,6 +6,9 @@ n = node[name]
 ###############################################################################
 include_recipe "pip"
 
+['build-essential', 'python-dev'].each do |p|
+  package p
+end
 
 ###############################################################################
 # install it
@@ -15,8 +18,7 @@ if n.has_key?("version")
   request_str += "==#{n['version']}"
 end
 
-pip request_str do
-end
+pip request_str
 
 ###############################################################################
 # configure
