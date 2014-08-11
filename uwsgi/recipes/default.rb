@@ -70,7 +70,7 @@ n['servers'].each do |server_name, _server_config|
   service server_name do
     service_name server_name
     provider Chef::Provider::Service::Upstart
-    action :start
+    action :nothing
     supports :status => true, :start => true, :stop => true, :restart => true
   end
 
