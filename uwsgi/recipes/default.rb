@@ -64,7 +64,8 @@ n['servers'].each do |server_name, _server_config|
     source "server.conf.erb"
     mode "0644"
     variables(variables)
-    notifies :restart, "service[#{server_name}]", :delayed
+    notifies :stop, "service[#{server_name}]", :delayed
+    notifies :start, "service[#{server_name}]", :delayed
   end
 
   service server_name do
