@@ -90,12 +90,13 @@ dirs.each do |k, d|
 end
 
 redis_conf = ::File.join(dirs['etc'][0], 'redis.conf')
-# This is also done at 201 now after configuration changes, remove this on next pass
-# remote_file redis_conf do
-#   source "file://#{::File.join(n['src_dir'], 'redis.conf')}"
-#   mode "0644"
-#   action :create_if_missing
-# end
+
+# we move the redis.conf to its final resting place if it isn't already there
+remote_file redis_conf do
+  source "file://#{::File.join(n['src_dir'], 'redis.conf')}"
+  mode "0644"
+  action :create_if_missing
+end
 
 
 ###############################################################################
