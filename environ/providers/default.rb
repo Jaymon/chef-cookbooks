@@ -36,14 +36,14 @@ class Environ
       # we only want environment KEY=val lines, ignore comments and/or whitespace
       if line.match(/^[a-z0-9_]+=/i)
         # line matches: ENV_NAME=...
-        key, val = line.split('=')
+        key, val = line.split('=', 2)
         #p "load #{key} = #{val}"
         @hash[key.strip()] = val.strip()
 
       elsif line.match(/^export\s+[a-z0-9_]+=/i)
         # line matches: export ENV_NAME=...
         discarded, env_segment = line.split(/\s+/, 2) 
-        key, val = env_segment.split('=')
+        key, val = env_segment.split('=', 2)
         @hash[key.strip()] = val.strip()
 
       end
