@@ -11,7 +11,7 @@ if n.has_key?('env') and !n['env'].empty?
     cron_env += "for f in #{::File.join(e, "*")}; do . $f; done;"
 
   else
-    cron_env += ". $f;"
+    cron_env += ". #{e};"
   end
 end
 

@@ -1,0 +1,25 @@
+<% if @instances_name %>
+stop on stopping <%= @instances_name %>
+instance $N
+<% end %>
+
+<% if defined?(@desc) %>
+description "<%= @desc %>
+<% end %>
+respawn
+limit nofile 100000 100000
+
+chdir <%= @dir %>
+<% if defined?(@username) %>
+setuid <%= @username %>
+<% end %>
+<% if defined?(@usergroup) %>
+setgid <%= @usergroup %>
+<% end %>
+
+script
+<% if defined?(@environ) %>
+  <%= @environ %>
+<% end %>
+  exec <%= @command %>
+end script

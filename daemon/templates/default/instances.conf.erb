@@ -1,0 +1,20 @@
+stop on runlevel [06]
+
+env NUM_WORKERS=<%= @instances %>
+
+pre-start script
+  <% if defined?(@prestart) %>
+  <%= @prestart %>
+  <% end %>
+
+  for i in $(seq 1 $NUM_WORKERS); do
+    start <%= @instance_name %> N=$i
+  done
+
+end script
+
+<% if defined?(@poststop) %>
+post-stop script
+  <%= @poststop %>
+end script
+<% end %>
