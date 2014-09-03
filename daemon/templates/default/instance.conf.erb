@@ -1,10 +1,12 @@
+#start on ((local-filesystems and runlevel [2345]) or vagrant-mounted)
+#stop on runlevel [016]
 <% if @instances_name %>
 stop on stopping <%= @instances_name %>
 instance $N
 <% end %>
 
 <% if defined?(@desc) %>
-description "<%= @desc %>
+description "<%= @desc %>"
 <% end %>
 respawn
 limit nofile 100000 100000

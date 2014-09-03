@@ -23,7 +23,7 @@ if n.has_key?('names')
     environ = options.fetch('env', nil)
     if environ
       if ::File.directory?(environ)
-        options['environ'] = "for f in #{::File.join(environ, "*")}; do . $f; done;"
+        options['environ'] = "for f in #{::File.join(environ, "*")}; do . $f; done"
       else
         options['environ'] += ". #{environ}"
       end
