@@ -1,65 +1,131 @@
-# App Cookbook
+# Daemon Cookbook
 
-set up app specific environments
+allows you to create upstart managed daemon processes.
 
 ## Attributes
 
-### The app::services recipe looks for these attributes
+### The daemon cookbook looks for these attributes
 
-`node["app"]['services']["names"]` -- dict -- each key is the name of the service, each value is a dict with these keys:
+---------
 
-* base_dir -- the chdir directory for the api application base directory
-* command -- the command to start an api instance
-* instances -- how many api instances you want running
+`node["daemon"]["default"]` -- dict -- these are default options that will be merged into the individual options for each defined daemon under `names` dict.
 
--------------------------------------------------------------------------------
+---------
 
-### The app::ops recipe looks for these attributes
+`node["daemon"]["names"]` -- dict -- the key is the name of the daemon, which will also be used as the name of the upstart conf file.
 
-`node["app"]['ops']["base_dir"]` -- the chdir directory for the ops application base directory
+#### Keys
 
--------------------------------------------------------------------------------
+These are the keys that can be either in the `default` dict, or in each of the individual `names` dict.
 
-### The app::user recipe looks for these attributes
+---------
 
-`node["app"]['user']["username"]` -- the username of the app user we want to have
+`dir` -- string -- the base dir that the `command` will execute in.
+
+---------
+
+`username` -- string -- the user that will execute the `command`.
+
+---------
+
+`env` -- string -- an environment file or directory (where all `.sh` files will be read in).
+
+---------
+
+`subscribes` -- [chef specific notifications](http://docs.getchef.com/resource_common.html#subscribes-syntax), it allows you to specify notifications from other chef resources that will trigger the daemon to start, stop, or restart.
+
+For example, to have all daemons restart if some git repo changes, you could put this in `default`:
+
+```ruby
+"subscribes" => [
+  [:stop, "git[some_repo]", :delayed],
+  [:start, "git[some_repo]", :delayed]
+]
+```
+
+---------
+
+`desc` -- string -- a description of the daemon.
+
+---------
+
+`command` -- string -- the command that the upstart wrapper will run.
+
+---------
+
+`count` -- integer -- how many instances of the daemon you want to run.
+
+### Example
+
+Let's say our configuration is defined as such:
+
+```ruby
+node["daemon"]["names"] => {
+  "default" => {
+    "env" => "/etc/profile.d",
+    "username" => "ubuntu",
+    "dir" => "/opt/your_code"
+  },
+  "names" => {
+    "some-thing" => {
+      "desc" => "this will run some thing",
+      "command" => "/opt/your_code/your_script.py"
+    },
+    "another-thing" => {
+      "desc" => "this will run another thing",
+      "command" => "/opt/your_code/another_script.sh",
+      "count" => 10
+    }
+  }
+}
+```
+
+Then the `some-thing` daemon will be configured with:
+
+```ruby
+{
+  "env" => "/etc/profile.d",
+  "username" => "ubuntu",
+  "dir" => "/opt/your_code",
+  "desc" => "this will run some thing",
+  "command" => "/opt/your_code/your_script.py",
+}
+```
+
+and the `another-thing` daemon will be configured with:
+
+```ruby
+{
+  "env" => "/etc/profile.d",
+  "username" => "ubuntu",
+  "dir" => "/opt/your_code",
+  "desc" => "this will run another thing",
+  "command" => "/opt/your_code/another_script.sh",
+  "count" => 10
+}
+```
 
 ## Using
 
-The api, admin, and chat http handlers are managed via Upstart, so you can start them:
+You can start your daemons:
 
-    $ sudo start apis
-    $ sudo start chats
+    $ sudo start some-thing
+    $ sudo start another-thing
 
 and you can stop them
 
-    $ sudo stop apis
-    $ sudo stop chats
+    $ sudo stop some-thing
+    $ sudo stop another-thing
 
-If you want to verify the handlers are running:
+And, if you want to mess with the environment even more, you can pass them in also:
 
-    $ ps aux | grep python
-
-and you should see `api.py` or `chat.py` handlers running.
-
-You can fire up a test api (or chat) instance manually:
-
-    $ sudo start api N=test
-
-And, if you want to mess with the environment variables, you can pass them in also:
-
-    $ sudo start api N=test PYTHONPATH=some/dir/you/want/to/test
+    $ sudo start some-thing PYTHONPATH=some/dir/you/want/to/test
 
 ## Logs
 
 Looks like, by default, upstart keeps the logs at:
 
     /var/log/upstart
-
-So, to see the printed output of the first request handler (if you have a lot of print statements or something), you can tail:
-
-    $ tail -f /var/log/upstart/api-1.log
-    $ tail -f /var/log/upstart/chat-1.log
 
 ## Platform
 
