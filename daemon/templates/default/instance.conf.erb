@@ -1,5 +1,5 @@
 #start on ((local-filesystems and runlevel [2345]) or vagrant-mounted)
-stop on runlevel [016]
+stop on runlevel [06]
 <% if @instance_name %>
 stop on stopping <%= @instance_name %>
 instance $N
