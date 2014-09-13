@@ -44,6 +44,23 @@ Notice that `'mod'` is the value (it has quotes), not `mod`.
 
 Refer to the comments in the installed `pg_hba.conf` file or the **Client Authentication** section in the postgres manual.
 
+### PGBouncer
+
+`default["postgres"]["pgbouncer"]["version"]` -- the version of pgbouncer you want to install, currently defaults to `1.5.4`
+
+`default["postgres"]["pgbouncer"]["databases"]` -- a hash of database name keys and connection strings
+
+    default["postgres"]["pgbouncer"]["databases"] = {
+      "db_name" => "host=127.0.0.1 port=5432",
+      "*" => "host=127.0.0.1 port=5432", # fallback, will be used if no db is matched
+    }
+
+`default["postgres"]["pgbouncer"]["pgbouncer"]` -- a hash of key/values that will be added to the ini file under the `[pgbouncer]` section.
+
+You can read more about configuring pgbouncer [here](http://pgbouncer.projects.pgfoundry.org/doc/usage.html), [here](http://wiki.postgresql.org/wiki/PgBouncer), and [here](http://pgbouncer.projects.pgfoundry.org/doc/config.html).
+
+PGBouncer is installed from source from this [git repo](https://github.com/markokr/pgbouncer-dev). I used [this script](https://github.com/tkopczuk/ATP_Performance_Test/blob/master/install_pgbouncer.sh) ([via](http://www.askthepony.com/blog/2011/07/django-and-postgresql-improving-the-performance-with-no-effort-and-no-code/)) while figuring stuff out.
+
 
 ## Platform
 

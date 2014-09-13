@@ -3,44 +3,40 @@
 #
 # since 6-14-12
 ##
-name = cookbook_name.to_s
-rname = recipe_name.to_s
-n_pg = node[name]
-n = n_pg[rname]
-n = node[name].to_hash # we need the values to be mutable
-
-# need this to get the temp directory using Dir.tmpdir
-require "tmpdir"
+name_pg = cookbook_name.to_s
+name = recipe_name.to_s
+n_pg = node[name_pg]
+n = n_pg[name]
+n = n.to_hash # we need the values to be mutable
+u = n['user']
 
 # configuration that will make its way to /etc/pgbouncer/pgbouncer.ini
 # http://pgbouncer.projects.postgresql.org/doc/config.html
 
-# set default databases from the top level postgres node...
-if node[:postgres].has_key?(:databases)
-
-  node[:postgres][:databases].each do |username, db_list|
-  
-    db_list.each do |db_name|
-    
-      if !node[:postgres][:pgbouncer][:databases].has_key?(db_name)
-      
-        node[:postgres][:pgbouncer][:databases][db_name] = {
-          "host" => "127.0.0.1",
-          "port" => 5432
-        }
-        
-      end
-    
-    end
-  
-  end  
-
-end
-%W{git make autoconf automake autoconf-archive asciidoc xmlto libtool libevent-dev}.each do
+###############################################################################
+# Pre-requisites
+###############################################################################
+%W{git make autoconf automake autoconf-archive asciidoc xmlto libtool libevent-dev}.each do |p|
   package p
 end
 
+# create the user
+group u do
+  not_if "id -u #{u}"
+end
 
+user name do
+  username u
+  system true
+  gid u
+  shell "/bin/false"
+  not_if "id -u #{u}"
+end
+
+
+###############################################################################
+# installation
+###############################################################################
 branch = "pgbouncer_#{n['version'].gsub('.', '_')}"
 git n['src_dir'] do
   repository n["src_repo"]
@@ -48,82 +44,101 @@ git n['src_dir'] do
   action :sync
   depth 1
   enable_submodules true
-  notifies :run, "execute[configure pgbouncer]", :immediately
+  notifies :run, "bash[configure pgbouncer]", :immediately
 end
 
-execute "configure pgbouncer" do
-  command ""
+bash "configure pgbouncer" do
+  code <<-EOH
+  ./autogen.sh
+  ./configure --prefix=#{::File.join("", "usr", "local")}
+  EOH
   cwd n['src_dir']
-
-
-
-
-
-# http://wiki.opscode.com/display/chef/Resources#Resources-Service
-service "pgbouncer" do
-  service_name "pgbouncer"
-  supports :restart => true, :reload => false
-  action :enable
+  notifies :run, "bash[install pgbouncer]", :immediately
+  action :nothing
 end
 
-template "/etc/pgbouncer/userlist.txt" do
+bash "install pgbouncer" do
+  code <<-EOH
+  make
+  make install
+  EOH
+  cwd n['src_dir']
+  action :nothing
+end
+
+dirs = {
+  'log' => [::File.join("", "var", "log", "pgbouncer"), u, u],
+  'run' => [::File.join("", "var", "run", "pgbouncer"), u, u],
+  'etc' => [::File.join("", "etc", "pgbouncer"), nil, nil]
+}
+dirs.each do |k, d|
+  directory d[0] do
+    mode "0755"
+    owner d[1]
+    group d[2]
+    recursive true
+    action :create
+  end
+end
+
+
+###############################################################################
+# Configuration
+###############################################################################
+template ::File.join(dirs['etc'][0], 'userlist.txt') do
   source "pgbouncer/userlist.erb"
-  owner "postgres"
-  group "postgres"
+#   owner u
+#   group u
   mode "0640"
-  notifies :restart, resources(:service => "pgbouncer"), :delayed
+  variables({'users' => n_pg['users']})
+  notifies :restart, "service[#{name}]", :delayed
 end
 
-# backup the original config, just in case?
-execute "cp /etc/pgbouncer/pgbouncer.ini /etc/pgbouncer/pgbouncer.ini.bak" do
-  user "root"
-  action :run
-  not_if "test -f /etc/pgbouncer/pgbouncer.ini.bak"
+# do some last minute config manipulation before writing out the ini file
+fallback = n['databases'].delete('*')
+# n_pg['databases'].each do |u, dbs|
+#   dbs.each do |db_name|
+#     if !n['databases'].has_key?(db_name)
+#       n['databases'][db_name] = "dbname=#{db_name}"
+#     end
+#   end
+# end
+
+["admin_users", "stats_users"].each do |k|
+  if !n["pgbouncer"].has_key?(k)
+    n["pgbouncer"][k] = n_pg['users'].map{ |k,v| k}.join(', ')
+  end
 end
 
-template "/etc/pgbouncer/pgbouncer.ini" do
+config_file = ::File.join(dirs['etc'][0], "pgbouncer.ini")
+template config_file do
   source "pgbouncer/pgbouncer.erb"
-  owner "postgres"
-  group "postgres"
+#   owner u
+#   group u
+  variables({
+    "databases" => n["databases"],
+    "fallback" => fallback,
+    "pgbouncer" => n["pgbouncer"],
+  })
   mode "0640"
-  notifies :restart, resources(:service => "pgbouncer"), :delayed
+  notifies :restart, "service[#{name}]", :delayed
 end
 
-# patch the init.d to do what it should (this is fixed in pgbouncer 1.5.2)
-# see: https://bugs.launchpad.net/ubuntu/+source/pgbouncer/+bug/760508
-init_diff = "/#{Dir.tmpdir}/init.diff"
-init_orig = "/etc/init.d/pgbouncer"
-init_bak = "/etc/init.d/pgbouncer.bak"
-
-# backup original, we give it a temp name so we can apply the diff, then rename the tmp
-# file to the actual backup name so the diff won't ever run again
-execute "cp #{init_orig} #{init_bak}2" do
-  user "root"
-  action :run
-  not_if "test -f #{init_bak}"
+# move the upstart script into place
+cmd = "pgbouncer #{config_file} -u #{u}"
+template ::File.join("etc", "init", "pgbouncer.conf") do
+  source "pgbouncer/upstart.conf.erb"
+  mode "0644"
+  variables("cmd" => cmd)
+  notifies :stop, "service[#{name}]", :delayed
+  notifies :start, "service[#{name}]", :delayed
 end
 
-cookbook_file init_diff do
-  backup false
-  source "pgbouncer/init.diff.sh"
-  owner "root"
-end
+# TODO -- log rotate?
 
-execute "patch #{init_orig} < #{init_diff}" do
-  user "root"
-  action :run
-  not_if "test -f #{init_bak}"
-end
-
-execute "mv #{init_bak}2 #{init_bak}" do
-  user "root"
-  action :run
-  not_if "test -f #{init_bak}"
-end
-
-execute "activate pgbouncer" do
-  user "root"
-  action :run
-  command "cd /etc/default; sed 's/START=0/START=1/' pgbouncer > pgbouncer2; mv pgbouncer2 pgbouncer"
+service name do
+  provider Chef::Provider::Service::Upstart
+  action :nothing
+  supports :start => true, :stop => true, :status => true, :restart => true
 end
 

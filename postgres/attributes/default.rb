@@ -35,9 +35,10 @@ default[name]["hba"] = [
 
 # pgbouncer specific configuration
 default[name]["pgbouncer"] = {}
-default[name]["pgbouncer"]["src_dir"] = ::File.join(::Chef::Config[:file_cache_path], name, "pgbouncer")
+default[name]["pgbouncer"]["src_dir"] = ::File.join(::Chef::Config[:file_cache_path], "pgbouncer")
 default[name]["pgbouncer"]["src_repo"] = "https://github.com/markokr/pgbouncer-dev.git"
 default[name]["pgbouncer"]["version"] = "1.5.4"
+default[name]["pgbouncer"]["user"] = "postgres"
 
 default[name]["pgbouncer"]["databases"] = {
   '*' => "host=127.0.0.1 port=5432", # fallback connection string

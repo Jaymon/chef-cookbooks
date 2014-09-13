@@ -1,0 +1,7 @@
+description "pgbouncer upstart script"
+start on (local-filesystems and runlevel [2345])
+stop on runlevel [016]
+respawn
+limit nofile 65000 65000
+exec <%= @cmd %>
+

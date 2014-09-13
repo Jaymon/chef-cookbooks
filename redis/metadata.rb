@@ -11,3 +11,4 @@ depends           "pip"
 
 recipe            "redis", "install redis"
 recipe            "redis::python", "install python bindings redis-py"
+recipe            "redis::pgbouncer", "install pgbouncer"
