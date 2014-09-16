@@ -12,19 +12,14 @@ include_recipe "package::update"
 
 n = node["package"]
 
-
-[:install, :upgrade, :remove, :purge].each do |package_action|
-
-  if n.has_key?(package_action)
-
-    n[package_action].each do |package_name|
-    
-      package package_name do
-        action package_action
+[:install, :upgrade, :remove, :purge].each do |_package_action|
+  [_package_action.to_sym, _package_action.to_s].each do |package_action|
+    if n.has_key?(package_action)
+      n[package_action].each do |package_name|
+        package package_name do
+          action package_action.to_sym
+        end
       end
-      
     end
-  
   end
-    
 end
