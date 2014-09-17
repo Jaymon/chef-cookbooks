@@ -34,7 +34,6 @@ class EnvironHash
     @hash_changed = false
 
     ::IO.foreach(@file) do |line|
-      p line
       # we only want environment KEY=val lines, ignore comments and/or whitespace
       key = ""
       if line.match(/^[a-z0-9_]+=/i)
@@ -51,13 +50,11 @@ class EnvironHash
       end
 
       key.strip!
-      p key
       if key != ""
         # we have to use . here because "sh" doesn't have source, you can see it
         # is using shell by running `echo $0`
         process = shell_out(". #{@file} && echo $#{key}")
         val = process.stdout.strip()
-        p process.stdout
         if val != ""
           @hash[key] = val
         end
