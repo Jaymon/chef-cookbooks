@@ -15,7 +15,7 @@ if !n['open_ports'].empty? or !n['whitelist'].empty?
       "open_ports" => n['open_ports'],
       "whitelist" => n["whitelist"],
     )
-    notifies :start, "service[#{service_name}]", :delayed
+    notifies :restart, "service[#{service_name}]", :delayed
   end
 
   template ::File.join("", "etc", "init", "#{service_name}.conf") do
@@ -26,6 +26,7 @@ if !n['open_ports'].empty? or !n['whitelist'].empty?
     variables(
       "start_script" => config
     )
+    notifies :stop, "service[#{service_name}]", :delayed
     notifies :start, "service[#{service_name}]", :delayed
   end
 
