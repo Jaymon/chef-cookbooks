@@ -1,5 +1,7 @@
 
-class EnvironVars
+class EnvironHash
+  include ::Chef::Mixin::ShellOut
+
   attr_accessor :hash, :file
 
   def initialize(file, error_on_missing=true)
@@ -51,7 +53,8 @@ class EnvironVars
       if key != ""
         # we have to use . here because "sh" doesn't have source, you can see it
         # is using shell by running `echo $0`
-        val = `. #{@file} && echo $#{key}`.chomp
+        process = shell_out(". #{@file} && echo $#{key}")
+        val = process.stdout.strip()
         if val != ""
           @hash[key] = val
         end

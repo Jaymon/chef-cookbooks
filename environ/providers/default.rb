@@ -4,9 +4,7 @@ def whyrun_supported?
   true
 end
 
-require ::File.join(::File.dirname(__FILE__), "..", "support", "environ")
-
-e = EnvironVars.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
+e = ::EnvironHash.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
 
 action :set do
   env_name = new_resource.name
@@ -40,7 +38,7 @@ action :file do
     file_name = new_resource.value
   end
 
-  e_new = EnvironVars.new(file_name)
+  e_new = ::EnvironHash.new(file_name)
   e_new.read_file()
 
   if e.merge(e_new.hash)
