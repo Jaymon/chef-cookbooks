@@ -34,6 +34,7 @@ class EnvironHash
     @hash_changed = false
 
     ::IO.foreach(@file) do |line|
+      p line
       # we only want environment KEY=val lines, ignore comments and/or whitespace
       key = ""
       if line.match(/^[a-z0-9_]+=/i)
