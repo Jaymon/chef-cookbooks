@@ -1,3 +1,6 @@
+# http://www.getchef.com/blog/2014/03/12/writing-libraries-in-chef-cookbooks/
+# https://docs.getchef.com/essentials_cookbook_libraries.html
+# https://docs.getchef.com/lwrp_custom_resource_library.html
 
 class EnvironHash
   include ::Chef::Mixin::ShellOut
