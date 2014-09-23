@@ -53,7 +53,11 @@ n['servers'].each do |server_name, _server_config|
       exec_str += " --#{key}"
 
     else
-      exec_str += " --#{key}=#{val}"
+      if val =~ /\s/
+        exec_str += " --#{key}=\"#{val}\""
+      else
+        exec_str += " --#{key}=#{val}"
+      end
     end
   end
 

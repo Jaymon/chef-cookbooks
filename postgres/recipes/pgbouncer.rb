@@ -79,6 +79,11 @@ dirs.each do |k, d|
     recursive true
     action :create
   end
+
+  # for some reason, these directories don't seem to always get created, this has
+  # happened to both Jarid and me, so I'm hoping this will fail the run if they
+  # don't get created correctly
+  execute "test -d #{d[0]}"
 end
 
 
