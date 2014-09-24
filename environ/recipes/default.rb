@@ -2,15 +2,15 @@ name = cookbook_name.to_s
 n = node[name]
 
 # backup environment file before we touch it for the first time
-env_file = ::File.join(::File::SEPARATOR, 'etc', 'environment')
-env_file_bak = "#{env_file}.bak"
-
-execute "cp #{env_file} #{env_file_bak}" do
-  user "root"
-  group "root"
-  action :run
-  not_if "test -f #{env_file_bak}"
-end
+# env_file = ::File.join(::File::SEPARATOR, 'etc', 'environment')
+# env_file_bak = "#{env_file}.bak"
+# 
+# execute "cp #{env_file} #{env_file_bak}" do
+#   user "root"
+#   group "root"
+#   action :run
+#   not_if "test -f #{env_file_bak}"
+# end
 
 if n.has_key?("global")
 
