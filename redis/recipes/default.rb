@@ -16,6 +16,7 @@ not_if_cmd = "which redis-server"
 ###############################################################################
 
 # redis always gives a warning about this, TODO, make this an option?
+# this doesn't work on restart, this command needs to be written to /etc/sysctl.conf
 execute "sysctl vm.overcommit_memory=1" do
   action :run
   not_if not_if_cmd
@@ -74,7 +75,6 @@ end
 dirs = {
   'etc' => [::File.join("", "etc", "redis"), nil, nil],
   'log' =>  [::File.join("", "var", "log", "redis"), u, u],
-  'run' =>  [::File.join("", "var", "run", "redis"), u, u],
   'lib' => [::File.join("", "var", "lib", "redis"), u, u],
   'conf.d' =>  [::File.join("", "etc", "redis", "conf.d"), nil, nil],
 }
@@ -216,7 +216,10 @@ template ::File.join("etc", "init", "redis-server.conf") do
   variables(
     "exec" => exec,
     "username" => u,
-    'conf' => redis_conf
+    "group" => u,
+    'conf' => redis_conf,
+    'run_dir' => ::File.dirname(n['conf']['pidfile']),
+    'pidfile' => n['conf']['pidfile']
   )
   notifies :stop, "service[#{name}]", :delayed
   notifies :start, "service[#{name}]", :delayed

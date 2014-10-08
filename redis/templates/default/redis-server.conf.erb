@@ -4,8 +4,14 @@
 
 start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
-setuid <%= @username %>
-respawn
+#setuid <%= @username %>
 limit nofile 65000 65000
-exec <%= @exec %> <%= @conf %>
+pre-start script
+    mkdir -p -m0755 <%= @run_dir %>
+    chown <%= @username %>:<%= @group %> <%= @run_dir %>
+end script
+#exec <%= @exec %> <%= @conf %>
+respawn
+expect fork
+exec start-stop-daemon --start --chuid <%= @username %>:<%= @group %> --pidfile <%= @pidfile %> --exec <%= @exec %> -- <%= @conf %>
 

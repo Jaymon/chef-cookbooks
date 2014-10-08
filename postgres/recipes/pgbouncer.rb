@@ -68,7 +68,6 @@ end
 
 dirs = {
   'log' => [::File.join("", "var", "log", "pgbouncer"), u, u],
-  'run' => [::File.join("", "var", "run", "pgbouncer"), u, u],
   'etc' => [::File.join("", "etc", "pgbouncer"), nil, nil]
 }
 dirs.each do |k, d|
@@ -134,7 +133,12 @@ cmd = "pgbouncer #{config_file} -u #{u}"
 template ::File.join("etc", "init", "pgbouncer.conf") do
   source "pgbouncer/upstart.conf.erb"
   mode "0644"
-  variables("cmd" => cmd)
+  variables(
+    "cmd" => cmd,
+    "username" => u,
+    "group" => u,
+    "run_dir" => ::File.join("", "var", "run", "pgbouncer")
+  )
   notifies :stop, "service[#{name}]", :delayed
   notifies :start, "service[#{name}]", :delayed
 end

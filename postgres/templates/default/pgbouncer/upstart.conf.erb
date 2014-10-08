@@ -3,5 +3,9 @@ start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
 respawn
 limit nofile 65000 65000
+pre-start script
+    mkdir -p -m0755 <%= @run_dir %>
+    chown <%= @username %>:<%= @group %> <%= @run_dir %>
+end script
 exec <%= @cmd %>
 
