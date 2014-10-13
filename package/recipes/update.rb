@@ -4,12 +4,11 @@
 
 # only do this at some interval
 
+check_filepath = ::File.join(Chef::Config[:file_cache_path], node["package"]["check_filename"])
+
 execute "apt-get update" do
-  action :run
-  not_if { ::File.exists?(node["package"]["check_filepath"]) }
+  not_if { ::File.exists?(check_filepath) }
 end
 
-execute "touch #{node["package"]["check_filepath"]}" do
-  action :run
-end
+execute "touch #{check_filepath}"
 
