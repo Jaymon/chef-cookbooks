@@ -40,27 +40,31 @@ user name do
   not_if "id -u #{u}"
 end
 
-branch = "tags/#{n['version']}"
+branch = n['version']
 git n['src_dir'] do
   repository n["src_repo"]
-  #revision branch
-  checkout_branch branch
+  revision branch
+  #checkout_branch branch
   action :sync
   depth 1
   enable_submodules true
-  notifies :run, "execute[redis test]", :immediately
+  #notifies :run, "execute[redis test]", :immediately
+  notifies :run, "execute[redis install]", :immediately
 end
 
 
 ###############################################################################
 # Installation
 ###############################################################################
-execute "redis test" do
-  command "make test"
-  cwd n['src_dir']
-  action :nothing
-  notifies :run, "execute[redis install]", :immediately
-end
+# I've disabled the testing because it takes forever and a day to finish and chef 12.0.3
+# has more aggressive timeouts than previous so chef would end its run saying it didn't
+# finish even though the tests would've eventually passed
+# execute "redis test" do
+#   command "make test"
+#   cwd n['src_dir']
+#   action :nothing
+#   notifies :run, "execute[redis install]", :immediately
+# end
 
 execute "redis install" do
   command "make install"
