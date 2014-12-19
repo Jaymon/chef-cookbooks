@@ -52,6 +52,14 @@ n.each do |key, options|
 
   end
 
+  #############################################################################
+  # this is such a hack I'm not even sure I believe it works or that I did it.
+  # Basically this creates a fake resource "pip sentinal" that doesn't have a destination
+  # path, then in the ruby block "pip run needed?" it figures out the path, pulls out
+  # and updates the "pip sentinal" resource and then runs pip on it. I think this
+  # might be better off as just a bash script that does pretty much the same thing
+  # since this just feels super hacky
+  #############################################################################
   pip_file = ::File.join(d, "requirements.txt")
 
   remote_file "pip sentinal" do
@@ -63,9 +71,6 @@ n.each do |key, options|
   ruby_block "pip run needed?" do
     block do
       if ::File.exists?(pip_file)
-        # we are going to be a little trixy here, what we are going to do is have chef
-        # manage a seninal requirements.txt file, if that file has changed it will kick
-        # off running pip
         pip_sentinal_file = ::File.join(::Chef::Config[:file_cache_path], "#{key}-#{::Digest::MD5.file(pip_file).hexdigest}.requirements.txt")
 
         if !::File.exists?(pip_sentinal_file)
@@ -76,26 +81,10 @@ n.each do |key, options|
           res2.action :create
 
           res = ::Chef::Resource::Pip.new(pip_file, run_context)
-          res.not_if { ::File.exists?(pip_sentinal_file) }
+          #res.not_if { ::File.exists?(pip_sentinal_file) }
           res.notifies_immediately :create, "remote_file[pip sentinal]"
           res.run_action(:install)
 
-          p "========================================================================="
-          p "========================================================================="
-          p "========================================================================="
-          p "========================================================================="
-          p "========================================================================="
-          #pp res
-          p "========================================================================="
-          p "========================================================================="
-          p "========================================================================="
-          p "========================================================================="
-          p "========================================================================="
-
-#           res2 = ::Chef::Resource::RemoteFile.new(pip_sentinal_file, run_context)
-#           res2.backup false
-#           res2.source "file://#{pip_file}"
-#           res2.run_action(:create)
         end
 
       end
