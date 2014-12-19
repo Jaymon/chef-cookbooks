@@ -64,6 +64,13 @@ n['servers'].each do |server_name, _server_config|
   variables['exec_str'] = exec_str
   variables['server_name'] = server_name
 
+  service server_name do
+    service_name server_name
+    provider Chef::Provider::Service::Upstart
+    action :nothing
+    supports :status => true, :start => true, :stop => true, :restart => true
+  end
+
   template ::File.join("", "etc", "init", "#{server_name}.conf") do
     source "server.conf.erb"
     mode "0644"
@@ -72,12 +79,20 @@ n['servers'].each do |server_name, _server_config|
     notifies :start, "service[#{server_name}]", :delayed
   end
 
-  service server_name do
-    service_name server_name
-    provider Chef::Provider::Service::Upstart
-    action :nothing
-    supports :status => true, :start => true, :stop => true, :restart => true
-  end
+end
 
+service name do
+  service_name name
+  provider Chef::Provider::Service::Upstart
+  action :nothing
+  supports :status => true, :start => true, :stop => true, :restart => true
+end
+
+template ::File.join("", "etc", "init", "#{name}.conf") do
+  source "servers.conf.erb"
+  mode "0644"
+  variables({"server_names" => n['servers'].keys})
+  notifies :stop, "service[#{name}]", :delayed
+  notifies :start, "service[#{name}]", :delayed
 end
 

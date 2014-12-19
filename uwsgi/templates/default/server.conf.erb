@@ -2,7 +2,7 @@
 # http://uwsgi-docs.readthedocs.org/en/latest/Upstart.html
 
 description "uwsgi upstart for <%= @server_name %>"
-start on (local-filesystems and runlevel [2345])
+start on ((local-filesystems and runlevel [2345]) or vagrant-mounted)
 stop on runlevel [06]
 
 <% if defined?(@chdir) %>
