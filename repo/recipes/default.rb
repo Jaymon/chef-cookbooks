@@ -1,13 +1,13 @@
+require 'digest/md5'
+
 name = cookbook_name.to_s
 n = node[name]
 
-include_recipe "pip"
 
 n.each do |key, options|
 
   u = options['user']
   d = options['dir']
-  pip_file = ::File.join(d, "requirements.txt")
 
   directory d do
     owner u
@@ -52,19 +52,54 @@ n.each do |key, options|
 
   end
 
-  # we are going to be a little trixy here, what we are going to do is have chef
-  # manage a seninal requirements.txt file, if that file has changed it will kick
-  # off running pip
-  pip_sentinal_file = ::File.join(Chef::Config[:file_cache_path], "#{key}-requirements-sentinal.text")
-  remote_file pip_sentinal_file do
-    backup false
+  pip_file = ::File.join(d, "requirements.txt")
+
+  remote_file "pip sentinal" do
     source "file://#{pip_file}"
-    notifies :install, "pip[#{pip_file}]", :immediately
-    only_if { ::File.exists?(pip_file) }
+    backup false
+    action :nothing
   end
 
-  pip pip_file do
-    action :nothing
+  ruby_block "pip run needed?" do
+    block do
+      if ::File.exists?(pip_file)
+        # we are going to be a little trixy here, what we are going to do is have chef
+        # manage a seninal requirements.txt file, if that file has changed it will kick
+        # off running pip
+        pip_sentinal_file = ::File.join(::Chef::Config[:file_cache_path], "#{key}-#{::Digest::MD5.file(pip_file).hexdigest}.requirements.txt")
+
+        if !::File.exists?(pip_sentinal_file)
+
+          # http://sysadvent.blogspot.com/2012/12/day-24-twelve-things-you-didnt-know.html
+          res2 = resources("remote_file[pip sentinal]")
+          res2.path pip_sentinal_file
+          res2.action :create
+
+          res = ::Chef::Resource::Pip.new(pip_file, run_context)
+          res.not_if { ::File.exists?(pip_sentinal_file) }
+          res.notifies_immediately :create, "remote_file[pip sentinal]"
+          res.run_action(:install)
+
+          p "========================================================================="
+          p "========================================================================="
+          p "========================================================================="
+          p "========================================================================="
+          p "========================================================================="
+          #pp res
+          p "========================================================================="
+          p "========================================================================="
+          p "========================================================================="
+          p "========================================================================="
+          p "========================================================================="
+
+#           res2 = ::Chef::Resource::RemoteFile.new(pip_sentinal_file, run_context)
+#           res2.backup false
+#           res2.source "file://#{pip_file}"
+#           res2.run_action(:create)
+        end
+
+      end
+    end
   end
 
 end
