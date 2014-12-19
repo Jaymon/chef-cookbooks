@@ -43,7 +43,8 @@ end
 branch = "tags/#{n['version']}"
 git n['src_dir'] do
   repository n["src_repo"]
-  revision branch
+  #revision branch
+  checkout_branch branch
   action :sync
   depth 1
   enable_submodules true

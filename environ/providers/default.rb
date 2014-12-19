@@ -14,8 +14,9 @@ action :set do
 
     ENV[env_name] = env_val # keep the RUBY env in sync
 
-    converge_by("set in #{e.file} #{env_name}=#{env_val}") do
-      template e.file do
+    name = "set in #{e.file} #{env_name}=#{env_val}"
+    converge_by(name) do
+      template name do
         backup false
         owner "root"
         group "root"
@@ -51,8 +52,11 @@ action :file do
       ENV[k] = v 
     end
 
-    converge_by("merge #{file_name} into #{e.file}") do
-      template e.file do
+    name = "merge #{file_name} into #{e.file}"
+    converge_by(name) do
+      template name do
+        #checksum ""
+        path e.file
         backup false
         owner "root"
         group "root"
