@@ -19,10 +19,12 @@ if !::File.exists?(n["check_file"])
     action :upgrade
   end
 
-  pip "setuptools" do
-    action :upgrade
-    flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
-  end
+  # 2-9-15 - this was here for 1.5, but pip >6.0 this messes it all up again, so we are
+  # no longer going to update setuptools anymore until it breaks again
+  #pip "setuptools" do
+  #  action :upgrade
+  #  flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
+  #end
 
   execute "touch #{n["check_file"]}" do
     action :run
