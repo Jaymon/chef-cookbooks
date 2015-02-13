@@ -25,6 +25,14 @@ if !::File.exists?(n["check_file"])
   #  action :upgrade
   #  flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
   #end
+  
+  package "python-setuptools" do
+    action :remove
+  end
+
+  pip "setuptools" do
+    action :upgrade
+  end
 
   execute "touch #{n["check_file"]}" do
     action :run
