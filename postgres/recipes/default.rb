@@ -1,4 +1,4 @@
-##
+###############################################################################
 # installs the postgresql db on ubuntu
 #
 # I found all the sql commands using this page: http://www.postgresql.org/docs/8.0/static/catalogs.html
@@ -7,7 +7,7 @@
 # 
 # the reason why we do sudo -u postgres is because setting user "postgres" doesn't work the way I thought
 # it would work, so the only way to execute these commands as the postgres user is to do the sudo hack
-##
+###############################################################################
 
 # Even though I'd been using this recipe for quite a while, all of a sudden Postgres is
 # snippy about the locale of the box to use unicode, so let's set it
@@ -20,22 +20,44 @@ cmd_user = "sudo -u #{u}"
 # p n
 # p "============================================================================"
 
-locales = ["LC_COLLATE", "LC_CTYPE", "LC_ALL", "LANG", "LANGUAGE"]
+
+###############################################################################
+# setup the locale if needed
+###############################################################################
+# TODO: would this be better to just run:
+# update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+pg_locale_default = "en_US.UTF-8"
+pg_locale = ""
+locales = ["LC_COLLATE", "LANG", "LANGUAGE", "LC_CTYPE", "LC_ALL"]
 locales_prev = {}
-
-ruby_block "set postgres locale" do
-  block do
-    locales.each do |locale|
-      if ENV.has_key?(locale)
-        locales_prev[locale] = ENV[locale]
-      end
-
-      ENV[locale] = "en_US.utf8"
-    end
+locales.each do |locale|
+  if ENV.has_key?(locale)
+    pg_locale = ENV[locale]
+    break
   end
-  action :create
 end
 
+if pg_locale.empty?
+  ruby_block "set postgres locale" do
+    block do
+      locales.each do |locale|
+        if ENV.has_key?(locale)
+          locales_prev[locale] = ENV[locale]
+        end
+
+        ENV[locale] = pg_locale_default
+      end
+    end
+    action :create
+  end
+end
+
+pg_locale = pg_locale_default
+
+
+###############################################################################
+# actually install postgres db
+###############################################################################
 package "postgresql" do
   action :install
 end
@@ -75,7 +97,7 @@ n["databases"].each do |username, dbnames|
   Array(dbnames).each do |dbname|
 
     #cmd = "createdb --template=template0 -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
-    cmd = "createdb -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
+    cmd = "createdb -E UTF8 --locale=#{pg_locale} -O #{username} #{dbname}"
     not_cmd = "psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""
     # test to see if this works
     # http://stackoverflow.com/questions/8392973/understanding-chef-only-if-not-if
@@ -358,14 +380,16 @@ end
 ###############################################################################
 ruby_block "reset previous locale" do
   block do 
-    # remove previous locales
-    locales.each do |locale|
-      ENV.delete(locale)
-    end
+    if locales_prev
+      # remove previous locales
+      locales.each do |locale|
+        ENV.delete(locale)
+      end
 
-    # restore previous values
-    locales_prev.each do |locale, locale_val|
-      ENV[locale] = locale_val
+      # restore previous values
+      locales_prev.each do |locale, locale_val|
+        ENV[locale] = locale_val
+      end
     end
   end
   action :create

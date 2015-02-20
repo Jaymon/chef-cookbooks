@@ -1,8 +1,8 @@
-##
+###############################################################################
 # installs pgbouncer for postgres
 #
 # since 6-14-12
-##
+###############################################################################
 name_pg = cookbook_name.to_s
 name = recipe_name.to_s
 n_pg = node[name_pg]
@@ -16,8 +16,15 @@ u = n['user']
 ###############################################################################
 # Pre-requisites
 ###############################################################################
-%W{git make autoconf automake autoconf-archive asciidoc xmlto libtool libevent-dev}.each do |p|
+%W{git make autoconf automake autoconf-archive libtool libevent-dev}.each do |p|
   package p
+end
+
+# if we allow standard installs these will install like 2gb of extraneous crap
+%W{asciidoc xmlto}.each do |p|
+  package p do
+    options "--no-install-recommends"
+  end
 end
 
 # create the user
