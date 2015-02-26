@@ -16,7 +16,7 @@ action :set do
 
     name = "set in #{e.file} #{env_name}=#{env_val}"
     converge_by(name) do
-      template name do
+      template e.file do
         backup false
         owner "root"
         group "root"
