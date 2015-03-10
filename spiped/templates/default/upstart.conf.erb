@@ -1,0 +1,21 @@
+# spiped daemon script
+#
+# spiped allows secure communication between 2 boxes that don't have ssl
+
+start on (local-filesystems and runlevel [2345])
+stop on runlevel [016]
+
+respawn
+<% if defined?(@username) && !@username.empty? %>
+setuid <%= @username %>
+<% end %>
+<% if defined?(@usergroup) && !@usergroup.empty? %>
+setgid <%= @usergroup %>
+<% end %>
+
+expect fork
+exec <%= @exec %> <%= @args %>
+
+#expect fork
+#exec start-stop-daemon --start --chuid <%= @username %>:<%= @usergroup %> --pidfile <%= @pidfile %> --exec <%= @exec %> -- <%= @args %>
+

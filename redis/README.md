@@ -2,6 +2,7 @@
 
 Install Redis
 
+
 ## Attributes
 
 `node["redis"]["version"]` -- string -- a redis version string like `2.8.10`
@@ -30,6 +31,13 @@ restart the server:
 stop the server:
 
     $ stop redis-server
+
+
+## Other
+
+Sometime in the future, Redis will have [native ssl](https://github.com/antirez/redis/pull/2402) [support](https://github.com/antirez/redis/issues/2178), until then, you can use the [spiped cookbook](http://redis.io/topics/encryption).
+
+Read more about [Redis security](http://redis.io/topics/security).
 
 ## Platform
 
