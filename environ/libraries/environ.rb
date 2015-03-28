@@ -1,6 +1,7 @@
 # http://www.getchef.com/blog/2014/03/12/writing-libraries-in-chef-cookbooks/
 # https://docs.getchef.com/essentials_cookbook_libraries.html
 # https://docs.getchef.com/lwrp_custom_resource_library.html
+require 'shellwords'
 
 class EnvironHash
   include ::Chef::Mixin::ShellOut
@@ -72,7 +73,7 @@ class EnvironHash
 
   def write_file()
     ::File.open(@file, 'w') do |f|
-      @hash.each do |key, val|
+      self.each do |key, val|
         f.puts "#{key}=#{val}"
       end
     end
@@ -108,8 +109,9 @@ class EnvironHash
     return true
   end
 
-  def each()
-    @hash.each { |k, v| yield k, v }
+  def escape_each()
+    # we don't want things like ampersands throwing everything off
+    @hash.each { |k, v| yield k, ::Shellwords::shellescape(v) }
   end
 
   def values()

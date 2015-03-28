@@ -1,3 +1,3 @@
-<% @hash.each do |key, val| %>
+<% @environ.escape_each do |key, val| %>
 export <%= key %>=<%= val %>
 <% end %>

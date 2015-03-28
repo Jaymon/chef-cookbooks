@@ -62,7 +62,7 @@ action :file do
         group "root"
         source "environment.erb"
         mode "0644"
-        variables "hash" => e.hash
+        variables "environ" => e
       end
     end
 

@@ -52,7 +52,7 @@ n["pipes"].each do |pipe_type, pipes|
 
     service name do
       provider Chef::Provider::Service::Upstart
-      action :nothing
+      action :start
       supports :start => true, :stop => true, :status => true, :restart => true
     end
 
