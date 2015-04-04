@@ -6,9 +6,11 @@ n = node[name]
 ###############################################################################
 include_recipe "pip"
 
-['build-essential', 'python-dev'].each do |p|
+# needs libpcre for internal routing: http://stackoverflow.com/questions/21669354/
+['build-essential', 'python-dev', 'libpcre3-dev'].each do |p|
   package p
 end
+
 
 ###############################################################################
 # install it
@@ -19,6 +21,7 @@ if n.has_key?("version")
 end
 
 pip request_str
+
 
 ###############################################################################
 # configure
