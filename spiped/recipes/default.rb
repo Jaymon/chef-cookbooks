@@ -50,12 +50,6 @@ end
 n["pipes"].each do |pipe_type, pipes|
   pipes.each do |name, vals|
 
-    service name do
-      provider Chef::Provider::Service::Upstart
-      action :start
-      supports :start => true, :stop => true, :status => true, :restart => true
-    end
-
     exec = ::File.join("", "usr", "local", "bin", "spiped")
     pid_filepath = ::File.join(pid_dir, name)
 
@@ -84,6 +78,12 @@ n["pipes"].each do |pipe_type, pipes|
       )
       notifies :stop, "service[#{name}]", :delayed
       notifies :start, "service[#{name}]", :delayed
+    end
+
+    service name do
+      provider Chef::Provider::Service::Upstart
+      action :start
+      supports :start => true, :stop => true, :status => true, :restart => true
     end
 
   end
