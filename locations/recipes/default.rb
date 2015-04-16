@@ -4,7 +4,7 @@ n = node[name]
 n['users'].each do |username, files|
   files.each do |dname, d|
     src_dir = ''
-    src_file = d['src']
+    src_file = d.get('src', '')
     dest_dir = ''
     dest_file = d['dest']
     pos = src_file =~ /\S+:\/\//
@@ -20,7 +20,8 @@ n['users'].each do |username, files|
         dest_file = ''
 
       else
-        raise "no local source file found at location #{src_file}"
+        dest_dir = dest_file
+        #raise "no local source file found at location #{src_file}"
 
       end
     end
