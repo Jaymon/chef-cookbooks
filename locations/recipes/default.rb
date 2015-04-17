@@ -4,7 +4,7 @@ n = node[name]
 n['users'].each do |username, files|
   files.each do |dname, d|
     src_dir = ''
-    src_file = d.get('src', '')
+    src_file = d.fetch('src', '')
     dest_dir = ''
     dest_file = d['dest']
     pos = src_file =~ /\S+:\/\//
