@@ -50,6 +50,7 @@ git n['src_dir'] do
   enable_submodules true
   #notifies :run, "execute[redis test]", :immediately
   notifies :run, "execute[redis install]", :immediately
+  not_if "redis-cli --version 2>/dev/null | grep '#{branch}'"
 end
 
 
@@ -67,7 +68,7 @@ end
 # end
 
 execute "redis install" do
-  command "make install"
+  command "make distclean; make install"
   cwd n['src_dir']
   action :nothing
   notifies :restart, "service[#{name}]", :delayed

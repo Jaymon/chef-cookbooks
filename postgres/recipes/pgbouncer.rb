@@ -52,6 +52,7 @@ git n['src_dir'] do
   depth 1
   enable_submodules true
   notifies :run, "bash[configure pgbouncer]", :immediately
+  not_if "pgbouncer --version 2>/dev/null | grep '#{n['version']}'"
 end
 
 bash "configure pgbouncer" do
