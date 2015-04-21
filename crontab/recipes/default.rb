@@ -20,7 +20,7 @@ cron_logdir = n.fetch('logdir', '')
 n['users'].each do |username, cron_jobs|
 
   existing_cron_jobs = Set.new
-  crontab = %x(sudo -u #{username} crontab -l)
+  crontab = %x(sudo -u #{username} crontab -l 2>/dev/null)
   crontab.each_line do |line|
     m = /^#\s+Chef\s+Name:\s+(\S+)/i.match(line)
     if m
