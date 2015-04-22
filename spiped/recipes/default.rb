@@ -1,8 +1,10 @@
+require 'tmpdir'
+
 name = cookbook_name.to_s
 n = node[name]
 
 version = n["version"]
-tempdir = ::File.join("", "tmp")
+tempdir = ::Dir.tmpdir
 basename = "spiped-#{version}"
 zip_filename = "#{basename}.tgz"
 zip_filepath = ::File.join(::Chef::Config[:file_cache_path], zip_filename)
@@ -23,6 +25,7 @@ end
 ###############################################################################
 remote_file zip_filepath do
   source zip_url
+  action :create_if_missing
   notifies :run, "execute[untar #{zip_filepath}]", :immediately
 end
 
@@ -39,14 +42,6 @@ end
 ###############################################################################
 # Upstart
 ###############################################################################
-# mode is world writeable because the pid file needs to be written to the spiped dir
-# mode is world executable because evidently you need to execute something to write
-# directory is completely opened because each spiped command could be run under a different user
-directory pid_dir do
-  mode "0777"
-  recursive true
-end
-
 n["pipes"].each do |pipe_type, pipes|
   pipes.each do |name, vals|
 
@@ -75,6 +70,7 @@ n["pipes"].each do |pipe_type, pipes|
         "usergroup" => vals.fetch("user", ""),
         "args" => args,
         'pidfile' => pid_filepath,
+        'run_dir' => pid_dir
       )
       notifies :stop, "service[#{name}]", :delayed
       notifies :start, "service[#{name}]", :delayed

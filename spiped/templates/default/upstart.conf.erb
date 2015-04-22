@@ -7,15 +7,23 @@ stop on runlevel [016]
 
 respawn
 <% if defined?(@username) && !@username.empty? %>
-setuid <%= @username %>
+# setuid <%= @username %>
 <% end %>
 <% if defined?(@usergroup) && !@usergroup.empty? %>
-setgid <%= @usergroup %>
+# setgid <%= @usergroup %>
 <% end %>
 
-expect fork
-exec <%= @exec %> <%= @args %>
+pre-start script
+    # mode is world writeable because the pid file needs to be written to the spiped dir
+    # mode is world executable because evidently you need to execute something to write
+    # directory is completely opened because each spiped command could be run under a different user
+    mkdir -p -m0777 <%= @run_dir %>
+    #chown <%= @username %>:<%= @group %> <%= @run_dir %>
+end script
 
 #expect fork
-#exec start-stop-daemon --start --chuid <%= @username %>:<%= @usergroup %> --pidfile <%= @pidfile %> --exec <%= @exec %> -- <%= @args %>
+#exec <%= @exec %> <%= @args %>
+
+expect fork
+exec start-stop-daemon --start --chuid <%= @username %>:<%= @usergroup %> --pidfile <%= @pidfile %> --exec <%= @exec %> -- <%= @args %>
 
