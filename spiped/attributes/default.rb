@@ -4,7 +4,7 @@ name = "spiped"
 default[name] = {}
 
 default[name]["version"] = "1.5.0"
-#default[name]["user"] = "redis"
+default[name]["user"] = "spiped"
 
 default[name]["pipes"] = {}
 #default[name][:client] = {}

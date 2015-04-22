@@ -5,7 +5,6 @@
 start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
 
-respawn
 <% if defined?(@username) && !@username.empty? %>
 # setuid <%= @username %>
 <% end %>
@@ -24,6 +23,7 @@ end script
 #expect fork
 #exec <%= @exec %> <%= @args %>
 
+respawn
 expect fork
 exec start-stop-daemon --start --chuid <%= @username %>:<%= @usergroup %> --pidfile <%= @pidfile %> --exec <%= @exec %> -- <%= @args %>
 

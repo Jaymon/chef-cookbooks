@@ -17,6 +17,7 @@ not_if_cmd = "which redis-server"
 
 # redis always gives a warning about this, TODO, make this an option?
 # this doesn't work on restart, this command needs to be written to /etc/sysctl.conf
+# or this could be added to the pre-start of the init script
 execute "sysctl vm.overcommit_memory=1" do
   action :run
   not_if not_if_cmd
