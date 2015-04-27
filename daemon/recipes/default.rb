@@ -16,7 +16,7 @@ if n.has_key?('names')
 
   n['names'].each do |service_name, _options|
 
-    # combine defaults with speicific options
+    # combine defaults with specific options
     options = default_options.merge(_options)
     count = options.fetch('count', 0)
 
@@ -56,7 +56,7 @@ if n.has_key?('names')
     r = service instance_name do
       provider Chef::Provider::Service::Upstart
       service_name instance_name
-      action :nothing
+      action options.fetch('action', :nothing)
     end
 
     options.fetch('subscribes', []).each do |params|

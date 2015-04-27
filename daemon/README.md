@@ -55,6 +55,11 @@ For example, to have all daemons restart if some git repo changes, you could put
 
 `count` -- integer -- how many instances of the daemon you want to run.
 
+---------
+
+`action` -- symbol -- defaults to `:nothing` but can be set to `:start` to have the daemon start once configured
+
+
 ### Example
 
 Let's say our configuration is defined as such:
