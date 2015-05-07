@@ -1,8 +1,13 @@
 # http://docs.opscode.com/essentials_cookbook_attribute_files.html
 name = "postgres"
 
-# the user hash is in username => password format
-default[name]["users"] = {"postgres" => "postgres"}
+# the users hash is in username => options format
+default[name]["users"] = {}
+# default[name]["users"] = {
+#   "postgres" => {
+#     "encrypted password" => "postgres",
+#   }
+# }
 
 # the databases hash is in username => [dbname1, ...] format
 default[name]["databases"] = {}
