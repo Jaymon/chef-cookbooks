@@ -451,6 +451,10 @@ if !n["replication"].empty?
   execute "pg_basebackup" do
     command basebackup_cmd
     action :nothing
+    sensitive true
+    environment(
+      "PGPASSWORD" => nrep["password"]
+    )
     notifies :run, "template[pg_recovery]", :immediately
   end
 
