@@ -61,7 +61,7 @@ pg_locale = pg_locale_default
 # actually install postgres db
 ###############################################################################
 
-["postgresql-contrib", "postgresql"].each do |p|
+["postgresql", "postgresql-contrib"].each do |p|
   package p
 end
 
