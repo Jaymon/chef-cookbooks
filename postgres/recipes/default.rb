@@ -431,6 +431,13 @@ end
 ###############################################################################
 if !n["replication"].empty?
 
+  ruby_block 'pg_stop_service_for_replication' do
+    block do
+      r = resources("service[#{name}]")
+      r.run_action(:stop)
+    end
+  end
+
   nrep = n["replication"]
   recovery_file = ::File.join(n["main_dir"], "recovery.conf")
 
@@ -455,7 +462,7 @@ if !n["replication"].empty?
     environment(
       "PGPASSWORD" => nrep["password"]
     )
-    notifies :run, "template[pg_recovery]", :immediately
+    notifies :create_if_missing, "template[pg_recovery]", :immediately
   end
 
   template "pg_recovery" do
@@ -471,7 +478,7 @@ if !n["replication"].empty?
     owner u
     group u
     mode "0600"
-    action :create_if_missing
+    action :nothing
     notifies :restart, "service[#{name}]", :delayed
   end
 
