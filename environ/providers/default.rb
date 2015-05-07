@@ -16,14 +16,18 @@ action :set do
 
     name = "set in #{e.file} #{env_name}=#{env_val}"
     converge_by(name) do
-      template e.file do
+      e.set(env_name, env_val)
+
+      template name do
+        path e.file
         backup false
         owner "root"
         group "root"
         mode "0644"
         source "environment.erb"
-        variables "hash" => e.hash
+        variables "environ" => e
       end
+
     end
 
   else
@@ -55,7 +59,6 @@ action :file do
     name = "merge #{file_name} into #{e.file}"
     converge_by(name) do
       template name do
-        #checksum ""
         path e.file
         backup false
         owner "root"
