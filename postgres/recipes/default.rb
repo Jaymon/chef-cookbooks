@@ -434,7 +434,7 @@ if !n["replication"].empty?
   nrep = n["replication"]
   recovery_file = ::File.join(n["main_dir"], "recovery.conf")
 
-  host, port = nrep.split(":")
+  host, port = nrep["master"].split(":")
 
   execute "rm -rf #{n["data_dir"]}" do
     action :run
