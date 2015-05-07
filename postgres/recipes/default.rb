@@ -9,20 +9,22 @@
 # it would work, so the only way to execute these commands as the postgres user is to do the sudo hack
 ###############################################################################
 
-# Even though I'd been using this recipe for quite a while, all of a sudden Postgres is
-# snippy about the locale of the box to use unicode, so let's set it
 name = cookbook_name.to_s
 n = node[name]
 u = "postgres"
 cmd_user = "sudo -u #{u}"
 
-# p "============================================================================"
-# p n
-# p "============================================================================"
+require 'pp'
+p "============================================================================"
+PP.pp(n)
+p "============================================================================"
 
 
 ###############################################################################
 # setup the locale if needed
+#
+# Even though I'd been using this recipe for quite a while, all of a sudden Postgres is
+# snippy about the locale of the box to use unicode, so let's set it
 ###############################################################################
 # TODO: would this be better to just run:
 # update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
@@ -58,40 +60,73 @@ pg_locale = pg_locale_default
 ###############################################################################
 # actually install postgres db
 ###############################################################################
-package "postgresql" do
-  action :install
-end
 
-package "postgresql-contrib" do
-  action :install
+["postgresql-contrib", "postgresql"].each do |p|
+  package p
 end
 
 
 ###############################################################################
 # add the postgres users and passwords
 ###############################################################################
-n["users"].each do |username, password|
 
-  # add the user
-  # http://www.postgresql.org/docs/8.1/static/app-createuser.html
-  cmd = "createuser --no-superuser --createdb --no-createrole --echo #{username}"
-  not_cmd = "psql -c \"select usename from pg_user where usename='#{username}'\" -d template1 | grep -w \"#{username}\""
-  execute "#{cmd_user} #{cmd}" do
-    action :run
-    #ignore_failure true
-    not_if "#{cmd_user} #{not_cmd}"
+# Originally this used createuser command line utility
+# http://www.postgresql.org/docs/9.3/static/app-createuser.html
+
+##
+# this will create the query to either add or update the user's priviledges
+#
+# http://www.postgresql.org/docs/9.3/static/sql-createrole.html
+# http://www.postgresql.org/docs/9.3/static/sql-alterrole.html
+##
+def make_query(username, options, is_create)
+
+  query = is_create ? "CREATE USER" : "ALTER USER"
+  query += " #{username} WITH"
+
+  options.each do |k, v|
+
+    if v.is_a?(TrueClass)
+      query += " #{k.upcase}"
+
+    elsif v.is_a?(FalseClass)
+      query += " NO#{k.upcase}"
+
+    else
+      query += " #{k.upcase} '#{v}'"
+
+    end
+
   end
-  
-  # set the user's password, we run this every time so updated passwords get changed
-  cmd = "psql -c \"ALTER USER #{username} WITH PASSWORD '#{password}'\" -d template1"
+
+  query
+
+end
+
+n["users"].each do |username, options|
+
+  user_exists = "psql -c \"select usename from pg_user where usename='#{username}'\" -d template1 | grep -w \"#{username}\""
+
+  # this will run to alter the user to be how we want if the user already exists
+  cmd = "psql -c \"#{make_query(username, options, false)}\" -d template1"
   execute "#{cmd_user} #{cmd}" do
     action :run
-    #ignore_failure true
+    only_if "#{cmd_user} #{user_exists}"
+  end
+
+  # this will only run if the user doesn't already exist
+  cmd = "psql -c \"#{make_query(username, options, true)}\" -d template1"
+  execute "#{cmd_user} #{cmd}" do
+    action :run
+    not_if "#{cmd_user} #{user_exists}"
   end
 
 end
-    
-# add databases
+
+
+###############################################################################
+# add the databases
+###############################################################################
 n["databases"].each do |username, dbnames|
 
   Array(dbnames).each do |dbname|
@@ -107,11 +142,10 @@ n["databases"].each do |username, dbnames|
       #ignore_failure true
       not_if "#{cmd_user} #{not_cmd}"
     end
-    
   end
 
 end
-    
+
 
 ###############################################################################
 # add psqlrc files for all users on the system
@@ -125,7 +159,11 @@ users_home << "/root/"
 users_home.each do |user_home|
 
   user = File.basename(user_home)
-  
+
+  # there could aslo one be placed somewhere and PSQLRC environment variable set
+  # to that location
+  # http://www.postgresql.org/docs/9.2/static/app-psql.html
+
   # http://wiki.opscode.com/display/chef/Resources#Resources-CookbookFile
   cookbook_file File.join(user_home,".psqlrc") do
     backup false
@@ -135,10 +173,10 @@ users_home.each do |user_home|
     mode "0644"
     action :create_if_missing
   end
-  
+
   # add a .pgpass file if the user is one of the postgres users
   if n["users"].has_key?(user)
-  
+
     # http://wiki.opscode.com/display/ChefCN/Templates
     template File.join(user_home,".pgpass") do
       source "pgpass.erb"
@@ -151,7 +189,6 @@ users_home.each do |user_home|
       mode "0600"
       action :create_if_missing
     end
-  
   end
 
 end
@@ -162,6 +199,7 @@ service name do
   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
   action :nothing
 end
+
 
 ###############################################################################
 # reconfigure postgres
@@ -243,6 +281,7 @@ if n.has_key?("conf")
 
 end
 
+
 ###############################################################################
 # reconfigure pg_hba
 ###############################################################################
@@ -311,7 +350,7 @@ if n.has_key?("hba")
         'options' => ''
       }
 
-      n['hba'].each do |row|
+      (n['hba_default'] + n['hba']).each do |row|
         index = -1
         conf_lookup.each do |conf_row|
           is_match = true
@@ -346,6 +385,12 @@ if n.has_key?("hba")
           "#{ncrow['method']} " + 
           "#{ncrow['options']}"
 
+        # NOTE -- if you set it to active=false and then back to active=true it
+        # will make another row, this is a bug, but a forgivable one for now
+        if !ncrow.fetch('active', true)
+          ncl = "##{ncl}"
+        end
+
         if index >= 0
           conf_lines[index] = ncl
 
@@ -374,6 +419,7 @@ if n.has_key?("hba")
   end
 
 end
+
 
 ###############################################################################
 # cleanup

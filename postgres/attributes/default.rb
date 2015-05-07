@@ -17,7 +17,16 @@ default[name]["hba_file"] = ::File.join("", "etc", "postgresql", version, "main"
 default[name]["conf"] = {}
 default[name]["conf"]["listen_addresses"] = "'*'"
 
-default[name]["hba"] = [
+default[name]["hba"] = []
+
+# so here's the problem, I want these to pretty much always be around in the majority
+# of the cases. The problem is if we add any hba values in a config, it would overwrite these :(
+# so we could either make hba a dict with named keys or user keys, but then you would
+# still need to get all the keys if you needed to clear all the defaults, my solution
+# is this hack, these will be added to the hba file and then the hba values will be added
+# to the file, which can overwrite these values. It's a hack, but it works and allows you to
+# completely blow the defaults away by setting it to an empty list
+default[name]["hba_default"] = [
   { # this makes postgres operate easier in the environment we've set up (.pgpass files work as expected)
     'connection' => 'local',
     'database' => 'all',
