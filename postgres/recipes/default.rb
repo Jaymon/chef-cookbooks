@@ -193,6 +193,11 @@ users_home.each do |user_home|
 
 end
 
+
+###############################################################################
+# manage the postgres service
+###############################################################################
+
 # http://wiki.opscode.com/display/chef/Resources#Resources-Service
 service name do
   service_name "postgresql"
@@ -415,6 +420,54 @@ if n.has_key?("hba")
     group u
     mode "0644"
     action :nothing
+    notifies :restart, "service[#{name}]", :delayed
+  end
+
+end
+
+
+###############################################################################
+# replication
+###############################################################################
+if !n["replication"].empty?
+
+  nrep = n["replication"]
+  recovery_file = ::File.join(n["main_dir"], "recovery.conf")
+
+  host, port = nrep.split(":")
+
+  execute "rm -rf #{n["data_dir"]}" do
+    action :run
+    not_if "test -f #{recovery_file}"
+    notifies :run, "execute[pg_basebackup]", :immediately
+  end
+
+  basebackup_cmd = "#{cmd_user} pg_basebackup -h #{host}"
+  if !port.empty?
+    basebackup_cmd += " -p #{port}"
+  end
+  basebackup_cmd += " -D #{n["data_dir"]} -U #{nrep["user"]}"
+
+  execute "pg_basebackup" do
+    command basebackup_cmd
+    action :nothing
+    notifies :run, "template[pg_recovery]", :immediately
+  end
+
+  template "pg_recovery" do
+    path recovery_file
+    source "recovery.conf.erb"
+    variables(
+      "user" => nrep["user"],
+      "host" => host,
+      "port" => port,
+      "password" => nrep["password"],
+      "trigger_file" => nrep["trigger_file"]
+    )
+    owner u
+    group u
+    mode "0600"
+    action :create_if_missing
     notifies :restart, "service[#{name}]", :delayed
   end
 

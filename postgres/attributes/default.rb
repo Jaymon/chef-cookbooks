@@ -6,13 +6,18 @@ default[name]["users"] = {"postgres" => "postgres"}
 
 # the databases hash is in username => [dbname1, ...] format
 default[name]["databases"] = {}
+default[name]["replication"] = {}
 
 version_str = %x(apt-cache show postgresql|grep Version)
 m = version_str.match(/^Version:\s*([\d\.]+)/i)
 version = m[1]
 default[name]["version"] = version
-default[name]["conf_file"] = ::File.join("", "etc", "postgresql", version, "main", "postgresql.conf")
-default[name]["hba_file"] = ::File.join("", "etc", "postgresql", version, "main", "pg_hba.conf")
+
+main_dir = ::File.join("", "etc", "postgresql", version, "main")
+default[name]["main_dir"] = main_dir
+default[name]["conf_file"] = ::File.join(main_dir, "postgresql.conf")
+default[name]["hba_file"] = ::File.join(main_dir, "pg_hba.conf")
+default[name]["data_dir"] = ::File.join("", "var", "lib", "postgresql", version, "main")
 
 default[name]["conf"] = {}
 default[name]["conf"]["listen_addresses"] = "'*'"
