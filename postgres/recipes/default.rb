@@ -12,7 +12,7 @@
 name = cookbook_name.to_s
 n = node[name]
 u = "postgres"
-cmd_user = "sudo -u #{u}"
+cmd_user = "sudo -E -u #{u}"
 
 require 'pp'
 p "============================================================================"
