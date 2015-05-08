@@ -44,6 +44,7 @@ Notice that `'mod'` is the value (it has quotes), not `mod`.
 
 Refer to the comments in the installed `pg_hba.conf` file or the **Client Authentication** section in the postgres manual.
 
+
 ### PGBouncer
 
 `default["postgres"]["pgbouncer"]["version"]` -- the version of pgbouncer you want to install, currently defaults to `1.5.4`
@@ -62,13 +63,14 @@ You can read more about configuring pgbouncer [here](http://pgbouncer.projects.p
 PGBouncer is installed from source from this [git repo](https://github.com/markokr/pgbouncer-dev). I used [this script](https://github.com/tkopczuk/ATP_Performance_Test/blob/master/install_pgbouncer.sh) ([via](http://www.askthepony.com/blog/2011/07/django-and-postgresql-improving-the-performance-with-no-effort-and-no-code/)) while figuring stuff out.
 
 
+### Replication
+
+
+
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04, nothing else has been tested
 
 If you need a more full featured Postgres cookbook,
 use the [Official Opscode Cookbook](https://github.com/opscode-cookbooks/postgresql).
 
-## Todo
-
-I think the pgbouncer part is probably broken, so that will need to be looked at in the future

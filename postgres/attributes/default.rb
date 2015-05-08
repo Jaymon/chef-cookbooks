@@ -1,6 +1,9 @@
 # http://docs.opscode.com/essentials_cookbook_attribute_files.html
 name = "postgres"
 
+# the user that will run postgres, best not to change this
+default[name]["user"] = "postgres"
+
 # the users hash is in username => options format
 default[name]["users"] = {}
 # default[name]["users"] = {

@@ -11,13 +11,8 @@
 
 name = cookbook_name.to_s
 n = node[name]
-u = "postgres"
-cmd_user = "sudo -E -u #{u}"
-
-require 'pp'
-p "============================================================================"
-PP.pp(n)
-p "============================================================================"
+u = node[name]["user"]
+cmd_user = "sudo -u #{u}"
 
 
 ###############################################################################
@@ -249,15 +244,6 @@ if n.has_key?("conf")
 
       end
 
-
-      p "============================================================================"
-      p "============================================================================"
-      p "============================================================================"
-      PP.pp(conf_lookup)
-      p "============================================================================"
-      p "============================================================================"
-      p "============================================================================"
-
       # modify our config file and write it out to our temp conf file
       n["conf"].each do |key, val|
         conf_line = "#{key} = #{val}"
@@ -434,64 +420,6 @@ if n.has_key?("hba")
 
 end
 
-
-###############################################################################
-# replication
-###############################################################################
-if !n["replication"].empty?
-
-  ruby_block 'pg_stop_service_for_replication' do
-    block do
-      r = resources("service[#{name}]")
-      r.run_action(:stop)
-    end
-  end
-
-  nrep = n["replication"]
-  recovery_file = ::File.join(n["main_dir"], "recovery.conf")
-
-  host, port = nrep["master"].split(":")
-
-  execute "rm -rf #{n["data_dir"]}" do
-    action :run
-    not_if "test -f #{recovery_file}"
-    notifies :run, "execute[pg_basebackup]", :immediately
-  end
-
-  basebackup_cmd = "#{cmd_user} pg_basebackup -h #{host}"
-  if !port.empty?
-    basebackup_cmd += " -p #{port}"
-  end
-  basebackup_cmd += " -D #{n["data_dir"]} -U #{nrep["user"]}"
-
-  execute "pg_basebackup" do
-    command basebackup_cmd
-    action :nothing
-    sensitive true
-    environment(
-      "PGPASSWORD" => nrep["password"]
-    )
-    notifies :create_if_missing, "template[pg_recovery]", :immediately
-  end
-
-  template "pg_recovery" do
-    path recovery_file
-    source "recovery.conf.erb"
-    variables(
-      "user" => nrep["user"],
-      "host" => host,
-      "port" => port,
-      "password" => nrep["password"],
-      "trigger_file" => nrep["trigger_file"]
-    )
-    owner u
-    group u
-    mode "0600"
-    action :nothing
-    notifies :restart, "service[#{name}]", :delayed
-  end
-
-end
 
 
 ###############################################################################
