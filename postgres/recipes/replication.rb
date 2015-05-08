@@ -28,7 +28,7 @@ p "============================================================================"
 ###############################################################################
 if !n.empty?
 
-  recovery_file = ::File.join(n_pg["main_dir"], "recovery.conf")
+  recovery_file = ::File.join(n_pg["data_dir"], "recovery.conf")
   host, port = n["master"].split(":")
 
   # http://stackoverflow.com/questions/27535197/stop-service-in-chef-after-it-has-been-notified-to-restart
@@ -51,7 +51,8 @@ if !n.empty?
   if !port.empty?
     basebackup_cmd += " -p #{port}"
   end
-  basebackup_cmd += " -D #{n_pg["data_dir"]} -U #{n["user"]} -X stream --write-recovery-conf"
+  # can't use --write-recovery-conf here because it doesn't set a trigger_file :(
+  basebackup_cmd += " -D #{n_pg["data_dir"]} -U #{n["user"]} -X stream"
 
   execute "pg_basebackup" do
     command basebackup_cmd
@@ -60,8 +61,8 @@ if !n.empty?
     environment(
       "PGPASSWORD" => n["password"]
     )
-    #notifies :create_if_missing, "template[pg_recovery]", :immediately
-    notifies :start, "service[#{name_pg}]", :delayed
+    notifies :create_if_missing, "template[pg_recovery]", :immediately
+    #notifies :start, "service[#{name_pg}]", :delayed
   end
 
   template "pg_recovery" do

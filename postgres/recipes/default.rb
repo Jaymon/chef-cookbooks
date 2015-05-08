@@ -107,6 +107,7 @@ n["users"].each do |username, options|
   execute "alter pg user #{username}" do
     command cmd
     action :run
+    sensitive true
     only_if "#{cmd_user} #{user_exists}"
   end
 
@@ -115,6 +116,7 @@ n["users"].each do |username, options|
   execute "create pg user #{username}" do
     command cmd
     action :run
+    sensitive true
     not_if "#{cmd_user} #{user_exists}"
   end
 
@@ -151,18 +153,18 @@ end
 # I can't find a reliable way to know where to place a global psqlrc file, this is the 
 # closest I've found: http://comments.gmane.org/gmane.comp.db.postgresql.admin/30740
 # so I'll just put one in every user
-users_home = Dir.glob("/home/*/")
+users_home = ::Dir.glob("/home/*/")
 users_home << "/root/"
 users_home.each do |user_home|
 
-  user = File.basename(user_home)
+  user = ::File.basename(user_home)
 
   # there could aslo one be placed somewhere and PSQLRC environment variable set
   # to that location
   # http://www.postgresql.org/docs/9.2/static/app-psql.html
 
   # http://wiki.opscode.com/display/chef/Resources#Resources-CookbookFile
-  cookbook_file File.join(user_home,".psqlrc") do
+  cookbook_file ::File.join(user_home,".psqlrc") do
     backup false
     source "psqlrc.sh"
     owner user
@@ -175,7 +177,7 @@ users_home.each do |user_home|
   if n["users"].has_key?(user)
 
     # http://wiki.opscode.com/display/ChefCN/Templates
-    template File.join(user_home,".pgpass") do
+    template ::File.join(user_home,".pgpass") do
       source "pgpass.erb"
       variables(
         :username => user,
@@ -184,6 +186,7 @@ users_home.each do |user_home|
       owner user
       group user
       mode "0600"
+      sensitive true
       action :create_if_missing
     end
   end
@@ -195,11 +198,19 @@ end
 # manage the postgres service
 ###############################################################################
 
+sname = "postgresql"
+
 # http://wiki.opscode.com/display/chef/Resources#Resources-Service
 service name do
-  service_name "postgresql"
+  service_name sname
   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
   action :nothing
+end
+
+# add a thin upstart wrapper just for giggles
+cookbook_file ::File.join("", "etc", "init", "#{sname}.conf") do
+  source "#{sname}.conf"
+  mode "0644"
 end
 
 
@@ -421,7 +432,6 @@ if n.has_key?("hba")
   end
 
 end
-
 
 
 ###############################################################################
