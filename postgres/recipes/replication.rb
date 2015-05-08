@@ -7,7 +7,7 @@ name_pg = cookbook_name.to_s
 name = recipe_name.to_s
 n_pg = node[name_pg]
 n = n_pg[name]
-u = n_pg[name]["user"]
+u = n_pg["user"]
 cmd_user = "sudo -E -u #{u}"
 
 

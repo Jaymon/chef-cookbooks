@@ -11,7 +11,7 @@
 
 name = cookbook_name.to_s
 n = node[name]
-u = node[name]["user"]
+u = n["user"]
 cmd_user = "sudo -u #{u}"
 
 
