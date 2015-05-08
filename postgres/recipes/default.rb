@@ -103,15 +103,17 @@ n["users"].each do |username, options|
   user_exists = "psql -c \"select usename from pg_user where usename='#{username}'\" -d template1 | grep -w \"#{username}\""
 
   # this will run to alter the user to be how we want if the user already exists
-  cmd = "psql -c \"#{make_query(username, options, false)}\" -d template1"
-  execute "#{cmd_user} #{cmd}" do
+  cmd = "#{cmd_user} psql -c \"#{make_query(username, options, false)}\" -d template1"
+  execute "alter pg user #{username}" do
+    command cmd
     action :run
     only_if "#{cmd_user} #{user_exists}"
   end
 
   # this will only run if the user doesn't already exist
-  cmd = "psql -c \"#{make_query(username, options, true)}\" -d template1"
-  execute "#{cmd_user} #{cmd}" do
+  cmd = "#{cmd_user} psql -c \"#{make_query(username, options, true)}\" -d template1"
+  execute "create pg user #{username}" do
+    command cmd
     action :run
     not_if "#{cmd_user} #{user_exists}"
   end

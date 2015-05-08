@@ -25,12 +25,12 @@ p "============================================================================"
 ###############################################################################
 if !n.empty?
 
-  recovery_file = ::File.join(n["main_dir"], "recovery.conf")
+  recovery_file = ::File.join(n_pg["main_dir"], "recovery.conf")
   host, port = n["master"].split(":")
 
   ruby_block 'pg_stop_service_for_replication' do
     block do
-      r = resources("service[#{name}]")
+      r = resources("service[#{name_pg}]")
       r.run_action(:stop)
     end
     not_if "test -f #{recovery_file}"
@@ -38,7 +38,7 @@ if !n.empty?
   end
 
   execute "pg_clear_data_for_replication" do
-    command "rm -rf #{n["data_dir"]}"
+    command "rm -rf #{n_pg["data_dir"]}"
     action :nothing
     notifies :run, "execute[pg_basebackup]", :immediately
   end
