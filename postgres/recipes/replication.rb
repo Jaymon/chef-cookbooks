@@ -14,6 +14,9 @@ cmd_user = "sudo -E -u #{u}"
 require 'pp'
 p "============================================================================"
 p "============================================================================"
+p name_pg
+p name
+p "============================================================================"
 PP.pp(n_pg)
 p "============================================================================"
 PP.pp(n)
@@ -47,7 +50,7 @@ if !n.empty?
   if !port.empty?
     basebackup_cmd += " -p #{port}"
   end
-  basebackup_cmd += " -D #{n["data_dir"]} -U #{n["user"]}"
+  basebackup_cmd += " -D #{n_pg["data_dir"]} -U #{n["user"]}"
 
   execute "pg_basebackup" do
     command basebackup_cmd
