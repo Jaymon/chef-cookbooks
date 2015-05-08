@@ -76,7 +76,7 @@ if !n.empty?
     group u
     mode "0600"
     action :nothing
-    notifies :start, "service[#{name}]", :delayed
+    notifies :start, "service[#{name_pg}]", :delayed
   end
 
 end
