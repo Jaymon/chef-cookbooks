@@ -200,17 +200,18 @@ end
 
 sname = "postgresql"
 
-# http://wiki.opscode.com/display/chef/Resources#Resources-Service
-service name do
-  service_name sname
-  supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
-  action :nothing
-end
-
 # add a thin upstart wrapper just for giggles
 cookbook_file ::File.join("", "etc", "init", "#{sname}.conf") do
   source "#{sname}.conf"
   mode "0644"
+end
+
+# http://wiki.opscode.com/display/chef/Resources#Resources-Service
+service name do
+  provider Chef::Provider::Service::Upstart
+  service_name sname
+  supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
+  action :start
 end
 
 
