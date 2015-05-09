@@ -59,7 +59,7 @@ if !n.empty?
     action :nothing
     sensitive true
     environment(
-      "PGPASSWORD" => n["password"]
+      "PGPASSWORD" => n["password"] # could also create .pgpass file and use that
     )
     notifies :create_if_missing, "template[pg_recovery]", :immediately
     #notifies :start, "service[#{name_pg}]", :delayed
@@ -73,7 +73,7 @@ if !n.empty?
       "host" => host,
       "port" => port,
       "password" => n["password"],
-      "trigger_file" => n["trigger_file"]
+      "trigger_file" => n.fetch("trigger_file", "")
     )
     owner u
     group u

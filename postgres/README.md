@@ -65,7 +65,24 @@ PGBouncer is installed from source from this [git repo](https://github.com/marko
 
 ### Replication
 
+This will be under `["postgres"]["replication"]` and can contain the following keys:
 
+* master -- required -- the address of the master server in `host:port` format
+* user -- required -- the name of the user with replication permissions on the master
+* password -- required -- the password the user will use to access the master
+* trigger_file -- optional -- will trigger failover of standby to master if touched
+
+These are the sources I used to get replication working:
+
+[Digital Ocean](https://www.digitalocean.com/community/tutorials/how-to-set-up-master-slave-replication-on-postgresql-on-an-ubuntu-12-04-vps)
+[post 1](http://www.rassoc.com/gregr/weblog/2013/02/16/zero-to-postgresql-streaming-replication-in-10-mins/)
+[post 2](http://www.brandonlamb.com/posts/postgresql-93-streaming-replication-howto-tutorial)
+[hot standby wiki](https://wiki.postgresql.org/wiki/Hot_Standby)
+[hot standby docs](http://www.postgresql.org/docs/9.3/static/hot-standby.html)
+[stack overflow question 1](http://dba.stackexchange.com/questions/71515/streaming-replication-postgresql-9-3-using-two-different-servers)
+[Github gist](https://gist.github.com/joeyates/d3ca985ce929e515e88d)
+[SO question 2](http://askubuntu.com/questions/531307/postgres-xc-will-not-install-due-to-broken-packages#531316)
+[spiped on standby](http://postgresql.nabble.com/WAL-receive-process-dies-td5816672.html)
 
 ## Platform
 

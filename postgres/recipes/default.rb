@@ -149,6 +149,26 @@ end
 ###############################################################################
 # add psqlrc files for all users on the system
 ###############################################################################
+
+# place a global psqlrc file that all users will inherit
+# The system-wide startup file is named psqlrc and is sought in the installation's
+# "system configuration" directory, which is most reliably identified by running
+# pg_config --sysconfdir. By default this directory will be ../etc/ relative to
+# the directory containing the PostgreSQL executables. The name of this directory
+# can be set explicitly via the PGSYSCONFDIR environment variable.
+# http://www.postgresql.org/docs/9.2/static/app-psql.html
+cookbook_file ::File.join(n["system_conf_dir"], "psqlrc") do
+  source "psqlrc.sh"
+  owner u
+  group u
+  mode "0644"
+  action :create
+end
+# there could also one be placed somewhere and PSQLRC environment variable set
+# to that location
+# http://www.postgresql.org/docs/9.2/static/app-psql.html
+
+
 # add the .psqlrc file to all the users if it doesn't already exist
 # I can't find a reliable way to know where to place a global psqlrc file, this is the 
 # closest I've found: http://comments.gmane.org/gmane.comp.db.postgresql.admin/30740
@@ -159,25 +179,11 @@ users_home.each do |user_home|
 
   user = ::File.basename(user_home)
 
-  # there could aslo one be placed somewhere and PSQLRC environment variable set
-  # to that location
-  # http://www.postgresql.org/docs/9.2/static/app-psql.html
-
-  # http://wiki.opscode.com/display/chef/Resources#Resources-CookbookFile
-  cookbook_file ::File.join(user_home,".psqlrc") do
-    backup false
-    source "psqlrc.sh"
-    owner user
-    group user
-    mode "0644"
-    action :create_if_missing
-  end
-
   # add a .pgpass file if the user is one of the postgres users
   if n["users"].has_key?(user)
 
     # http://wiki.opscode.com/display/ChefCN/Templates
-    template ::File.join(user_home,".pgpass") do
+    template ::File.join(user_home, ".pgpass") do
       source "pgpass.erb"
       variables(
         :username => user,
@@ -198,21 +204,27 @@ end
 # manage the postgres service
 ###############################################################################
 
-sname = "postgresql"
+# http://wiki.opscode.com/display/chef/Resources#Resources-Service
+service name do
+  service_name "postgresql"
+  supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
+  action :nothing
+end
 
 # add a thin upstart wrapper just for giggles
-cookbook_file ::File.join("", "etc", "init", "#{sname}.conf") do
-  source "#{sname}.conf"
+cookbook_file ::File.join("", "etc", "init", "#{name}.conf") do
+  source "#{name}.conf"
   mode "0644"
 end
 
-# http://wiki.opscode.com/display/chef/Resources#Resources-Service
-service name do
-  provider Chef::Provider::Service::Upstart
-  service_name sname
-  supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
-  action :start
-end
+# sname = "postgresql"
+# # http://wiki.opscode.com/display/chef/Resources#Resources-Service
+# service name do
+#   provider Chef::Provider::Service::Upstart
+#   service_name sname
+#   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
+#   action :start
+# end
 
 
 ###############################################################################

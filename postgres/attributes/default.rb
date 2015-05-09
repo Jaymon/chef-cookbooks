@@ -26,6 +26,7 @@ default[name]["main_dir"] = main_dir
 default[name]["conf_file"] = ::File.join(main_dir, "postgresql.conf")
 default[name]["hba_file"] = ::File.join(main_dir, "pg_hba.conf")
 default[name]["data_dir"] = ::File.join("", "var", "lib", "postgresql", version, "main")
+default[name]["system_conf_dir"] = ::File.join("", "etc", "postgresql-common")
 
 default[name]["conf"] = {}
 default[name]["conf"]["listen_addresses"] = "'*'"

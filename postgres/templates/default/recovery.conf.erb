@@ -1,4 +1,8 @@
 primary_conninfo = 'host=<%= @host %><%= @port.empty? ? "" : " port=#{@port}" %> user=<%= @user %> password=<%= @password %>'
+
+<% if defined?(@trigger_file) && !@trigger_file.empty? %>
 trigger_file = '<%= @trigger_file %>'
+<% end %>
+
 standby_mode = 'on'
 
