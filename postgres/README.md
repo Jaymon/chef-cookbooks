@@ -83,6 +83,7 @@ These are the sources I used to get replication working:
 [Github gist](https://gist.github.com/joeyates/d3ca985ce929e515e88d)
 [SO question 2](http://askubuntu.com/questions/531307/postgres-xc-will-not-install-due-to-broken-packages#531316)
 [spiped on standby](http://postgresql.nabble.com/WAL-receive-process-dies-td5816672.html)
+[purge PG](http://stackoverflow.com/questions/2748607/how-to-thoroughly-purge-and-reinstall-postgresql-on-ubuntu)
 
 ## Platform
 
