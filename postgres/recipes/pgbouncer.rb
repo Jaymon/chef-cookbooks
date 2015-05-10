@@ -97,12 +97,22 @@ end
 ###############################################################################
 # Configuration
 ###############################################################################
+
+users = {}
+n_pg["users"].each do |username, options|
+  options.each do |k, v|
+    if k =~ /password/i
+      users[username] = v
+      break
+    end
+  end
+
+end
+
 template ::File.join(dirs['etc'][0], 'userlist.txt') do
   source "pgbouncer/userlist.erb"
-#   owner u
-#   group u
   mode "0640"
-  variables({'users' => n_pg['users']})
+  variables({'users' => users})
   notifies :restart, "service[#{name}]", :delayed
 end
 
