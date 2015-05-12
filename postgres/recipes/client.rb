@@ -14,7 +14,8 @@ u = n_pg["user"]
 ###############################################################################
 # install client
 ###############################################################################
-["postgresql-client-common"].each do |p|
+#["postgresql-client-common", "postgresql-client"].each do |p|
+["postgresql-client"].each do |p|
   package p
 end
 
