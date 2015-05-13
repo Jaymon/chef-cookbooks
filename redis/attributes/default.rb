@@ -5,6 +5,12 @@ default[name] = {}
 
 default[name]["version"] = "2.6.16"
 default[name]["user"] = "redis"
+# these will be added to the redis-server prestart code block in the Upstart script
+default[name]["kernel_options"] = [
+  "echo never > /sys/kernel/mm/transparent_hugepage/enabled",
+  "sysctl vm.overcommit_memory=1",
+  "sysctl -w net.core.somaxconn=1024",
+]
 
 # I wouldn't mess with these specific values, but that's just me
 default[name]["conf"] = {

@@ -15,14 +15,6 @@ not_if_cmd = "which redis-server"
 # Initial setup and pre-requisites
 ###############################################################################
 
-# redis always gives a warning about this, TODO, make this an option?
-# this doesn't work on restart, this command needs to be written to /etc/sysctl.conf
-# or this could be added to the pre-start of the init script
-execute "sysctl vm.overcommit_memory=1" do
-  action :run
-  not_if not_if_cmd
-end
-
 ['git', 'make', 'tcl8.5', 'build-essential'].each do |p|
   package p do
   end
@@ -224,9 +216,10 @@ template ::File.join("etc", "init", "redis-server.conf") do
     "exec" => exec,
     "username" => u,
     "group" => u,
-    'conf' => redis_conf,
-    'run_dir' => ::File.dirname(n['conf']['pidfile']),
-    'pidfile' => n['conf']['pidfile']
+    "conf" => redis_conf,
+    "run_dir" => ::File.dirname(n['conf']['pidfile']),
+    "pidfile" => n['conf']['pidfile'],
+    "kernel_options" => n["kernel_options"],
   )
   notifies :stop, "service[#{name}]", :delayed
   notifies :start, "service[#{name}]", :delayed
