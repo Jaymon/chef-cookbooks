@@ -165,7 +165,7 @@ end
 
 # add a thin upstart wrapper just for giggles
 cookbook_file ::File.join("", "etc", "init", "#{name}.conf") do
-  source "postgresql.conf"
+  source "upstart.conf"
   mode "0644"
 end
 

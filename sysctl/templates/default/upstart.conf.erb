@@ -4,11 +4,14 @@
 # This file is managed by chef sysctl cookbook, if you modify it and run chef
 # then chef will change it again.
 ###############################################################################
+description "runs certain commands on startup"
 
 start on (local-filesystems and runlevel [2345])
 stop on runlevel [016]
 
-pre-start script
+task 
+
+script
   <% @commands.each do |command| %>
   <%= command %>
   <% end %>
