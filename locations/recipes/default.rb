@@ -1,7 +1,7 @@
 name = cookbook_name.to_s
 n = node[name]
 
-if n.has_key?('users') && !n['users'].empty?
+if n && n.has_key?('users') && !n['users'].empty?
 
   n['users'].each do |username, files|
     files.each do |dname, d|
