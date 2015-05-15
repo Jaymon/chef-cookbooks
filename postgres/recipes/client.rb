@@ -47,6 +47,18 @@ end
 # I can't find a reliable way to know where to place a global psqlrc file, this is the 
 # closest I've found: http://comments.gmane.org/gmane.comp.db.postgresql.admin/30740
 # so I'll just put one in every user
+
+# we need to get all the users and their passwords
+users = {}
+n_pg["users"].each do |username, options|
+  options.each do |k, v|
+    if k =~ /password/i
+      users[username] = v
+      break
+    end
+  end
+end
+
 users_home = ::Dir.glob("/home/*/")
 users_home << "/root/"
 users_home.each do |user_home|
@@ -54,14 +66,14 @@ users_home.each do |user_home|
   user = ::File.basename(user_home)
 
   # add a .pgpass file if the user is one of the postgres users
-  if n_pg["users"].has_key?(user)
+  if users.has_key?(user)
 
     # http://wiki.opscode.com/display/ChefCN/Templates
     template ::File.join(user_home, ".pgpass") do
       source "pgpass.erb"
       variables(
         :username => user,
-        :password => n_pg["users"][user]
+        :password => users[user]
       )
       owner user
       group user
