@@ -78,10 +78,14 @@ end
 ###############################################################################
 services = []
 pid_dir = ::File.join("", "var", "run", "spiped")
+default_vals = n.fetch('defaults', {})
 
 n["pipes"].each do |pipe_type, pipes|
 
-  pipes.each do |pname, vals|
+  pipes.each do |pname, _vals|
+
+    # combine defaults with specific vals
+    vals = default_vals.merge(_vals)
 
     exec = ::File.join("", "usr", "local", "bin", "spiped")
     pid_filepath = ::File.join(pid_dir, pname)
@@ -108,6 +112,14 @@ n["pipes"].each do |pipe_type, pipes|
 
     args += " -k \"#{key_filepath}\""
     args += " -p \"#{pid_filepath}\""
+
+    if vals.has_key?("connections")
+      args += " -n \"#{vals['connections']}\""
+    end
+
+    if vals.has_key?("timeout")
+      args += " -o \"#{vals['timeout']}\""
+    end
 
     template ::File.join("etc", "init", "#{pname}.conf") do
       source "upstart.conf.erb"

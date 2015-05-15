@@ -7,6 +7,7 @@ make spipe daemons
 
 `node["spiped"]["version"]` -- string -- something like `1.5.0`.
 
+`node["spiped"]["defaults"]` -- dict -- currently this supports _connections_ and _timeout_ keys, both take integers. Connections is limited to 500, which seems to be the top value in Spiped.
 
 You can define pipes using the `pipes` key:
 

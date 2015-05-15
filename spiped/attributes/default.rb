@@ -5,6 +5,10 @@ default[name] = {}
 
 default[name]["version"] = "1.5.0"
 default[name]["user"] = "spiped"
+default[name]["defaults"] = {
+  "connections" => 500,
+  "timeout" => 120
+}
 
 default[name]["pipes"] = {}
 #default[name][:client] = {}
