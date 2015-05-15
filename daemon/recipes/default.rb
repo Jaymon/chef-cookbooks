@@ -64,5 +64,21 @@ if n.has_key?('names')
     end
 
   end
+
+  service name do
+    service_name name
+    provider Chef::Provider::Service::Upstart
+    action :nothing
+    supports :status => true, :start => true, :stop => true, :restart => true
+  end
+
+  template ::File.join("", "etc", "init", "#{name}.conf") do
+    source "all.conf.erb"
+    mode "0644"
+    variables({"instance_names" => n['names'].keys})
+    notifies :stop, "service[#{name}]", :delayed
+    notifies :start, "service[#{name}]", :delayed
+  end
+
 end
 

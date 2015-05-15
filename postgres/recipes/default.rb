@@ -164,19 +164,19 @@ service name do
 end
 
 # add a thin upstart wrapper just for giggles
+service "#{name}-wrapper" do
+  service_name name
+  provider Chef::Provider::Service::Upstart
+  action :nothing
+  supports :status => true, :start => true, :stop => true, :restart => true
+end
+
 cookbook_file ::File.join("", "etc", "init", "#{name}.conf") do
   source "upstart.conf"
   mode "0644"
+  notifies :stop, "service[#{name}-wrapper]", :delayed
+  notifies :start, "service[#{name}-wrapper]", :delayed
 end
-
-# sname = "postgresql"
-# # http://wiki.opscode.com/display/chef/Resources#Resources-Service
-# service name do
-#   provider Chef::Provider::Service::Upstart
-#   service_name sname
-#   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
-#   action :start
-# end
 
 
 ###############################################################################
