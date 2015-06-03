@@ -33,6 +33,19 @@ This cookbook creates an `environ` resource and provider that can be used in oth
 
 Using the environ resource will also set `ENVIRONMENT_VARIABLE_NAME` in the Ruby environment, so it would be available in Ruby's `ENV` variable. See [here](https://github.com/customink-webops/magic_shell) and [here](http://stackoverflow.com/questions/6284517/how-can-you-use-a-chef-recipe-to-set-an-environment-variable) for more details.
 
+## Tips
+
+### Passing in a raw value
+
+By default, Environ will escape each value so you don't have to worry about manually escaping things like Ampersands and equal signs. This is really handy, but sometimes you might want the raw value to make it all the way to the box, you can do that by setting a special comment above the value:
+
+
+    # environ.raw
+    FOO='$([ -n "$FOO" ] && echo $FOO || echo bar)'
+
+The above snippet will pass the unescaped string to the environ and so any time the file is sourced that code will be run and a value will be set for FOO.
+
+
 ## Platform
 
 Ubuntu 12.04, nothing else has been tested

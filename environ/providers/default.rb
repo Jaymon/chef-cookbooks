@@ -46,13 +46,15 @@ action :file do
   e_new = ::EnvironHash.new(file_name)
   e_new.read_file()
 
-  if e.merge(e_new.hash)
+  if e.merge!(e_new)
 
     e.hash.each do |k, v|
       # keep the RUBY env in sync, this isn't bulletproof since file might include
       # strings (export FOO='string') or variable expansion (eg, export FOO=$BAR)
       # better solution might be to run the file in bash and get all the values after
-      # expansion and load them in
+      # expansion and load them in.
+      # Update 6-2-2015, this is now even more bad, because values could be raw
+      # also, so they definitely need to be ran through bash
       ENV[k] = v 
     end
 

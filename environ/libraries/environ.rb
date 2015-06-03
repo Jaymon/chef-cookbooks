@@ -2,15 +2,16 @@
 # https://docs.getchef.com/essentials_cookbook_libraries.html
 # https://docs.getchef.com/lwrp_custom_resource_library.html
 require 'shellwords'
+require 'set'
 
 class EnvironHash
   include ::Chef::Mixin::ShellOut
 
-  attr_accessor :hash, :file
+  attr_accessor :hash, :file, :raw_keys
 
   def initialize(file, error_on_missing=true)
     @hash = {}
-    @hash_changed = false # I don't think I do anything with this anymore
+    @raw_keys = Set.new
     @file_loaded = false
     @file = file
     if error_on_missing
@@ -34,8 +35,12 @@ class EnvironHash
   def read_file()
     if self.read_file?; return end
 
+    ::Chef::Log.debug("Reading environ file #{@file}")
+
     @hash = {}
-    @hash_changed = false
+    @raw_keys = Set.new
+
+    is_raw_val = false
 
     ::IO.foreach(@file) do |line|
       # we only want environment KEY=val lines, ignore comments and/or whitespace
@@ -46,6 +51,11 @@ class EnvironHash
         #p "load #{key} = #{val}"
         #@hash[key.strip()] = val.strip()
 
+      elsif line.match(/^#/i)
+        if line.match(/environ.raw/i)
+          is_raw_val = true
+        end
+
       elsif line.match(/^export\s+[a-z0-9_]+=/i)
         # line matches: export ENV_NAME=...
         discarded, env_segment = line.split(/\s+/, 2) 
@@ -55,12 +65,26 @@ class EnvironHash
 
       key.strip!
       if key != ""
+
         # we have to use . here because "sh" doesn't have source, you can see it
         # is using shell by running `echo $0`
         process = shell_out(". #{@file} && echo $#{key}")
         val = process.stdout.strip()
         if val != ""
+          if is_raw_val
+            ::Chef::Log.debug("Found raw #{key} = #{val}")
+          else
+            ::Chef::Log.debug("Found #{is_raw_val ? "raw " : ""}#{key} = #{val}")
+          end
           @hash[key] = val
+        else
+          ::Chef::Log.warn("No value found for #{key}")
+
+        end
+
+        if is_raw_val
+          is_raw_val = false
+          @raw_keys.add(key)
         end
 
       end
@@ -71,14 +95,14 @@ class EnvironHash
 
   end
 
-  def write_file()
-    ::File.open(@file, 'w') do |f|
-      self.each do |key, val|
-        f.puts "#{key}=#{val}"
-      end
-    end
-
-  end
+# this is now incredibly outdated so I'm getting rid of it for now
+#   def write_file()
+#     ::File.open(@file, 'w') do |f|
+#       self.each do |key, val|
+#         f.puts "#{key}=#{val}"
+#       end
+#     end
+#   end
 
   def get(key, default_val=nil)
     self.read_file()
@@ -98,20 +122,21 @@ class EnvironHash
     end
 
     @hash[key] = val
-    @hash_changed = true
     return true
 
   end
 
-  def merge(hash)
+  def merge!(instance)
     self.read_file()
-    @hash = @hash.merge(hash)
+    @hash.merge!(instance.hash)
+    @raw_keys = @raw_keys.merge(instance.raw_keys)
     return true
   end
 
   def escape_each()
     # we don't want things like ampersands throwing everything off
-    @hash.each { |k, v| yield k, ::Shellwords::shellescape(v) }
+    ::Chef::Log.debug(@raw_keys)
+    @hash.each { |k, v| yield k, @raw_keys.include?(k) ? v : ::Shellwords::shellescape(v) }
   end
 
   def values()
