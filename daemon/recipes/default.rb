@@ -57,7 +57,6 @@ if n.has_key?('names')
       provider Chef::Provider::Service::Upstart
       service_name instance_name
       action options.fetch('action', :nothing)
-      #stop_command "stop #{instance_name} 
     end
 
     options.fetch('subscribes', []).each do |params|
