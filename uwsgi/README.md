@@ -6,36 +6,69 @@ Installs uWSGI
 ## Attributes
 
 
-default[name]["version"] = "2.0.11.1"
-default[name]["user"] = "www-data"
+### version
+
+string -- what version of uWSGI to install
+
+    node["uwsgi"]["version"] = "2.0.11.1"
 
 
-`node["uwsgi"]["version"]` -- string -- what version of uWSGI to install
+### user
 
-`node["uwsgi"]["user"]` -- string -- the user uWSGI will run as
+string -- the user uWSGI will run as
+
+    node["uwsgi"]["user"] = "www-data"
 
 
-## Caveats
+### servers
 
-the configuration file pointed to by `conf_file` needs to contain the following settings (at the minimum):
+dict -- the keys are the server names, and the values are another dict with key/values for the different uWSGI settings you want to use.
 
-    settings = {
-      "server.daemonize": 0
+
+    "servers" => {
+      "server1" => {
+        "http" => ":9001",
+        "die-on-term" => true,
+        "master" => true,
+        "processes" => 1,
+        "cpu-affinity" => 1,
+        "thunder-lock" => true,
+        "chdir" => "/some/path1",
+        "uid" => "someuser1",
+        "wsgi-file" => "server1.py",
+      },
+      "server2" => {
+        "http" => ":9002",
+        "die-on-term" => true,
+        "master" => true,
+        "processes" => 1,
+        "cpu-affinity" => 1,
+        "thunder-lock" => true,
+        "chdir" => "/some/path2",
+        "uid" => "someuser2",
+        "wsgi-file" => "server1.py",
+      }
     }
 
-This is because we use Upstart to handle the daemonization of Mongrel2 servers.
+Anything available on the command line (run `uwsgi --help` to see all the options) can be defined here.
+
 
 ## Using 
 
-Mongrel daemonization is handled by Upstart:
+Each server name under the `servers` configuration can be started and stopped using Upstart:
 
-    $ sudo start mongrel2
+    $ sudo start server1
 
 and stop it:
 
-    $ sudo stop mongrel2
-  
+    $ sudo stop server2
+
+and you can manage all installed uWSGI servers using `uwsgi`:
+
+    $ sudo start uwsgi
+
+
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04 is what we run.
 
