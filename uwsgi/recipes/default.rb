@@ -20,6 +20,19 @@ if n.has_key?("version")
   request_str += "==#{n['version']}"
 end
 
+# make sure current uwsgi isn't running if we are changing it
+# I'm not sure why we have to do this, but pip would fail if it stayed running
+ruby_block 'uwsgi_stop' do
+  block do
+    n['servers'].keys do |server_name|
+      r = resources("service[#{server_name}]")
+      r.run_action(:stop)
+    end
+  end
+  not_if "uwsgi --version | grep -q \"^#{n["version"]}$\""
+  only_if "which uwsgi"
+end
+
 pip request_str
 
 
