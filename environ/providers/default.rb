@@ -4,6 +4,10 @@ def whyrun_supported?
   true
 end
 
+# http://stackoverflow.com/questions/21176576/how-to-i-get-a-chef-custom-lwrp-to-implement-notifies-and-not-if
+# https://github.com/chef/chef/issues/3748
+use_inline_resources
+
 e = ::EnvironHash.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
 
 action :set do
@@ -18,7 +22,7 @@ action :set do
     name = "set in #{e.file} #{env_name}=#{env_val}"
     converge_by(name) do
 
-      template name do
+      t = template name do
         path e.file
         backup false
         owner "root"
@@ -27,11 +31,12 @@ action :set do
         source "environment.erb"
         variables "environ" => e
       end
+      #new_resource.updated_by_last_action(t.updated_by_last_action?)
 
     end
 
   else
-    Chef::Log.info "nothing to do - #{env_name}=#{env_val}."
+    ::Chef::Log.info "nothing to do - #{env_name}=#{env_val}."
   end
 
 end
@@ -60,7 +65,7 @@ action :file do
 
     name = "merge #{file_name} into #{e.file}"
     converge_by(name) do
-      template name do
+      t = template name do
         path e.file
         backup false
         owner "root"
@@ -69,10 +74,12 @@ action :file do
         mode "0644"
         variables "environ" => e
       end
+      #new_resource.updated_by_last_action(t.updated_by_last_action?)
+
     end
 
   else
-    Chef::Log.info "nothing to do"
+    ::Chef::Log.info "nothing to do"
   end
 
 end

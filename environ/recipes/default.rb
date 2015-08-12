@@ -19,9 +19,13 @@ if n.has_key?("global")
 
     n["global"][:file].each do |file_name|
 
-      environ file_name do
+      env = environ file_name do
         value file_name
         action :file
+      end
+
+      n.fetch('notifies', []).each do |params|
+        env.notifies(*params)
       end
 
     end
@@ -33,9 +37,14 @@ if n.has_key?("global")
 
     n["global"][:set].each do |key, val|
 
-      environ key do
+      env = environ key do
         value val
         action :set
+      end
+
+      # set the notifies stuff to allow things to change based on changes to the environment
+      n.fetch('notifies', []).each do |params|
+        env.notifies(*params)
       end
 
     end

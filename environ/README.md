@@ -4,6 +4,10 @@ hooks for manipulating environments and environment variables
 
 ## Attributes
 
+### global
+
+#### :set
+
 `node["environ"]["global"][:set]` -- a hash of global environment variables to set
 
 **NOTE** -- You have to add quotes around values that have spaces, so:
@@ -12,6 +16,8 @@ hooks for manipulating environments and environment variables
       "ENV_NAME" => '"this is a value with spaces"'
     }
 
+#### :file
+
 `node["environ"]["global"][:file]` -- a list of files to merge into the global environment variables
 
     node["environ"]["global"][:file] = [
@@ -19,9 +25,28 @@ hooks for manipulating environments and environment variables
       '/path/to/second/env/file',
     ]
 
+### python
+
+#### sitecustomize
+
 `node["environ"]["python"]["sitecustomize"]` -- the path to a python module that will be symbolic linked to the python site-packages directory.
 
+
+#### usercustomize
+
 `node["environ"]["python"]["usercustomize"]` -- a hash of `username => path to module` that will be symbolic linked to the user's user site directory.
+
+
+### notifies
+
+`node["environ"]["notifies"] -- a list of services to notify if the environment changes.
+
+    "environ" => {
+      "notifies" => [
+        [:restart, "service[foo]", :delayed],
+      ],
+    }
+
 
 ## Resource and Provider
 
@@ -32,6 +57,7 @@ This cookbook creates an `environ` resource and provider that can be used in oth
     end
 
 Using the environ resource will also set `ENVIRONMENT_VARIABLE_NAME` in the Ruby environment, so it would be available in Ruby's `ENV` variable. See [here](https://github.com/customink-webops/magic_shell) and [here](http://stackoverflow.com/questions/6284517/how-can-you-use-a-chef-recipe-to-set-an-environment-variable) for more details.
+
 
 ## Tips
 
@@ -48,7 +74,8 @@ The above snippet will pass the unescaped string to the environ and so any time 
 
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04
+
 
 ## Notes
 
