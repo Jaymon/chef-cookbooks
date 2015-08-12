@@ -12,12 +12,29 @@ n = node[name]
 
 if n.has_key?('names')
 
+  service name do
+    service_name name
+    provider Chef::Provider::Service::Upstart
+    action :nothing
+    supports :status => true, :start => true, :stop => true, :restart => true
+  end
+
+  template ::File.join("", "etc", "init", "#{name}.conf") do
+    source "all.conf.erb"
+    mode "0644"
+    variables({"instance_names" => n['names'].keys})
+    notifies :stop, "service[#{name}]", :immediately
+    notifies :start, "service[#{name}]", :immediately
+  end
+
   default_options = n.fetch('defaults', {})
 
   n['names'].each do |service_name, _options|
 
     # combine defaults with specific options
     options = default_options.merge(_options)
+    options["recipe_name"] = name
+
     count = options.fetch('count', 0)
 
     # setup any environment
@@ -65,20 +82,6 @@ if n.has_key?('names')
 
   end
 
-  service name do
-    service_name name
-    provider Chef::Provider::Service::Upstart
-    action :nothing
-    supports :status => true, :start => true, :stop => true, :restart => true
-  end
-
-  template ::File.join("", "etc", "init", "#{name}.conf") do
-    source "all.conf.erb"
-    mode "0644"
-    variables({"instance_names" => n['names'].keys})
-    notifies :stop, "service[#{name}]", :delayed
-    notifies :start, "service[#{name}]", :delayed
-  end
 
 end
 

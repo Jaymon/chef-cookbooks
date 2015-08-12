@@ -3,6 +3,9 @@ stop on runlevel [06]
 <% if @instance_name %>
 stop on stopping <%= @instance_name %>
 instance $N
+<% else %>
+stop on stopping <%= @recipe_name %>
+start on starting <%= @recipe_name %>
 <% end %>
 
 <% if defined?(@desc) %>

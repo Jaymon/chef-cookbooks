@@ -1,4 +1,6 @@
 stop on runlevel [06]
+stop on stopping <%= @recipe_name %>
+start on starting <%= @recipe_name %>
 
 env NUM_WORKERS=<%= @count %>
 
