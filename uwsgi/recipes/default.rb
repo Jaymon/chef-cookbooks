@@ -25,6 +25,7 @@ end
 ruby_block 'uwsgi_stop' do
   block do
     n['servers'].keys do |server_name|
+      ::Chef::Log.info "stopping service #{server_name}"
       r = resources("service[#{server_name}]")
       r.run_action(:stop)
     end
