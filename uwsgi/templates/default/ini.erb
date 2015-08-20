@@ -1,0 +1,6 @@
+[uwsgi]
+
+<% @config_variables.each do |config| %>
+<%= config[0] %> = <%= config[1] %>
+<% end %>
+

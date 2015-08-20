@@ -21,7 +21,7 @@ if n.has_key?("version")
 end
 
 # make sure current uwsgi isn't running if we are changing it
-# I'm not sure why we have to do this, but pip would fail if it stayed running
+# I'm not sure why we have to do this, but pip update would fail if it stayed running
 ruby_block 'uwsgi_stop' do
   block do
     n['servers'].keys do |server_name|
@@ -40,6 +40,21 @@ pip request_str
 ###############################################################################
 # configure
 ###############################################################################
+
+# create needed directories
+dirs = {
+  'etc' => [::File.join("", "etc", name), nil, nil]
+}
+dirs.each do |k, d|
+  directory d[0] do
+    mode "0755"
+    owner d[1]
+    group d[2]
+    recursive true
+    action :create
+  end
+end
+
 n['servers'].each do |server_name, _server_config|
   variables = {}
   server_config = _server_config.to_hash
@@ -64,21 +79,38 @@ n['servers'].each do |server_name, _server_config|
   end
 
   # build the exec string
-  exec_str = "uwsgi"
+  # normalize the configuration
+  config_variables = []
   server_config.each do |key, val|
     if val.is_a?(TrueClass)
-      exec_str += " --#{key}"
+      config_variables << [key, 1]
+
+    elsif val.is_a?(FalseClass)
+      config_variables << [key, 0]
 
     else
       Array(val).each do |val|
-        if val =~ /\s/
-          exec_str += " --#{key}=\"#{val}\""
-        else
-          exec_str += " --#{key}=#{val}"
-        end
+        config_variables << [key, val]
+
+#         if val =~ /\s/
+#           exec_str += " --#{key}=\"#{val}\""
+#         else
+#           exec_str += " --#{key}=#{val}"
+#         end
       end
     end
   end
+
+  config_path = ::File.join(dirs["etc"][0], "#{server_name}.ini")
+  template config_path do
+    source "ini.erb"
+    mode "0644"
+    variables({"config_variables" => config_variables})
+    notifies :stop, "service[#{server_name}]", :delayed
+    notifies :start, "service[#{server_name}]", :delayed
+  end
+
+  exec_str = "uwsgi --ini #{config_path}"
 
   variables['exec_str'] = exec_str
   variables['server_name'] = server_name
