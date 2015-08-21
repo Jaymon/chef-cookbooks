@@ -3,7 +3,9 @@
 
 description "uwsgi upstart for <%= @server_name %>"
 start on ((local-filesystems and runlevel [2345]) or vagrant-mounted)
+start on starting uwsgi
 stop on runlevel [06]
+stop on stopping uwsgi
 
 <% if defined?(@chdir) %>
 chdir <%= @chdir %>
