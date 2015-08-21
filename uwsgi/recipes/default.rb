@@ -78,7 +78,6 @@ n['servers'].each do |server_name, _server_config|
     end
   end
 
-  # build the exec string
   # normalize the configuration
   config_variables = []
   server_config.each do |key, val|
@@ -92,11 +91,6 @@ n['servers'].each do |server_name, _server_config|
       Array(val).each do |val|
         config_variables << [key, val]
 
-#         if val =~ /\s/
-#           exec_str += " --#{key}=\"#{val}\""
-#         else
-#           exec_str += " --#{key}=#{val}"
-#         end
       end
     end
   end
