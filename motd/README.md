@@ -38,6 +38,9 @@ A dictionary with symbol keys that correspond to the needed params in the `messa
 
 Instead of using the `/etc/motd` file, you could also use `/etc/update-motd.d/99-footer`
 
+A handy link:
+http://askubuntu.com/questions/538732/no-motd-on-ubuntu-14-04
+
 
 ## Platform
 
