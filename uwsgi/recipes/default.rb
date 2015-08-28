@@ -20,23 +20,11 @@ if n.has_key?("version")
   request_str += "==#{n['version']}"
 end
 
-# register services before actually providing initial configuration because we might need them
-# to be stopped because of an upgrade and we will want to use the old existing code to
-# shut them down before doing the upgrade
-n['servers'].keys do |server_name|
-  service server_name do
-    service_name server_name
-    provider Chef::Provider::Service::Upstart
-    action :nothing
-    supports :status => true, :start => true, :stop => true, :restart => true
-  end
-end
-
 # make sure current uwsgi isn't running if we are changing it
 # I'm not sure why we have to do this, but pip update would fail if it stayed running
 ruby_block 'uwsgi_stop' do
   block do
-    n['servers'].keys do |server_name|
+    n['servers'].keys.each do |server_name|
       ::Chef::Log.info "stopping service #{server_name}"
       r = resources("service[#{server_name}]")
       r.run_action(:stop)
@@ -120,6 +108,13 @@ n['servers'].each do |server_name, _server_config|
 
   variables['exec_str'] = exec_str
   variables['server_name'] = server_name
+
+  service server_name do
+    service_name server_name
+    provider Chef::Provider::Service::Upstart
+    action :nothing
+    supports :status => true, :start => true, :stop => true, :restart => true
+  end
 
   template ::File.join("", "etc", "init", "#{server_name}.conf") do
     source "server.conf.erb"
