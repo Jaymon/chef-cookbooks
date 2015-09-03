@@ -25,6 +25,11 @@ This is what the configuration looks like
             "src" => ::File.join(ops_base_dir, "conf", "google_calendar_oauth_src.dat"),
             "mode" => "0755"
           }
+          "cache_dir" => {
+            # this will create a folder owned by "usernam" at /var/cache
+            "dest" => ::File.join("", "var", "cache"),
+            "mode" => "0644"
+          },
         },
       }
     },
