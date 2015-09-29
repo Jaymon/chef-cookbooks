@@ -18,6 +18,10 @@ n = node["package"]
       n[package_action].each do |package_name|
         package package_name do
           action package_action.to_sym
+          # goal is to keep the boxes lean, so don't bother with non-essential, if
+          # we need recommended packages we will explicitely add them to our install
+          # list
+          options "--no-install-recommends"
         end
       end
     end
