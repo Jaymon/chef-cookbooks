@@ -12,6 +12,7 @@ start on starting <%= @recipe_name %>
 description "<%= @desc %>"
 <% end %>
 respawn
+respawn limit 5 5
 limit nofile 100000 100000
 
 chdir <%= @dir %>
@@ -28,3 +29,4 @@ script
 <% end %>
   exec <%= @command %>
 end script
+
