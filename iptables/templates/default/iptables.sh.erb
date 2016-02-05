@@ -31,6 +31,9 @@ iptables -A INPUT -p tcp --dport <%= val %> -j ACCEPT
 iptables -A INPUT -s <%= val %> -j ACCEPT
 <% end %>
 
+# allow ping
+iptables -A INPUT -p icmp -j ACCEPT
+
 # ignore all inbound traffic
 iptables -A INPUT -j DROP
 # politely reject all forward traffic attempts
