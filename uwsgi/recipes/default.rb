@@ -100,12 +100,16 @@ n['servers'].each do |server_name, _config|
   end
 
   # setup any environment
-  environ = init_config.fetch('env', nil)
-  if environ
+  variables['environ_files'] = []
+  variables['environ_vars'] = []
+  environs = init_config.fetch('env', [])
+  environs.each do |environ|
     if ::File.directory?(environ)
-      variables['environ'] = "for f in #{::File.join(environ, "*")}; do . $f; done"
+      variables['environ_files'] << "for f in #{::File.join(environ, "*")}; do . $f; done"
+    elsif environ =~ /\S+\s*=\s*\S+/
+      variables['environ_vars'] << environ
     else
-      variables['environ'] += ". #{environ}"
+      variables['environ_files'] << ". #{environ}"
     end
   end
 

@@ -10,6 +10,9 @@ stop on stopping uwsgi
 <% if defined?(@chdir) %>
 chdir <%= @chdir %>
 <% end %>
+<% @environ_vars.each do |environ| %>
+env <%= environ %>
+<% end %>
 
 respawn
 respawn limit 5 5
@@ -18,8 +21,8 @@ limit nofile 100000 100000
 #console output
 
 script
-<% if defined?(@environ) %>
-  <%= @environ %>
+<% @environ_files.each do |environ| %>
+  <%= environ %>
 <% end %>
   exec <%= @exec_str %>
 end script
