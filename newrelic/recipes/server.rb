@@ -1,4 +1,5 @@
 # https://docs.newrelic.com/docs/server/server-monitor-installation-ubuntu-and-debian
+# https://docs.newrelic.com/docs/servers/new-relic-servers-linux/installation-configuration/servers-installation-ubuntu-debian
 name = cookbook_name.to_s
 n = node[name]
 

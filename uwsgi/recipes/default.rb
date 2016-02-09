@@ -55,9 +55,13 @@ dirs.each do |k, d|
   end
 end
 
-n['servers'].each do |server_name, _server_config|
+n['servers'].each do |server_name, _config|
   variables = {}
-  server_config = _server_config.to_hash
+  init_config = n["init"].to_hash
+  init_config.merge!(_config.fetch("init", {}))
+  server_config = n["server"].to_hash
+  server_config.merge!(_config["server"])
+
   ['chdir'].each do |key|
     if server_config.has_key?(key)
       variables[key] = server_config[key]
@@ -95,6 +99,16 @@ n['servers'].each do |server_name, _server_config|
     end
   end
 
+  # setup any environment
+  environ = init_config.fetch('env', nil)
+  if environ
+    if ::File.directory?(environ)
+      variables['environ'] = "for f in #{::File.join(environ, "*")}; do . $f; done"
+    else
+      variables['environ'] += ". #{environ}"
+    end
+  end
+
   config_path = ::File.join(dirs["etc"][0], "#{server_name}.ini")
   template config_path do
     source "ini.erb"
@@ -104,7 +118,7 @@ n['servers'].each do |server_name, _server_config|
     notifies :start, "service[#{server_name}]", :delayed
   end
 
-  exec_str = "uwsgi --ini #{config_path}"
+  exec_str = "#{init_config["command"]} --ini #{config_path}"
 
   variables['exec_str'] = exec_str
   variables['server_name'] = server_name

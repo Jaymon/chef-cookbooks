@@ -10,12 +10,6 @@ stop on stopping uwsgi
 <% if defined?(@chdir) %>
 chdir <%= @chdir %>
 <% end %>
-<% if defined?(@uid) %>
-setuid <%= @uid %>
-<% end %>
-<% if defined?(@gid) %>
-setgid <%= @gid %>
-<% end %>
 
 respawn
 respawn limit 5 5
@@ -24,9 +18,9 @@ limit nofile 100000 100000
 #console output
 
 script
-  for f in /etc/profile.d/*; do
-     . $f
-  done
+<% if defined?(@environ) %>
+  <%= @environ %>
+<% end %>
   exec <%= @exec_str %>
 end script
 
