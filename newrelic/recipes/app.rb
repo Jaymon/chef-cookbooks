@@ -14,7 +14,7 @@ end
 directory n["dir"] do
   owner n["user"]
   group n["user"]
-  mode "0664"
+  mode "0774"
   recursive true
   action :create
 end
@@ -106,7 +106,7 @@ n["apps"].each do |app_name, _app_config|
 
   remote_file app_ini_file do
     source "file://#{cache_ini_file}"
-    mode "0644"
+    mode "0660"
     user n["user"]
     group n["user"]
     action :nothing
