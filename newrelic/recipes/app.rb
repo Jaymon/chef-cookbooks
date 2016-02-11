@@ -11,6 +11,9 @@ execute "generate prototype newrelic ini" do
   not_if "test -f \"#{ini_conf}\""
 end
 
+# TODO -- add log_dir directory creation to make sure they exist also
+# TODO -- create the user?
+
 directory n["dir"] do
   owner n["user"]
   group n["user"]
