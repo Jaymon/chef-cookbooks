@@ -40,7 +40,7 @@ if n && n.has_key?('users') && !n['users'].empty?
           group username
           action :create
           recursive true
-          not_if { ::File.directory?(dest_dir) }
+          #not_if { ::File.directory?(dest_dir) }
         end
       end
 
