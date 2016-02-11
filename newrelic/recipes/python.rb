@@ -1,3 +1,10 @@
+# https://docs.newrelic.com/docs/agents/python-agent/getting-started/python-agent-quick-start
+# https://docs.newrelic.com/docs/agents/python-agent/installation-configuration/python-agent-logging
+# https://docs.newrelic.com/docs/agents/python-agent/getting-started/new-relic-python
+# https://docs.newrelic.com/docs/agents/python-agent/installation-configuration/python-agent-integration
+# https://docs.newrelic.com/docs/agents/python-agent/hosting-mechanisms/python-agent-uwsgi
+# https://docs.newrelic.com/docs/agents/python-agent/installation-configuration/python-agent-installation
+# https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/installing-agent
 name = cookbook_name.to_s
 n = node[name]
 
