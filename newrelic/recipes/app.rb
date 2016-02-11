@@ -61,8 +61,7 @@ n["apps"].each do |app_name, _app_config|
           conf_lookup[conf_section]["config"][conf_var] = index
 
         elsif conf_line.match(/^#\s*\S+\s*=/) # # name = val
-          conf_line.sub!(/^#\s*/, "")
-          conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
+          conf_var, conf_val = conf_line.sub(/^#\s*/, "").split(/\s*=\s*/, 2)
           conf_lookup[conf_section]["config"][conf_var] = index
 
         end
