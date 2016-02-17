@@ -1,3 +1,4 @@
+# http://mervine.net/sourcing-and-setting-environment-variables-in-ruby
 # http://www.getchef.com/blog/2014/03/12/writing-libraries-in-chef-cookbooks/
 # https://docs.getchef.com/essentials_cookbook_libraries.html
 # https://docs.getchef.com/lwrp_custom_resource_library.html
@@ -5,7 +6,7 @@ require 'shellwords'
 require 'set'
 
 class EnvironHash
-  include ::Chef::Mixin::ShellOut
+  #include ::Chef::Mixin::ShellOut
 
   attr_accessor :hash, :file, :raw_keys
 
@@ -35,7 +36,8 @@ class EnvironHash
   def read_file()
     if self.read_file?; return end
 
-    ::Chef::Log.debug("Reading environ file #{@file}")
+    #::Chef::Log.debug("Reading environ file #{@file}")
+    # https://github.com/chef/chef/blob/master/lib/chef/log/syslog.rb
 
     @hash = {}
     @raw_keys = Set.new
@@ -68,19 +70,17 @@ class EnvironHash
 
         # we have to use . here because "sh" doesn't have source, you can see it
         # is using shell by running `echo $0`
-        process = shell_out(". #{@file} && echo $#{key}")
-        val = process.stdout.strip()
-        if val != ""
-          if is_raw_val
-            ::Chef::Log.debug("Found raw #{key} = #{val}")
-          else
-            ::Chef::Log.debug("Found #{is_raw_val ? "raw " : ""}#{key} = #{val}")
-          end
-          @hash[key] = val
-        else
-          ::Chef::Log.warn("No value found for #{key}")
+        #process = shell_out(". #{@file} && echo $#{key}")
+        #val = process.stdout.strip()
+        val = `. #{@file} && echo $#{key}`.strip()
+        @hash[key] = val
 
-        end
+#         if val != ""
+#           ::Chef::Log.debug("Found #{is_raw_val ? "raw " : ""}#{key} = #{val}")
+#           @hash[key] = val
+#         else
+#           ::Chef::Log.warn("No value found for #{key}")
+#         end
 
         if is_raw_val
           is_raw_val = false
@@ -128,24 +128,77 @@ class EnvironHash
 
   def merge!(instance)
     self.read_file()
+    instance.read_file()
     @hash.merge!(instance.hash)
     @raw_keys = @raw_keys.merge(instance.raw_keys)
     return true
   end
 
   def escape_each()
+    self.read_file()
     # we don't want things like ampersands throwing everything off
-    ::Chef::Log.debug(@raw_keys)
     @hash.each { |k, v| yield k, @raw_keys.include?(k) ? v : ::Shellwords::shellescape(v) }
   end
 
-  def values()
-    @hash.values
+  def values(*args)
+    self.read_file()
+    @hash.values(*args)
   end
 
-  def keys()
-    @hash.keys
+  def keys(*args)
+    self.read_file()
+    @hash.keys(*args)
   end
+
+  def select(*args, &block)
+    self.read_file()
+    if block
+      vs = {}
+      @hash.select(*args).each do |k, v|
+        if block.call(k, v)
+          vs[k] = v
+        end
+      end
+
+    else
+      vs = @hash.select(*args)
+    end
+
+    instance = self.class.new("", false)
+    instance.hash = vs
+    instance
+
+  end
+
+  def each()
+    self.read_file()
+    if block_given?
+      @hash.each do |k, v|
+        yield k, v
+      end
+
+    else
+      @hash.each
+
+    end
+  end
+
+#   def select(*args, &block)
+#     self.read_file()
+#     if block_given?
+#       @hash.select(*args).each do |k, v|
+#         yield k, v
+#       end
+#     else
+#       @hash.select(*args)
+#     end
+#   end
+
+#   def to_str()
+#     self.read_file()
+#     @hash.to_str
+#   end
+
 
 end
 
