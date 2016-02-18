@@ -183,6 +183,20 @@ class EnvironHash
     end
   end
 
+  # return values if block returns true
+  def values_if(&block)
+    self.read_file()
+    vs = []
+    @hash.each do |k, v|
+      if block.call(k, v)
+        vs << v
+      end
+    end
+    return vs
+
+
+  end
+
 #   def select(*args, &block)
 #     self.read_file()
 #     if block_given?
