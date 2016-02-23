@@ -4,7 +4,7 @@ name = "uwsgi"
 
 default[name] = {}
 
-default[name]["version"] = "2.0.11.1"
+default[name]["version"] = "2.0.12"
 default[name]["user"] = "www-data"
 default[name]["init"] = {}
 default[name]["init"]["command"] = "uwsgi"
