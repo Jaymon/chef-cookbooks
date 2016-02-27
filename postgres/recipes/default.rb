@@ -13,6 +13,7 @@ name = cookbook_name.to_s
 n = node[name]
 u = n["user"]
 cmd_user = "sudo -u #{u}"
+$read_only_users = []
 
 
 ###############################################################################
@@ -78,8 +79,15 @@ def make_query(username, options, is_create)
 
   query = is_create ? "CREATE USER" : "ALTER USER"
   query += " #{username} WITH"
+  opts = options.map { |k, v| [k.upcase, v] }.to_h
+  read_only = opts.delete("READONLY")
+  if read_only
+    $read_only_users << username
+    # TODO -- you could check for encrypted password or password and only allow those
+  end
 
-  options.each do |k, v|
+  opts.each do |k, v|
+  #options.each do |k, v|
 
     if v.is_a?(TrueClass)
       query += " #{k.upcase}"
@@ -141,6 +149,47 @@ n["databases"].each do |username, dbnames|
       #ignore_failure true
       not_if "#{cmd_user} #{not_cmd}"
     end
+
+    if $read_only_users.include?(username)
+
+      cmd = "psql -c \"GRANT CONNECT ON DATABASE #{dbname} TO #{username}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+      cmd = "psql -c \"GRANT TEMP ON DATABASE #{dbname} TO #{username}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+      # inherit future also
+      cmd = "psql -c \"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO #{username}\" -d \"#{dbname}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+      cmd = "psql -c \"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO #{username}\" -d \"#{dbname}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+      cmd = "psql -c \"GRANT USAGE ON SCHEMA public TO #{username}\" -d \"#{dbname}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+      cmd = "psql -c \"GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO #{username}\" -d \"#{dbname}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+      cmd = "psql -c \"GRANT SELECT ON ALL TABLES IN SCHEMA public TO #{username}\" -d \"#{dbname}\""
+      execute "#{cmd_user} #{cmd}" do
+        action :run
+      end
+
+    end
+
   end
 
 end
