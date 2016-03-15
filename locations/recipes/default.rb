@@ -37,7 +37,7 @@ if n && n.has_key?('users') && !n['users'].empty?
         directory "#{dname}_dest_dir" do
           path dest_dir
           owner username
-          group username
+          group d.fetch('group', username)
           action :create
           recursive true
           #not_if { ::File.directory?(dest_dir) }
@@ -48,7 +48,7 @@ if n && n.has_key?('users') && !n['users'].empty?
         remote_file dname do
           path dest_file
           owner username
-          group username
+          group d.fetch('group', username)
           mode d.fetch('mode', nil)
           source src_file
           action d.fetch('action', :create)
@@ -58,7 +58,7 @@ if n && n.has_key?('users') && !n['users'].empty?
         remote_directory dname do
           path dest_dir
           owner username
-          group username
+          group d.fetch('group', username)
           mode d.fetch('mode', nil)
           source src_dir
           action d.fetch('action', :create)
