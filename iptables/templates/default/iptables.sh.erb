@@ -21,14 +21,9 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 # allow all outbound connections
 iptables -A OUTPUT -j ACCEPT
 
-# open these ports to the public
-<% @open_ports.each do |val| %>
-iptables -A INPUT -p tcp --dport <%= val %> -j ACCEPT
-<% end %>
-
-# allow full access to these ip addresses
-<% @whitelist.each do |val| %>
-iptables -A INPUT -s <%= val %> -j ACCEPT
+# add rules from Chef scripts
+<% @rules.each do |val| %>
+<%= val %>
 <% end %>
 
 # allow ping
