@@ -1,7 +1,7 @@
 name = cookbook_name.to_s
 n = node[name]
 
-if n and not n.empty?
+if n and not (n["open_ports"].empty? and n["whitelist"].empty? and n["accept"].empty?)
   rules = []
 
   n["open_ports"].uniq.each do |port|
@@ -12,7 +12,7 @@ if n and not n.empty?
     rules.push("iptables -A INPUT -s #{source_ip} -j ACCEPT #rule: whitelist")
   end
 
-  n['accept'].each do |rule|
+  n["accept"].each do |rule|
     source_ip = if rule['source_ip'] then "-s #{rule['source_ip']} " else "" end
     dest_port = if rule['dest_port'] then "--dport #{rule['dest_port']} " else "" end
     protocol = if rule['protocol'] then "-p #{rule['protocol']} " else "" end

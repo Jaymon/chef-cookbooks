@@ -2,7 +2,7 @@
 name = "iptables"
 
 default[name] = {
-  "open_ports" => [22],
+  "open_ports" => [],
   "whitelist" => [],
   "accept" => [],
 }
