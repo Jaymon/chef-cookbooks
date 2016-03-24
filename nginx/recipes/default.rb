@@ -12,7 +12,6 @@ execute "remove current nginx site configs" do
 end
 
 n["servers"].each do |server_name, server_options|
-  template_name = server_options.has_key?("uwsgi") ? "uwsgi.erb" : "static.erb"
   variables = server_options.to_hash
   variables["server_name"] = server_name
 
@@ -20,7 +19,7 @@ n["servers"].each do |server_name, server_options|
   enabled_path = ::File.join(n['enabled-dir'], "#{server_name}.conf")
 
   template available_path do
-    source template_name
+    source "server.conf.erb"
     variables(variables)
     notifies :stop, "service[#{name}]", :delayed
     notifies :start, "service[#{name}]", :delayed
