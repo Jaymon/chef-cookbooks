@@ -1,5 +1,5 @@
 
-<% if @ssl_certificate && @port == 443 %>
+<% if @ssl_cert && @port == 443 %>
 # redirect all requests to ssl
 # http://serverfault.com/questions/250476/how-to-force-or-redirect-to-ssl-in-nginx/474345#474345
 # http://serverfault.com/questions/250476/how-to-force-or-redirect-to-ssl-in-nginx
@@ -13,7 +13,7 @@ server {
 
 server {
 
-  listen <%= @port %> default_server;
+  listen <%= @port %>;
 
   charset utf-8;
   server_name <%= @host %>;
@@ -21,10 +21,10 @@ server {
   root <%= @root %>;
   <% end %>
 
-  <% if @ssl_certificate %>
+  <% if @ssl_cert %>
   ssl on;
-  ssl_certificate <%= @ssl_certificate %>;
-  ssl_certificate_key <%= @ssl_certificate_key %>;
+  ssl_certificate <%= @ssl_cert %>;
+  ssl_certificate_key <%= @ssl_key %>;
 
   ssl_session_timeout 5m;
 

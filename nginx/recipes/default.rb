@@ -4,7 +4,15 @@ n = node[name]
 
 # http://nginx.org/en/docs/beginners_guide.html
 # https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-14-04-lts
-package "nginx"
+package "nginx" do
+  notifies :create, "directory[/var/log/nginx]", :immediately
+end
+
+# set permissions on first nginx install
+directory '/var/log/nginx' do
+  mode '0755'
+  action :nothing
+end
 
 # http://stackoverflow.com/questions/13484825/find-and-delete-all-symlinks-in-home-folder-having-trouble-making-it-work
 execute "remove current nginx site configs" do
