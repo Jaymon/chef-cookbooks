@@ -2,8 +2,11 @@ name = cookbook_name.to_s
 n = node[name]
 
 
+# http://nginx.org/en/docs/beginners_guide.html
+# https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-14-04-lts
 package "nginx"
 
+# http://stackoverflow.com/questions/13484825/find-and-delete-all-symlinks-in-home-folder-having-trouble-making-it-work
 execute "remove current nginx site configs" do
   command "find \"#{n["enabled-dir"]}\" -type l -delete"
 end
