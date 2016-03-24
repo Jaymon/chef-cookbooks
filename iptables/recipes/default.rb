@@ -1,8 +1,25 @@
 name = cookbook_name.to_s
 n = node[name]
 
-# you can really bite yourself in the foot here if you haven't opened at least ssh
-if !n['open_ports'].empty? or !n['whitelist'].empty?
+if n and not (n["open_ports"].empty? and n["whitelist"].empty? and n["accept"].empty?)
+  rules = []
+
+  n["open_ports"].uniq.each do |port|
+    rules.push("iptables -A INPUT -p tcp --dport #{port} -j ACCEPT #rule: open_ports")
+  end
+
+  n["whitelist"].uniq.each do |source_ip|
+    rules.push("iptables -A INPUT -s #{source_ip} -j ACCEPT #rule: whitelist")
+  end
+
+  n["accept"].each do |rule|
+    source_ip = if rule['source_ip'] then "-s #{rule['source_ip']} " else "" end
+    dest_port = if rule['dest_port'] then "--dport #{rule['dest_port']} " else "" end
+    protocol = if rule['protocol'] then "-p #{rule['protocol']} " else "" end
+    name = rule['name']
+
+    rules.push("iptables -A INPUT #{protocol}#{source_ip}#{dest_port}-j ACCEPT #rule: #{name}")
+  end
 
   service_name = "iptables-config"
   config = ::File.join("", "opt", "#{service_name}.sh")
@@ -12,8 +29,7 @@ if !n['open_ports'].empty? or !n['whitelist'].empty?
     group "root"
     mode "0700"
     variables(
-      "open_ports" => n['open_ports'],
-      "whitelist" => n["whitelist"],
+      "rules" => rules,
     )
     notifies :restart, "service[#{service_name}]", :delayed
   end
@@ -35,5 +51,4 @@ if !n['open_ports'].empty? or !n['whitelist'].empty?
     action :nothing
     supports :start => true, :stop => true, :status => false, :restart => false
   end
-
 end

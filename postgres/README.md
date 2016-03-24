@@ -44,6 +44,12 @@ Notice that `'mod'` is the value (it has quotes), not `mod`.
 
 Refer to the comments in the installed `pg_hba.conf` file or the **Client Authentication** section in the postgres manual.
 
+`default["postgres"]["ssl_files"]` -- Source of SSL certificate and key files. The destination
+for these files must be specified in `default["postgres"]["conf"]`.
+
+* ssl_key_file -- path to the ssl key that should be copied to the location specified in `default["postgres"]["ssl"]["ssl_key_file"]`.
+* ssl_cert_file -- path to ssl certificate that should be copied to the location specified in `default["postgres"]["ssl"]["ssl_cert_file"]`.
+
 
 ### PGBouncer
 

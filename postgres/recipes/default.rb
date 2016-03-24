@@ -242,6 +242,38 @@ if n.has_key?("conf")
 
   cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
 
+  # copy ssl cert if in conf
+  if n["ssl_files"] and n["ssl_files"]["ssl_cert_file"]
+    if not n["conf"]["ssl_cert_file"]
+      raise("ssl_cert_file has not been specified in postgres config")
+    end
+
+    # remove the single-quotes on the ssl_cert_file value
+    remote_file n["conf"]["ssl_cert_file"].tr("'", "") do
+      source "file://#{ n["ssl_files"]["ssl_cert_file"]}"
+      owner "root"
+      group "root"
+      mode "0644"
+      action :create
+    end
+  end
+
+  # copy ssl key if in conf
+  if n["ssl_files"] and n["ssl_files"]["ssl_key_file"]
+    if not n["conf"]["ssl_key_file"]
+      raise("ssl_key_file has not been specified in postgres config")
+    end
+
+    # remove the single-quotes on the ssl_key_file value
+    remote_file n["conf"]["ssl_key_file"].tr("'", "") do
+      source "file://#{n["ssl_files"]["ssl_key_file"]}"
+      owner "root"
+      group "ssl-cert"
+      mode "0640"
+      action :create
+    end
+  end
+
   ruby_block "configure postgres" do
     block do
 
