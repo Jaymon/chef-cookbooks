@@ -1,3 +1,5 @@
+require "pathname"
+
 name = cookbook_name.to_s
 n = node[name]
 
@@ -55,15 +57,47 @@ if n && n.has_key?('users') && !n['users'].empty?
         end
 
       elsif src_dir != ''
-        remote_directory dname do
-          path dest_dir
-          owner username
-          group d.fetch('group', username)
-          mode d.fetch('mode', nil)
-          source src_dir
-          action d.fetch('action', :create)
-          recursive true
+
+        #p "dest_dir #{dest_dir}"
+        #p "src_dir #{src_dir}"
+
+        groupname = d.fetch('group', username)
+
+        root_path = Pathname.new(src_dir)
+        root_path.find do |path|
+          unless path == root_path
+            relpath = path.relative_path_from(root_path)
+            src_path = ::File.join(src_dir, relpath)
+            dest_path = ::File.join(dest_dir, relpath)
+            dest_mode = path.stat.mode.to_s(8)[-4..-1]
+
+            #p "dest_path #{dest_path}"
+            #p "src_path #{src_path}"
+            #p "dest_mode #{dest_mode}"
+
+            if path.directory?
+              directory "#{relpath} to #{dest_path}" do
+                path dest_path
+                owner username
+                group groupname
+                mode dest_mode
+                action :create
+                recursive true
+              end
+
+            elsif path.file?
+              remote_file "#{relpath} to #{dest_path}" do
+                path dest_path
+                owner username
+                group groupname
+                mode dest_mode
+                source "file://#{src_path}"
+                action :create
+              end
+            end
+          end
         end
+
       end
 
     end

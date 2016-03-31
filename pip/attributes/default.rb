@@ -13,4 +13,5 @@ tf = ::File.join(Chef::Config[:file_cache_path], "pip-#{tt}")
 
 # pip install --update pip won't run if this file exists
 default[name]["check_file"] = tf
+default[name]["version"] = "8.1.1"
 

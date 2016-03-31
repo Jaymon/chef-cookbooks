@@ -6,6 +6,9 @@ def whyrun_supported?
   true
 end
 
+# http://stackoverflow.com/questions/21176576/how-to-i-get-a-chef-custom-lwrp-to-implement-notifies-and-not-if
+use_inline_resources
+
 action :install do
   p = new_resource.package_name
   pip_cmd = "pip install"
