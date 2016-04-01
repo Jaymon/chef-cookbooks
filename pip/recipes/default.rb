@@ -16,7 +16,8 @@ n = node[name]
 ###############################################################################
 package "python-pip" do
   action :install
-  notifies :remove, "package[pip remove setuptools]", :immediately
+  #notifies :remove, "package[pip remove setuptools]", :immediately
+  notifies :upgrade, "pip[pip upgrade setuptools]", :immediately
 end
 
 # 2-9-15 - this was here for 1.5, but pip >6.0 this messes it all up again, so we are
@@ -26,11 +27,11 @@ end
 #  flags "--no-use-wheel" # pip 1.5 fix, it tries to use wheel on everything which is in latest setuptools
 #end
 
-package "pip remove setuptools" do
-  package_name "python-setuptools"
-  action :nothing
-  notifies :upgrade, "pip[pip upgrade setuptools]", :immediately
-end
+# package "pip remove setuptools" do
+#   package_name "python-setuptools"
+#   action :nothing
+#   notifies :upgrade, "pip[pip upgrade setuptools]", :immediately
+# end
 
 pip "pip upgrade setuptools" do
   package_name "setuptools"
@@ -64,7 +65,8 @@ pip "pyOpenSSL>=0.13"
 ruby_block "configure pip insecure ssl" do
   block do
     # TODO -- hook this up for pip2 and pip2.7
-    pip_path = "/usr/local/bin/pip"
+    #pip_path = "/usr/local/bin/pip"
+    pip_path = `which pip`
     contents = ::File.read(pip_path)
     if contents !~ /urllib3.contrib.pyopenssl/
       ::File.open(pip_path, "w+") do |f|
