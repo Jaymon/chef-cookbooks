@@ -66,7 +66,7 @@ ruby_block "configure pip insecure ssl" do
   block do
     # TODO -- hook this up for pip2 and pip2.7
     #pip_path = "/usr/local/bin/pip"
-    pip_path = `which pip`
+    pip_path = `which pip`.chomp
     contents = ::File.read(pip_path)
     if contents !~ /urllib3.contrib.pyopenssl/
       ::File.open(pip_path, "w+") do |f|
