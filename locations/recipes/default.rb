@@ -7,6 +7,7 @@ if n && n.has_key?('users') && !n['users'].empty?
 
   n['users'].each do |username, files|
     files.each do |dname, d|
+      resources = []
       src_dir = ''
       src_file = d.fetch('src', '')
       dest_dir = ''
@@ -36,7 +37,7 @@ if n && n.has_key?('users') && !n['users'].empty?
   #     p "dest_file #{dest_file}"
 
       if dest_dir != ''
-        directory "#{dname}_dest_dir" do
+        r = directory "#{dname}_dest_dir" do
           path dest_dir
           owner username
           group d.fetch('group', username)
@@ -44,10 +45,11 @@ if n && n.has_key?('users') && !n['users'].empty?
           recursive true
           #not_if { ::File.directory?(dest_dir) }
         end
+        resources << r
       end
 
       if src_file != ''
-        remote_file dname do
+        r = remote_file dname do
           path dest_file
           owner username
           group d.fetch('group', username)
@@ -55,6 +57,7 @@ if n && n.has_key?('users') && !n['users'].empty?
           source src_file
           action d.fetch('action', :create)
         end
+        resources << r
 
       elsif src_dir != ''
 
@@ -76,7 +79,7 @@ if n && n.has_key?('users') && !n['users'].empty?
             #p "dest_mode #{dest_mode}"
 
             if path.directory?
-              directory "#{relpath} to #{dest_path}" do
+              r = directory "#{relpath} to #{dest_path}" do
                 path dest_path
                 owner username
                 group groupname
@@ -84,9 +87,10 @@ if n && n.has_key?('users') && !n['users'].empty?
                 action :create
                 recursive true
               end
+              resources << r
 
             elsif path.file?
-              remote_file "#{relpath} to #{dest_path}" do
+              r = remote_file "#{relpath} to #{dest_path}" do
                 path dest_path
                 owner username
                 group groupname
@@ -94,13 +98,21 @@ if n && n.has_key?('users') && !n['users'].empty?
                 source "file://#{src_path}"
                 action :create
               end
+              resources << r
             end
           end
         end
 
       end
 
+      resources.each do |r|
+        d.fetch('notifies', []).each do |params|
+          r.notifies(*params)
+        end
+      end
+
     end
+
   end
 
 end

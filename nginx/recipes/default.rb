@@ -22,6 +22,9 @@ end
 n["servers"].each do |server_name, server_options|
   variables = server_options.to_hash
   variables["server_name"] = server_name
+  # http://stackoverflow.com/a/1528891/5006
+  variables["port"] = [*variables["port"]]
+  variables["port"].map!(&:to_i)
 
   available_path = ::File.join(n['available-dir'], "#{server_name}.conf")
   enabled_path = ::File.join(n['enabled-dir'], "#{server_name}.conf")

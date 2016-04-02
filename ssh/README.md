@@ -10,7 +10,10 @@ Just some ssh fu
 
 `node["ssh"]["sshd_config"]` -- a hash of key/values that will be written to the `/etc/ssh/sshd_config` file.
 
+`node["ssh"]["private_keys"]` -- a list of private key files that will be copied to the .ssh folder
+
+
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04, nothing else has been tested
 

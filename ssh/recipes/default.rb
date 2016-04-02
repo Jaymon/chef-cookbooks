@@ -3,6 +3,7 @@ n = node[name]
 
 
 include_recipe "#{name}::authorized_keys"
+include_recipe "#{name}::private_keys"
 
 
 ###############################################################################
