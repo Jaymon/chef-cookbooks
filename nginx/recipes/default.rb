@@ -29,6 +29,7 @@ n["servers"].each do |server_name, server_options|
   available_path = ::File.join(n['available-dir'], "#{server_name}.conf")
   enabled_path = ::File.join(n['enabled-dir'], "#{server_name}.conf")
 
+  # http://serverfault.com/questions/10854/nginx-https-serving-with-same-config-as-http
   template available_path do
     source "server.conf.erb"
     variables(variables)

@@ -12,6 +12,8 @@ if n && n.has_key?('users') && !n['users'].empty?
       src_file = d.fetch('src', '')
       dest_dir = ''
       dest_file = d['dest']
+      src_content = d.fetch("content", "")
+      groupname = d.fetch('group', username)
       pos = src_file =~ /\S+:\/\//
       if pos == nil
         if ::File.file?(src_file)
@@ -25,7 +27,9 @@ if n && n.has_key?('users') && !n['users'].empty?
           dest_file = ''
 
         else
-          dest_dir = dest_file
+          if src_content.empty?
+            dest_dir = dest_file
+          end
           #raise "no local source file found at location #{src_file}"
 
         end
@@ -36,11 +40,11 @@ if n && n.has_key?('users') && !n['users'].empty?
   #     p "src_file #{src_file}"
   #     p "dest_file #{dest_file}"
 
-      if dest_dir != ''
-        r = directory "#{dname}_dest_dir" do
+      if !dest_dir.empty?
+        r = directory "#{dname} dest_dir" do
           path dest_dir
           owner username
-          group d.fetch('group', username)
+          group groupname
           action :create
           recursive true
           #not_if { ::File.directory?(dest_dir) }
@@ -48,23 +52,21 @@ if n && n.has_key?('users') && !n['users'].empty?
         resources << r
       end
 
-      if src_file != ''
+      if !src_file.empty?
         r = remote_file dname do
           path dest_file
           owner username
-          group d.fetch('group', username)
+          group groupname
           mode d.fetch('mode', nil)
           source src_file
           action d.fetch('action', :create)
         end
         resources << r
 
-      elsif src_dir != ''
+      elsif !src_dir.empty?
 
         #p "dest_dir #{dest_dir}"
         #p "src_dir #{src_dir}"
-
-        groupname = d.fetch('group', username)
 
         root_path = Pathname.new(src_dir)
         root_path.find do |path|
@@ -103,6 +105,17 @@ if n && n.has_key?('users') && !n['users'].empty?
           end
         end
 
+      elsif !src_content.empty?
+        # https://docs.chef.io/resource_file.html
+        r = file "#{dname} file from content" do
+          path dest_file
+          content src_content
+          owner username
+          group groupname
+          mode d.fetch('mode', nil)
+          action d.fetch('action', :create)
+        end
+        resources << r
       end
 
       resources.each do |r|
