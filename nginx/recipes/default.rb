@@ -34,7 +34,7 @@ execute "remove current nginx site configs" do
 end
 
 n["servers"].each do |server_name, server_options|
-  default_options = server_options.fetch("defaults", {})
+  default_options = n.fetch("defaults", {})
   variables = default_options.merge(server_options)
   #variables = server_options.to_hash
   variables["server_name"] = server_name
