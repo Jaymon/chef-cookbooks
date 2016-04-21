@@ -3,8 +3,8 @@
 name = "nginx"
 
 default[name] = {}
-default[name]["static-servers"] = {}
-default[name]["uwsgi-servers"] = {}
+default[name]["defaults"] = {}
+default[name]["servers"] = {}
 default[name]['available-dir'] = ::File.join("", "etc", name, "sites-available")
 default[name]['enabled-dir'] = ::File.join("", "etc", name, "sites-enabled")
 

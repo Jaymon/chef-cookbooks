@@ -14,17 +14,34 @@ directory '/var/log/nginx' do
   action :nothing
 end
 
+# generate Diffie-Hellman keys we can use
+# NOTE -- this takes 20 minutes to run so I've disabled it while I think of a better way to
+# do it :(
+# ssl_base_path = '/etc/nginx/ssl'
+# directory ssl_base_path do
+#   mode '0755'
+# end
+# 
+# dh_path = ::File.join(ssl_base_path, "dhparam.pem")
+# execute "openssl dhparam -out #{dh_path} 4096" do
+#   action :nothing
+#   not_if "test -f #{dh_path}"
+# end
+
 # http://stackoverflow.com/questions/13484825/find-and-delete-all-symlinks-in-home-folder-having-trouble-making-it-work
 execute "remove current nginx site configs" do
   command "find \"#{n["enabled-dir"]}\" -type l -delete"
 end
 
 n["servers"].each do |server_name, server_options|
-  variables = server_options.to_hash
+  default_options = server_options.fetch("defaults", {})
+  variables = default_options.merge(server_options)
+  #variables = server_options.to_hash
   variables["server_name"] = server_name
   # http://stackoverflow.com/a/1528891/5006
   variables["port"] = [*variables["port"]]
   variables["port"].map!(&:to_i)
+#   variables["ssl_dhparam"] = dh_path
 
   available_path = ::File.join(n['available-dir'], "#{server_name}.conf")
   enabled_path = ::File.join(n['enabled-dir'], "#{server_name}.conf")
