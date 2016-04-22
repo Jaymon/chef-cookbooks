@@ -5,6 +5,11 @@ Installs Nginx
 
 ## Attributes
 
+### defaults
+
+dict -- this will be merged into the values of each of the configured servers (with the server specific configuration taking precedence).
+
+
 ### servers
 
 dict -- the keys are the server names, the value is the configuration for the server
