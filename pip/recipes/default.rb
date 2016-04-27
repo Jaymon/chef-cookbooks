@@ -58,6 +58,7 @@ end
 
 # necessary for eliminating insecure platform warning
 # https://urllib3.readthedocs.org/en/latest/security.html#openssl-pyopenssl
+package "libffi-dev" # needed for ndg-httpsclient to install
 pip "ndg-httpsclient>=0.4.0"
 pip "pyasn1>=0.1.9"
 pip "pyOpenSSL>=0.13"
