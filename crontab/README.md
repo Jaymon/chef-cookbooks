@@ -52,5 +52,5 @@ Otherwise the cron jobs will remain even though they've been removed in your con
 
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04, nothing else has been tested
 
