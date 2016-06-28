@@ -2,5 +2,5 @@
 name = "daemon"
 
 default[name] = {}
-default[name]["logdir"] = ::File.join("", "var", "log", "cron"),
+default[name]["logdir"] = ::File.join("", "var", "log", "cron")
 
