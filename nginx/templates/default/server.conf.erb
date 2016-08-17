@@ -1,8 +1,10 @@
 
-<% if @ssl_cert && @port.include?(443) && !@port.include?(80)%>
+<% if @ssl_cert && @port.include?(443) && !@port.include?(80) %>
+<% 
 # redirect all requests to ssl
 # http://serverfault.com/questions/250476/how-to-force-or-redirect-to-ssl-in-nginx/474345#474345
 # http://serverfault.com/questions/250476/how-to-force-or-redirect-to-ssl-in-nginx
+%>
 server {
   listen   80;
   listen   [::]:80;
@@ -11,10 +13,23 @@ server {
 }
 <% end %>
 
+<% if @redirect %>
+<% @redirect.each do |redirect_host| %>
+<% 
+# redirect all these subdomains to host
+  # https://www.digitalocean.com/community/tutorials/how-to-redirect-www-to-non-www-with-nginx-on-centos-7
+%>
+server {
+  server_name <%= redirect_host %>;
+  return 301 $scheme://<%= @host %>$request_uri;
+}
+<% end %>
+<% end %>
+
 server {
 
   <% @port.each do |p| %>
-  <% if p == 443%>
+  <% if p == 443 %>
   listen <%= p %> ssl;
   listen [::]:<%= p %> ssl;
   <% elsif %>
@@ -85,8 +100,7 @@ server {
   index index.html index.htm;
 
   location / {
-    # First attempt to serve request as file, then
-    # as directory, then fall back to displaying a 404.
+    # First attempt to serve request as file, then as directory, then fall back to 404.
     try_files $uri $uri/ =404;
   }
 

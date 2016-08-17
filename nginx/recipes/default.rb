@@ -41,6 +41,9 @@ n["servers"].each do |server_name, server_options|
   # http://stackoverflow.com/a/1528891/5006
   variables["port"] = [*variables["port"]]
   variables["port"].map!(&:to_i)
+  if variables.has_key?("redirect")
+    variables["redirect"] = [*variables["redirect"]]
+  end
 #   variables["ssl_dhparam"] = dh_path
 
   available_path = ::File.join(n['available-dir'], "#{server_name}.conf")

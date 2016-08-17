@@ -34,9 +34,25 @@ The ssl certificate to use for the host.
 
 The ssl key for the ssl_cert to use for the host.
 
+#### ssl_trusted_cert
+
+The full certificate chain if it isn't already present in the `ssl_cert`.
+
 #### uwsgi_socket
 
 Something like `127.0.0.1:9001`. Set this to activate uwsgi passing on the socket.
+
+#### redirect
+
+a list of servers to 301 redirect to the server `host`.
+
+```
+"servers" -> {
+  "example.com" => {
+    "redirect" => ["www.example.com", "www2.example.com"]
+  }
+}
+```
 
 
 ## Using 

@@ -124,6 +124,8 @@ n["servers"].each do |server, options|
     arg_str += " --staging"
   end
 
+  # TODO -- would a better test be to move on if a valid ssl connection is made?
+
 
   ##############################################################################
   # Try installing letsencrypt using webroot
