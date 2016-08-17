@@ -140,7 +140,7 @@ n["servers"].each do |server, options|
   execute "letsencrypt webroot #{server}" do
     command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
     action :nothing
-    notifies :create, "cron[letsencrypt webroot #{server}]", :immediately
+    notifies :create, "cron[letsencrypt renew]", :delayed
   end
 
 
@@ -152,17 +152,6 @@ n["servers"].each do |server, options|
     action :run
     notifies :create, "cron[letsencrypt webroot #{server}]", :immediately
     not_if "test -f #{::File.join(n["certroot"], server, "fullchain.pem")}"
-  end
-
-
-  # setup renew command to run twice a day, this is recommended by let's encrypt
-  # to handle any certificate revocations
-  cron "letsencrypt webroot #{server}" do
-    command "#{bin_cmd} renew -q --webroot -w #{root_dir} #{arg_str}"
-    hour "#{0 + rand(8)},#{12 + rand(8)}"
-    minute "#{1 + rand(59)}"
-    #day "1"
-    action :nothing
   end
 
 
@@ -178,3 +167,15 @@ n["servers"].each do |server, options|
 #   end
 
 end
+
+# setup renew command to run twice a day, this is recommended by let's encrypt
+# to handle any certificate revocations
+cron "letsencrypt renew" do
+  command "#{bin_cmd} renew -q"
+  hour "#{0 + rand(8)},#{12 + rand(8)}"
+  minute "#{1 + rand(59)}"
+  #day "1"
+  action :nothing
+end
+
+
