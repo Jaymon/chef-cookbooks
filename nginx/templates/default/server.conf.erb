@@ -42,7 +42,7 @@ server {
 
   ssl_session_timeout 1d;
   ssl_session_cache shared:SSL:50m;
-  ssl_session_tickets off;
+  <% #ssl_session_tickets off; # first appeard in 1.5.9, 14.04 is 1.4.6 %>
 
   ssl_protocols TLSv1.2;
   ssl_ciphers EECDH+AESGCM:EECDH+AES;
@@ -64,7 +64,7 @@ server {
   ssl_dhparam <%= @ssl_dhparam %>;
   <% end %>
 
-  <% end %> # if @ssl_cert
+  <% end %>
 
   access_log /var/log/nginx/access.<%= @server_name %>.log;
   error_log /var/log/nginx/error.<%= @server_name %>.log;
