@@ -37,7 +37,7 @@ server {
   ssl_certificate <%= @ssl_cert %>;
   ssl_certificate_key <%= @ssl_key %>;
   <% if @ssl_trusted_cert %>
-  ssl_trusted_certificate_key <%= @ssl_trusted_cert %>;
+  ssl_trusted_certificate <%= @ssl_trusted_cert %>;
   <% end %>
 
   ssl_session_timeout 1d;
