@@ -10,6 +10,7 @@
 name = cookbook_name.to_s
 n = node[name]
 bin_cmd = ::File.join(n["binroot"], "certbot-auto")
+staging = n.fetch("staging", false)
 
 
 #include_recipe "pip" # to make this work, you need depends "pip" in metadata
@@ -119,7 +120,7 @@ n["servers"].each do |server, options|
   arg_str = "-d #{server} #{options.fetch("domains", []).join(" -d ")}"
   arg_str += " --email #{email} --agree-tos --non-interactive --no-verify-ssl"
 
-  if n.fetch("staging", false)
+  if staging
     arg_str += " --staging"
   end
 
