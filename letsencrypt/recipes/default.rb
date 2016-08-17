@@ -134,7 +134,7 @@ n["servers"].each do |server, options|
     returns [0, 8] # 8 is 404 NOT FOUND
     ignore_failure true
     notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
-    not_if "test -f #{::File.join(n["certroot"], server, "fullchain.pem")}"
+    not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
   end
 
   execute "letsencrypt webroot #{server}" do
@@ -150,8 +150,8 @@ n["servers"].each do |server, options|
   execute "letsencrypt standalone #{server}" do
     command "#{bin_cmd} certonly --standalone #{arg_str}"
     action :run
-    notifies :create, "cron[letsencrypt webroot #{server}]", :immediately
-    not_if "test -f #{::File.join(n["certroot"], server, "fullchain.pem")}"
+    notifies :create, "cron[letsencrypt renew]", :immediately
+    not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
   end
 
 
