@@ -23,3 +23,17 @@ if n.has_key?("bash")
 
 end
 
+if n.has_key?("shell")
+
+  n["shell"].each do |cmd|
+
+    # for some reason, bash script_path do ... didn't work
+    execute cmd do
+      action :run
+      cwd tmp_dir
+    end
+
+  end
+
+end
+
