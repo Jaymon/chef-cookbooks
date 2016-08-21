@@ -15,8 +15,6 @@ if n.has_key?("bash")
 
     # for some reason, bash script_path do ... didn't work
     execute "bash #{script_path}" do
-      user "root"
-      group "root"
       action :run
       cwd tmp_dir
     end
