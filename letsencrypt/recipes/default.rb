@@ -9,7 +9,6 @@
 
 name = cookbook_name.to_s
 n = node[name]
-p n
 bin_cmd = ::File.join(n["binroot"], "certbot-auto")
 staging = n.fetch("staging", false)
 
@@ -117,8 +116,11 @@ n["servers"].each do |server, options|
 #     not_if "test -f #{::File.join(n["certroot"], server, "fullchain.pem")}"
 #   end
 
+  # build a list of all the servers
+  domains = options.fetch("domains", [])
+  domains.unshift(server)
 
-  arg_str = "-d #{server} #{options.fetch("domains", []).join(" -d ")}"
+  arg_str = "-d #{domains.join(" -d ")}"
   arg_str += " --email #{email} --agree-tos --non-interactive --no-verify-ssl"
 
   if staging
