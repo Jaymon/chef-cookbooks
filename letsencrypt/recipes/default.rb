@@ -117,7 +117,7 @@ n["servers"].each do |server, options|
 #   end
 
   # build a list of all the servers
-  domains = options.fetch("domains", [])
+  domains = options.fetch("domains", []).to_list
   domains.unshift(server)
 
   arg_str = "-d #{domains.join(" -d ")}"
