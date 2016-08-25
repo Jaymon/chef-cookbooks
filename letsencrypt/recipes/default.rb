@@ -1,12 +1,3 @@
-###############################################################################
-#
-# install Python PIP package manager
-#
-# @link http://www.pip-installer.org/en/latest/requirements.html#freezing-requirements
-# @since  1-31-12
-#
-###############################################################################
-
 name = cookbook_name.to_s
 n = node[name]
 bin_cmd = ::File.join(n["binroot"], "certbot-auto")
@@ -129,25 +120,32 @@ n["servers"].each do |server, options|
   end
 
   # TODO -- would a better test be to move on if a valid ssl connection is made?
-
+  # probably not because this would mean we couldn't replace an existing valid
+  # server with Let's Encrypt certs
 
   ##############################################################################
   # Try installing letsencrypt using webroot
   ##############################################################################
-#   execute "letsencrypt #{server} port 80" do
-#     command "wget -qO- http://#{server}/.well-known/acme-challenge"
-#     action :run
-#     returns [0, 8] # 8 is 404 NOT FOUND
-#     ignore_failure true
-#     #notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
-#     notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
-#     not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
-#   end
+  ruby_block "letsencrypt #{server}" do
+    block do
 
-  execute "letsencrypt #{server} port 443" do
-    command "wget --no-check-certificate -qO- https://#{server}/.well-known/acme-challenge"
-    action :run
-    returns [0, 8] # 8 is 404 NOT FOUND
+      ret_codes = [0, 8] # 8 is 404 NOT FOUND
+
+      `wget -qO- "http://#{server}/.well-known/acme-challenge"`
+      ret_http = $?.exitstatus
+
+      if !ret_codes.include?(ret_http)
+
+        `wget -qO- "https://#{server}/.well-known/acme-challenge"`
+        ret_https = $?.exitstatus
+
+        if !ret_codes.include?(ret_https)
+          raise IOError, "Could not request #{server} using http or https"
+        end
+
+      end
+
+    end
     ignore_failure true
     notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
     not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
