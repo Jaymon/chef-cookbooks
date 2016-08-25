@@ -134,8 +134,18 @@ n["servers"].each do |server, options|
   ##############################################################################
   # Try installing letsencrypt using webroot
   ##############################################################################
-  execute "letsencrypt #{server} port 80" do
-    command "wget --no-check-certificate -qO- http://#{server}/.well-known/acme-challenge"
+#   execute "letsencrypt #{server} port 80" do
+#     command "wget -qO- http://#{server}/.well-known/acme-challenge"
+#     action :run
+#     returns [0, 8] # 8 is 404 NOT FOUND
+#     ignore_failure true
+#     #notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
+#     notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
+#     not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
+#   end
+
+  execute "letsencrypt #{server} port 443" do
+    command "wget --no-check-certificate -qO- https://#{server}/.well-known/acme-challenge"
     action :run
     returns [0, 8] # 8 is 404 NOT FOUND
     ignore_failure true
