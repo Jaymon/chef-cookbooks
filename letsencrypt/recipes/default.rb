@@ -9,6 +9,7 @@
 
 name = cookbook_name.to_s
 n = node[name]
+p n
 bin_cmd = ::File.join(n["binroot"], "certbot-auto")
 staging = n.fetch("staging", false)
 
