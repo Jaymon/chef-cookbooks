@@ -1,3 +1,6 @@
+# helpful
+# http://askubuntu.com/questions/642758/installing-chrome-on-ubuntu-14-04
+
 name = cookbook_name.to_s
 n = node[name]
 chrome_deb_f = ::File.join(::Chef::Config[:file_cache_path], "google-chrome-stable_current_amd64.deb")
