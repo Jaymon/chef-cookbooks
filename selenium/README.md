@@ -29,6 +29,11 @@ This installs java and the standalone selenium server.
 Install Google Chrome and the Selenium Chrome webdriver so you can test the Chrome browser.
 
 
+### selenium::firefox
+
+Install Firefox browser
+
+
 ### selenium::xvfb
 
 Mainly an internal recipe that is used in `selenium` and `selenium::python`. This installs the X11 virtual frame buffer.

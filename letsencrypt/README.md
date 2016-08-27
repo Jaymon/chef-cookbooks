@@ -31,8 +31,12 @@ This has a problem when validating the url, it currently uses port 80, but if th
 
 If you have multiple boxes that are behind Route53, then this fails because it will only put the certificates on one box and not on the others, and even if we figured out a good way to distribute the certs you still have to deal with renewing them. It might work just fine with a different certificate on each server, we would need further testing.
 
+On vanilla servers, we may need to [Force dependencies](https://github.com/certbot/certbot/issues/1706#issuecomment-197380593)
+
 ## Helpful links
 
 [Certbot installation](https://certbot.eff.org/docs/intro.html#installation)
 [Certbot repo](https://github.com/certbot/certbot)
+[This issue helped sort through stuff](https://github.com/certbot/certbot/issues/1706)
+[Digital Ocean tutorial](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-14-04)
 
