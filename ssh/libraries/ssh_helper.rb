@@ -1,4 +1,4 @@
-# http://stackoverflow.com/questions/20835697/how-to-require-my-library-in-chef-ruby-block
+# https://docs.chef.io/libraries.html
 # https://blog.chef.io/2014/03/12/writing-libraries-in-chef-cookbooks/
 module Ssh
   module Helper
@@ -20,5 +20,6 @@ module Ssh
   end
 end
 
+# http://stackoverflow.com/questions/20835697/how-to-require-my-library-in-chef-ruby-block
 ::Chef::Recipe.send(:include, Ssh::Helper)
 #::Chef::Resource::User.send(:include, Ssh::Helper)
