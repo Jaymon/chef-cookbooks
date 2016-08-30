@@ -1,3 +1,4 @@
+# https://github.com/chef-cookbooks/ssh_known_hosts
 #::Chef::Resource::User.send(:include, Ssh::Helper)
 
 name = cookbook_name.to_s
