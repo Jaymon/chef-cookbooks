@@ -23,7 +23,8 @@ if authorized_keys.length > 0
     key_file = ::File.join(ssh_dir, 'authorized_keys')
     key_file_bak = "#{key_file}.bak"
 
-    directory ssh_dir do
+    directory "#{recipe_name.to_s} #{username} #{ssh_dir}" do
+      path ssh_dir
       owner username
       group username
       mode "0700"

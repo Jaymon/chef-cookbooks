@@ -59,6 +59,7 @@ n_pg["users"].each do |username, options|
   end
 end
 
+# TODO -- clean up this user code, I'm not a fan of this type of scanning
 users_home = ::Dir.glob("/home/*/")
 users_home << "/root/"
 users_home.each do |user_home|
