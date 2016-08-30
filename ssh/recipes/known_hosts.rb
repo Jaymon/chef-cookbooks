@@ -17,7 +17,7 @@ if !hosts.empty?
       known_hosts_d = ::File.join(home_d, ".ssh")
       known_hosts_f = ::File.join(known_hosts_d, "known_hosts")
 
-      directory "#{recipe_name.to_s} #{username} #{known_hosts_d}" do
+      directory "#{username} #{recipe_name.to_s} #{known_hosts_d}" do
         path known_hosts_d
         owner username
         group username
@@ -25,7 +25,8 @@ if !hosts.empty?
         action :create
       end
 
-      file known_hosts_f do
+      file "#{username} #{known_hosts_f}" do
+        path known_hosts_f
         owner username
         group username
         mode "0600"
@@ -35,13 +36,13 @@ if !hosts.empty?
       hosts.each do |host|
         cache_f = ::File.join(::Chef::Config[:file_cache_path], "ssh-#{host}-known_hosts")
 
-        execute "ssh known_hosts create #{host}" do
+        execute "#{username} ssh known_hosts create #{host}" do
           command "ssh-keyscan -t rsa -H #{host} >> \"#{cache_f}\""
-          notifies :run, "execute[ssh known_hosts copy #{host}]", :immediately
+          notifies :run, "execute[#{username} ssh known_hosts copy #{host}]", :immediately
           not_if "test -f \"#{cache_f}\""
         end
 
-        execute "ssh known_hosts copy #{host}" do
+        execute "#{username} ssh known_hosts copy #{host}" do
           command "cat \"#{cache_f}\" >> \"#{known_hosts_f}\""
           action :nothing
         end

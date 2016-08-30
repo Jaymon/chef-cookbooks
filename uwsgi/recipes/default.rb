@@ -8,7 +8,9 @@ include_recipe "pip"
 
 # needs libpcre for internal routing: http://stackoverflow.com/questions/21669354/
 ['build-essential', 'python-dev', 'libpcre3-dev', 'libssl-dev'].each do |p|
-  package p
+  package "#{name} #{p}" do
+    package_name p
+  end
 end
 
 

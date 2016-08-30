@@ -17,12 +17,15 @@ u = n['user']
 # Pre-requisites
 ###############################################################################
 %W{git make autoconf automake autoconf-archive libtool libevent-dev}.each do |p|
-  package p
+  package "#{name} #{p}" do
+    package_name p
+  end
 end
 
 # if we allow standard installs these will install like 2gb of extraneous crap
 %W{asciidoc xmlto}.each do |p|
-  package p do
+  package "#{name} #{p}" do
+    package_name p
     options "--no-install-recommends"
   end
 end

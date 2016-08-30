@@ -16,7 +16,8 @@ not_if_cmd = "which redis-server"
 ###############################################################################
 
 ['git', 'make', 'tcl8.5', 'build-essential'].each do |p|
-  package p do
+  package "#{name} #{p}" do
+    package_name p
   end
 end
 
