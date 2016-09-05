@@ -41,10 +41,10 @@ n['users'].each do |username, cron_jobs|
     cron_cmd += options['command']
 
     if cron_logdir
-
       cron_user_logdir = ::File.join(cron_logdir, username)
 
-      directory cron_user_logdir do
+      directory "#{username} #{cron_user_logdir}" do
+        path cron_user_logdir
         owner username
         group username
         mode '0777'
