@@ -38,6 +38,21 @@ So, you would configure the crontab like this (in an environment file):
       }
     )
 
+
+## Cron scheduling format
+
+Because I can never remember:
+
+      *    *    *    *    *      command to be executed
+      -    -    -    -    -
+      |    |    |    |    |
+      |    |    |    |    +----- day of week (0 - 6) (Sunday=0)
+      |    |    |    +------- month (1 - 12)
+      |    |    +--------- day of month (1 - 31)
+      |    +----------- hour (0 - 23)
+      +------------- min (0 - 59)
+
+
 ## Removing Cron Jobs
 
 The recipe will try and remove any stray cron jobs after you've removed or commented out from the configuration, but in order to do that it needs to know there were cron jobs there in the first place, so if you are removing all your cron jobs you need to leave the `users` dict with the `username` keys intact:

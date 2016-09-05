@@ -39,13 +39,14 @@ if !hosts.empty?
 
         execute "#{username} ssh known_hosts create #{host}" do
           command "ssh-keyscan -t rsa -H #{host} >> \"#{cache_f}\""
-          notifies :run, "execute[#{username} ssh known_hosts copy #{host}]", :immediately
+          #notifies :run, "execute[#{username} ssh known_hosts copy #{host}]", :immediately
           not_if "test -f \"#{cache_f}\""
         end
 
         execute "#{username} ssh known_hosts copy #{host}" do
           command "cat \"#{cache_f}\" >> \"#{known_hosts_f}\""
-          action :nothing
+          #action :nothing
+          not_if "grep \"$(cat \"#{cache_f}\")\" \"#{known_hosts_f}\""
         end
 
       end

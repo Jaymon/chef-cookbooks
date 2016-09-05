@@ -39,10 +39,11 @@ Just some ssh fu
     Configure any private keys a user should have, private keys are `id_rsa` and `id_dsa` files
 
         "ssh" => {
-          "private_keys" => [...]
+          "private_keys" => {
+            "users" => [...],
+            "keys" => ["/path/to/identity/file"]
+          }
         }
-
-    `node["ssh"]["private_keys"]` -- a list of private key files that will be copied to the .ssh folder
 
 
 * ssh::known_hosts
