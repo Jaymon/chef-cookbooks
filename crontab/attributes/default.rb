@@ -2,5 +2,7 @@
 name = "crontab"
 
 default[name] = {}
+default[name]["users"] = {}
 default[name]["logdir"] = ::File.join("", "var", "log", "cron")
+
 

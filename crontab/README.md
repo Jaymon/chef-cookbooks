@@ -4,7 +4,7 @@ manage crontabs
 
 ## Attributes
 
-`node["crontab"]["env"]` -- string -- a directory or file to be sourced in the crontab to set environment. I like to use the `/etc/profile.d` directory.
+`node["crontab"]["env"]` -- string -- a directory or file to be sourced in the crontab to set environment. I like to use the `/etc/profile.d` directory. This can be overriden per cron job.
 
 `node["crontab"]["users"]` -- dict -- each key will be a username, with a dict value that will be of the form:
 
