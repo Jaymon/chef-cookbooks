@@ -1,5 +1,6 @@
 # helpful
 # http://askubuntu.com/questions/333411/updating-or-uninstalling-and-reinstalling-firefox-on-linux
+# http://scraping.pro/use-headless-firefox-scraping-linux/
 
 name = cookbook_name.to_s
 n = node[name]

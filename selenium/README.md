@@ -42,3 +42,8 @@ Mainly an internal recipe that is used in `selenium` and `selenium::python`. Thi
 
 Installs selenium hooks for python and the hooks needed to run `xvfb` using python.
 
+
+## Links
+
+http://pietervogelaar.nl/ubuntu-14-04-install-selenium-as-service-headless
+
