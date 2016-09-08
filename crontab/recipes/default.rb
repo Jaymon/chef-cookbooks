@@ -32,7 +32,7 @@ else
     cron_env = cron_jobs.fetch("env", n.fetch('env', ''))
     if !cron_env.empty?
       if ::File.directory?(cron_env)
-        cron_env += "for f in #{::File.join(cron_env, "*")}; do . $f; done;"
+        cron_env = "for f in #{::File.join(cron_env, "*")}; do . $f; done;"
       else
         cron_env = ". #{cron_env};"
       end
