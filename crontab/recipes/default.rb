@@ -38,7 +38,6 @@ else
       end
     end
 
-    cron_logdir = cron_jobs.fetch("logdir", n.fetch('logdir', ''))
     existing_cron_jobs = Set.new
     crontab = %x(sudo -u #{username} crontab -l 2>/dev/null)
     crontab.each_line do |line|
@@ -46,6 +45,21 @@ else
       if m
         existing_cron_jobs.add(m[1])
       end
+    end
+
+    cron_logdir = cron_jobs.fetch("logdir", n.fetch('logdir', ''))
+    cron_user_logdir = ""
+    if cron_logdir
+      cron_user_logdir = ::File.join(cron_logdir, username)
+
+      directory "#{username} #{cron_user_logdir}" do
+        path cron_user_logdir
+        owner username
+        group username
+        mode '0777'
+        recursive true
+      end
+
     end
 
     cron_jobs.each do |cron_name, options|
@@ -60,19 +74,8 @@ else
 
       cron_cmd += options['command']
 
-      if cron_logdir
-        cron_user_logdir = ::File.join(cron_logdir, username)
-
-        directory "#{username} #{cron_user_logdir}" do
-          path cron_user_logdir
-          owner username
-          group username
-          mode '0777'
-          recursive true
-        end
-
+      if cron_user_logdir
         cron_cmd += " >> #{::File.join(cron_user_logdir, cron_name)}.log 2>&1"
-
       end
 
       minute, hour, day_of_month, month, day_of_week = options['schedule'].split(%r{\s+}, 5)
