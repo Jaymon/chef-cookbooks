@@ -28,10 +28,21 @@ n.each do |key, options|
     # whatever the current branch is instead of the deploy branch it originally
     # created, this will move back to that deploy branch so I know things have been
     # reset
-    execute "git checkout deploy #{d}" do
+    execute "git #{d} move to deploy branch" do
+      command "git checkout deploy"
       cwd d
       only_if "test -d .git", :cwd => d
       not_if "git status | grep \"On branch deploy\"", :cwd => d
+    end
+
+    # 9-9-2016, I borked the checkout command and it failed silently because git
+    # 1.9.1 (Ubuntu 14.04) returns a 0 return code, even if the command doesn't
+    # do anything, this block will fail though and stop the chef provision if we
+    # haven't really moved to the right branch
+    execute "git #{d} verify on deploy branch" do
+      command "git status | grep \"On branch deploy\""
+      cwd d
+      only_if "test -d .git", :cwd => d
     end
 
     r = git key do
