@@ -32,8 +32,8 @@ end
 ###############################################################################
 # install chrome driver
 ###############################################################################
-latest = `wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE`
-chrome_driver_f = ::File.join(::Chef::Config[:file_cache_path], "chromedriver_linux64.zip")
+latest = `wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE`.strip()
+chrome_driver_f = ::File.join(::Chef::Config[:file_cache_path], "chromedriver_#{latest}_linux64.zip")
 remote_file chrome_driver_f do
   source "http://chromedriver.storage.googleapis.com/#{latest}/chromedriver_linux64.zip"
   action :create
