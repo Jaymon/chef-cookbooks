@@ -6,23 +6,14 @@
 name_pg = cookbook_name.to_s
 name = recipe_name.to_s
 n_pg = node[name_pg]
-n = n_pg[name]
+n = n_pg.fetch(name, {})
 u = n_pg["user"]
-#cmd_user = "sudo -E -u #{u}"
 
 
-###############################################################################
-# install client
-###############################################################################
-#["postgresql-client-common", "postgresql-client"].each do |p|
 ["postgresql-client"].each do |p|
   package p
 end
 
-
-###############################################################################
-# add client files (psqlrc and pgpass) for all users on the system
-###############################################################################
 
 # place a global psqlrc file that all users will inherit
 # The system-wide startup file is named psqlrc and is sought in the installation's
@@ -43,47 +34,29 @@ end
 # http://www.postgresql.org/docs/9.2/static/app-psql.html
 
 
-# add the .psqlrc file to all the users if it doesn't already exist
-# I can't find a reliable way to know where to place a global psqlrc file, this is the 
-# closest I've found: http://comments.gmane.org/gmane.comp.db.postgresql.admin/30740
-# so I'll just put one in every user
-
-# we need to get all the users and their passwords
-users = {}
 n_pg["users"].each do |username, options|
-  options.each do |k, v|
-    if k =~ /password/i
-      users[username] = v
-      break
-    end
-  end
-end
 
-# TODO -- clean up this user code, I'm not a fan of this type of scanning
-users_home = ::Dir.glob("/home/*/")
-users_home << "/root/"
-users_home.each do |user_home|
+  user = ::Postgres::User.new(username)
+  user_home = user.homedir
 
-  user = ::File.basename(user_home)
-
-  # add a .pgpass file if the user is one of the postgres users
-  if users.has_key?(user)
-
+  if !user_home.empty?
     # http://wiki.opscode.com/display/ChefCN/Templates
+    # https://www.postgresql.org/docs/9.5/static/libpq-pgpass.html
     template ::File.join(user_home, ".pgpass") do
       source "pgpass.erb"
       variables(
-        :username => user,
-        :password => users[user]
+        :username => username,
+        :password => options.fetch("password", "*")
       )
-      owner user
-      group user
+      owner username
+      group username
       mode "0600"
       sensitive true
       action :create_if_missing
+      only_if "test -d #{user_home}"
     end
+
   end
 
 end
-
 

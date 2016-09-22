@@ -4,21 +4,11 @@ name = "postgres"
 # the user that will run postgres, best not to change this
 default[name]["user"] = "postgres"
 
-# the users hash is in username => options format
 default[name]["users"] = {}
-# default[name]["users"] = {
-#   "postgres" => {
-#     "encrypted password" => "postgres",
-#   }
-# }
-
-# the databases hash is in username => [dbname1, ...] format
 default[name]["databases"] = {}
 default[name]["replication"] = {}
 
-version_str = %x(apt-cache show postgresql|grep Version)
-m = version_str.match(/^Version:\s*([\d\.]+)/i)
-version = m[1]
+version = get_version()
 default[name]["version"] = version
 
 main_dir = ::File.join("", "etc", "postgresql", version, "main")
