@@ -83,6 +83,16 @@ The user that creates, and owns, the database.
 Users that have readonly access to the database
 
 
+#### encoding
+
+The db encoding, defaults to `UTF8`
+
+
+#### locale
+
+The db locale, defaults to `en_US.UTF-8`
+
+
 -------------------------------------------------------------------------------
 
 ### conf

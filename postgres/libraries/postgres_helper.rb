@@ -91,9 +91,10 @@ module Postgres
     ##
     # returns a command to create a database, owned by owner (username)
     ##
-    def create_db_command(dbname, owner)
-      pg_locale = "en_US.UTF-8"
-      cmd = "#{@cmd_user} createdb -E UTF8 --locale=#{pg_locale} -O #{owner} #{dbname}"
+    def create_db_command(dbname, owner, options)
+      encoding = options.fetch("encoding", "UTF8")
+      pg_locale = options.fetch("locale", "en_US.UTF-8")
+      cmd = "#{@cmd_user} createdb -E #{encoding} --locale=#{pg_locale} -O #{owner} #{dbname}"
       return cmd
     end
 

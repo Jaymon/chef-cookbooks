@@ -19,7 +19,7 @@ n.each do |dbname, options|
   # create the db
   owner = options.fetch("owner", "")
   if !owner.empty?
-    execute admin.create_db_command(dbname, owner) do
+    execute admin.create_db_command(dbname, owner, options) do
       action :run
       not_if { admin.db_exists?(dbname) }
       # http://stackoverflow.com/questions/8392973/understanding-chef-only-if-not-if
