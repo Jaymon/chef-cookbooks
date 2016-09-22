@@ -53,6 +53,7 @@ n_pg["users"].each do |username, options|
       mode "0600"
       sensitive true
       action :create_if_missing
+      only_if "test -d #{user_home}"
     end
 
   end
