@@ -1,27 +1,99 @@
 # Postgres Cookbook
 
-Install Postgress
+Install and configure Postgres and various other helper libraries
+
 
 ## Attributes
 
-`default["postgres"]["users"]` -- A users hash is in username => password format.
+The `postgres` attributes dictionary has a few top level keys that you can use to configure individual recipes
 
-So if you wanted to make 2 users:
+-------------------------------------------------------------------------------
 
-    default["postgres"]["users"] = {
-      "foo" => "foo_password",
-      "bar" => "bar_password"
+### users
+
+`default["postgres"]["users"]` -- A users hash is in username => options format.
+
+Example:
+
+```ruby
+"postgres" => {
+  "users" => {
+    "postgres" => {
+      "password" => "...",
+    },
+    "user1" => {
+      "password" => "...",
+      "options" => {
+        "superuser" => false,
+        "createdb" => false,
+        "createrole" => false,
+      },
+    },
+    "readonlyuser" => {
+      "password" => "...",
+      "options" => {
+        "connection limit" => 5,
+      }
     }
+  }
+}
+```
 
-`default["postgres"]["databases"]` -- A databases hash is in username => [dbname1, ...] format, the db part
-can either be an array (a list of databases) or a string (one database).
+#### options
 
-So if you wanted to have your created users create a couple of databases:
+The `options` key has the same names as defined [here](https://www.postgresql.org/docs/9.3/static/sql-createrole.html) but they are caseinsensitive, and where setting the value to false results in `NOOPTION`, so if you set `superuser` to **false**, the resulting query would contain `NOSUPERUSER`.
 
-    default["postgres"]["databases"] = {
-      "foo" => ["foo1_db", "foo2_db"],
-      "bar" => "bar_db"
+
+#### password
+
+this is the password the user will use to log into the database, it corresponds to the `ENCRYPTED PASSWORD` option.
+
+
+-------------------------------------------------------------------------------
+
+### databases
+
+
+
+`default["postgres"]["databases"]` -- A databases hash is in dbname => options format.
+
+Example:
+
+```ruby
+"postgres" => {
+  "databases" => {
+    "dbname1" => {
+      "owner" => "user1",
+      "read" => ["readonlyuser"],
+      #"write" => "user2" # TODO
+    },
+    "dbname2" => {
+      "owner" => "user2"
     }
+  }
+}
+```
+
+#### owner
+
+The user that creates, and owns, the database.
+
+
+#### read
+
+Users that have readonly access to the database
+
+
+#### write
+
+**TO BE IMPLEMENTED** when we need it!
+
+Users that have read/write access to the database but do not own it
+
+
+-------------------------------------------------------------------------------
+
+### conf
 
 `default["postgres"]["conf"]` -- A hash of variables and their values
 
@@ -32,6 +104,11 @@ For strings, you need to make sure the single quotes are there, so to change log
     }
 
 Notice that `'mod'` is the value (it has quotes), not `mod`.
+
+
+-------------------------------------------------------------------------------
+
+### hba
 
 `default["postgres"]["hba"]` -- A list of hashes with the following keys:
 
@@ -44,6 +121,11 @@ Notice that `'mod'` is the value (it has quotes), not `mod`.
 
 Refer to the comments in the installed `pg_hba.conf` file or the **Client Authentication** section in the postgres manual.
 
+
+-------------------------------------------------------------------------------
+
+### ssl_files
+
 `default["postgres"]["ssl_files"]` -- Source of SSL certificate and key files. The destination
 for these files must be specified in `default["postgres"]["conf"]`.
 
@@ -51,7 +133,9 @@ for these files must be specified in `default["postgres"]["conf"]`.
 * ssl_cert_file -- path to ssl certificate that should be copied to the location specified in `default["postgres"]["ssl"]["ssl_cert_file"]`.
 
 
-### PGBouncer
+-------------------------------------------------------------------------------
+
+### pgbouncer
 
 `default["postgres"]["pgbouncer"]["version"]` -- the version of pgbouncer you want to install, currently defaults to `1.5.4`
 
@@ -69,7 +153,9 @@ You can read more about configuring pgbouncer [here](http://pgbouncer.projects.p
 PGBouncer is installed from source from this [git repo](https://github.com/markokr/pgbouncer-dev). I used [this script](https://github.com/tkopczuk/ATP_Performance_Test/blob/master/install_pgbouncer.sh) ([via](http://www.askthepony.com/blog/2011/07/django-and-postgresql-improving-the-performance-with-no-effort-and-no-code/)) while figuring stuff out.
 
 
-### Replication
+-------------------------------------------------------------------------------
+
+### replication
 
 This will be under `["postgres"]["replication"]` and can contain the following keys:
 
@@ -91,10 +177,13 @@ These are the sources I used to get replication working:
 [spiped on standby](http://postgresql.nabble.com/WAL-receive-process-dies-td5816672.html)
 [purge PG](http://stackoverflow.com/questions/2748607/how-to-thoroughly-purge-and-reinstall-postgresql-on-ubuntu)
 
+
+-------------------------------------------------------------------------------
+
 ## Platform
 
 Ubuntu 14.04, nothing else has been tested
 
-If you need a more full featured Postgres cookbook,
+If you need a more full featured (or just different) Postgres cookbook,
 use the [Official Opscode Cookbook](https://github.com/opscode-cookbooks/postgresql).
 

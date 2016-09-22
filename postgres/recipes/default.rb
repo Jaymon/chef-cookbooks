@@ -1,56 +1,14 @@
 ###############################################################################
 # installs the postgresql db on ubuntu
 #
-# I found all the sql commands using this page: http://www.postgresql.org/docs/8.0/static/catalogs.html
-# http://www.postgresql.org/docs/8.0/static/app-psql.html
-# http://sqlrelay.sourceforge.net/sqlrelay/gettingstarted/postgresql.html
-# 
-# the reason why we do sudo -u postgres is because setting user "postgres" doesn't work the way I thought
-# it would work, so the only way to execute these commands as the postgres user is to do the sudo hack
+# This recipe will also run users and databases, you will have to run any other
+# recipes separately
+#
 ###############################################################################
 
 name = cookbook_name.to_s
 n = node[name]
 u = n["user"]
-cmd_user = "sudo -u #{u}"
-$read_only_users = []
-
-
-###############################################################################
-# setup the locale if needed
-#
-# Even though I'd been using this recipe for quite a while, all of a sudden Postgres is
-# snippy about the locale of the box to use unicode, so let's set it
-###############################################################################
-# TODO: would this be better to just run:
-# update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-pg_locale_default = "en_US.UTF-8"
-pg_locale = ""
-locales = ["LC_COLLATE", "LANG", "LANGUAGE", "LC_CTYPE", "LC_ALL"]
-locales_prev = {}
-locales.each do |locale|
-  if ENV.has_key?(locale)
-    pg_locale = ENV[locale]
-    break
-  end
-end
-
-if pg_locale.empty?
-  ruby_block "set postgres locale" do
-    block do
-      locales.each do |locale|
-        if ENV.has_key?(locale)
-          locales_prev[locale] = ENV[locale]
-        end
-
-        ENV[locale] = pg_locale_default
-      end
-    end
-    action :create
-  end
-end
-
-pg_locale = pg_locale_default
 
 
 ###############################################################################
@@ -62,143 +20,9 @@ pg_locale = pg_locale_default
 end
 
 
-###############################################################################
-# add the postgres users and passwords
-###############################################################################
-
-# Originally this used createuser command line utility
-# http://www.postgresql.org/docs/9.3/static/app-createuser.html
-
-##
-# this will create the query to either add or update the user's priviledges
-#
-# http://www.postgresql.org/docs/9.3/static/sql-createrole.html
-# http://www.postgresql.org/docs/9.3/static/sql-alterrole.html
-##
-def make_query(username, options, is_create)
-
-  query = is_create ? "CREATE USER" : "ALTER USER"
-  query += " #{username} WITH"
-  opts = options.map { |k, v| [k.upcase, v] }.to_h
-  read_only = opts.delete("READONLY")
-  if read_only
-    $read_only_users << username
-    # TODO -- you could check for encrypted password or password and only allow those
-  end
-
-  opts.each do |k, v|
-  #options.each do |k, v|
-
-    if v.is_a?(TrueClass)
-      query += " #{k.upcase}"
-
-    elsif v.is_a?(FalseClass)
-      query += " NO#{k.upcase}"
-
-    else
-      query += " #{k.upcase} '#{v}'"
-
-    end
-
-  end
-
-  query
-
-end
-
-n["users"].each do |username, options|
-
-  user_exists = "psql -c \"select usename from pg_user where usename='#{username}'\" -d template1 | grep -w \"#{username}\""
-
-  # this will run to alter the user to be how we want if the user already exists
-  cmd = "#{cmd_user} psql -c \"#{make_query(username, options, false)}\" -d template1"
-  execute "alter pg user #{username}" do
-    command cmd
-    action :run
-    sensitive true
-    only_if "#{cmd_user} #{user_exists}"
-  end
-
-  # this will only run if the user doesn't already exist
-  cmd = "#{cmd_user} psql -c \"#{make_query(username, options, true)}\" -d template1"
-  execute "create pg user #{username}" do
-    command cmd
-    action :run
-    sensitive true
-    not_if "#{cmd_user} #{user_exists}"
-  end
-
-end
-
-
-###############################################################################
-# add the databases
-###############################################################################
-n["databases"].each do |username, dbnames|
-
-  Array(dbnames).each do |dbname|
-
-    #cmd = "createdb --template=template0 -E UTF8 --locale=en_US.utf8 -O #{username} #{dbname}"
-    cmd = "createdb -E UTF8 --locale=#{pg_locale} -O #{username} #{dbname}"
-    not_cmd = "psql -c \"select datname from pg_database where datname='#{dbname}'\" -d template1 | grep -w \"#{dbname}\""
-    # test to see if this works
-    # http://stackoverflow.com/questions/8392973/understanding-chef-only-if-not-if
-    #not_cmd = 'psql --list|grep #{dbname}', :user => username
-    execute "#{cmd_user} #{cmd}" do
-      action :run
-      #ignore_failure true
-      not_if "#{cmd_user} #{not_cmd}"
-    end
-
-    if $read_only_users.include?(username)
-
-      cmd = "psql -c \"GRANT CONNECT ON DATABASE #{dbname} TO #{username}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-      cmd = "psql -c \"GRANT TEMP ON DATABASE #{dbname} TO #{username}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-      # inherit future also
-      cmd = "psql -c \"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO #{username}\" -d \"#{dbname}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-      cmd = "psql -c \"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO #{username}\" -d \"#{dbname}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-      cmd = "psql -c \"GRANT USAGE ON SCHEMA public TO #{username}\" -d \"#{dbname}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-      cmd = "psql -c \"GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO #{username}\" -d \"#{dbname}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-      cmd = "psql -c \"GRANT SELECT ON ALL TABLES IN SCHEMA public TO #{username}\" -d \"#{dbname}\""
-      execute "#{cmd_user} #{cmd}" do
-        action :run
-      end
-
-    end
-
-  end
-
-end
-
-
-###############################################################################
-# bring in the client configuration
-###############################################################################
-include_recipe "#{name}::client"
+include_recipe "#{name}::users"
+include_recipe "#{name}::client" # this configures the client
+include_recipe "#{name}::databases"
 
 
 ###############################################################################
@@ -210,21 +34,6 @@ service name do
   service_name "postgresql"
   supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
   action :nothing
-end
-
-# add a thin upstart wrapper just for giggles
-service "#{name}-wrapper" do
-  service_name name
-  provider Chef::Provider::Service::Upstart
-  action :nothing
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
-cookbook_file ::File.join("", "etc", "init", "#{name}.conf") do
-  source "upstart.conf"
-  mode "0644"
-  notifies :stop, "service[#{name}-wrapper]", :delayed
-  notifies :start, "service[#{name}-wrapper]", :delayed
 end
 
 
@@ -479,24 +288,4 @@ if n.has_key?("hba")
 
 end
 
-
-###############################################################################
-# cleanup
-###############################################################################
-ruby_block "reset previous locale" do
-  block do 
-    if locales_prev
-      # remove previous locales
-      locales.each do |locale|
-        ENV.delete(locale)
-      end
-
-      # restore previous values
-      locales_prev.each do |locale, locale_val|
-        ENV[locale] = locale_val
-      end
-    end
-  end
-  action :create
-end
 
