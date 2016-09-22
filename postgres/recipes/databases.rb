@@ -25,12 +25,17 @@ n.each do |dbname, options|
       # http://stackoverflow.com/questions/8392973/understanding-chef-only-if-not-if
     end
 
+    # so it turns out a readonly user can create tables and the only way to remove
+    # that is to revoke create from the public role and then grant all permissions
+    # back for the owner
+    # http://dba.stackexchange.com/a/35317
+    execute admin.get_command("REVOKE CREATE ON SCHEMA public FROM public", dbname)
+    execute admin.get_command("GRANT ALL ON schema public TO #{owner}", dbname)
+
   end
 
   # add any read only users to the db
   read_users = Array(options.fetch("read", []))
-
-  #owner = ::Postgres::User.new(owner)
   read_users.each do |username|
     # user should be able to connect to the database and create temp tables
     execute admin.get_command("GRANT CONNECT ON DATABASE #{dbname} TO #{username}")
@@ -56,15 +61,17 @@ n.each do |dbname, options|
       end
 
     else
-      # inherit future also
-      query = "ALTER DEFAULT PRIVILEGES FOR USER #{owner} IN SCHEMA public GRANT USAGE ON SEQUENCES TO #{username}"
-      execute admin.get_command(query, dbname)
+      [owner, admin.username].each do |role|
+        # inherit future also
+        query = "ALTER DEFAULT PRIVILEGES FOR USER #{role} IN SCHEMA public GRANT USAGE ON SEQUENCES TO #{username}"
+        execute admin.get_command(query, dbname)
 
-      query = "ALTER DEFAULT PRIVILEGES FOR USER #{owner} IN SCHEMA public GRANT SELECT ON SEQUENCES TO #{username}"
-      execute admin.get_command(query, dbname)
+        query = "ALTER DEFAULT PRIVILEGES FOR USER #{role} IN SCHEMA public GRANT SELECT ON SEQUENCES TO #{username}"
+        execute admin.get_command(query, dbname)
 
-      query = "ALTER DEFAULT PRIVILEGES FOR USER #{owner} IN SCHEMA public GRANT SELECT ON TABLES TO #{username}"
-      execute admin.get_command(query, dbname)
+        query = "ALTER DEFAULT PRIVILEGES FOR USER #{role} IN SCHEMA public GRANT SELECT ON TABLES TO #{username}"
+        execute admin.get_command(query, dbname)
+      end
 
     end
 

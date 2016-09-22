@@ -39,6 +39,7 @@ Example:
 }
 ```
 
+
 #### options
 
 The `options` key has the same names as defined [here](https://www.postgresql.org/docs/9.3/static/sql-createrole.html) but they are caseinsensitive, and where setting the value to false results in `NOOPTION`, so if you set `superuser` to **false**, the resulting query would contain `NOSUPERUSER`.
@@ -53,8 +54,6 @@ this is the password the user will use to log into the database, it corresponds 
 
 ### databases
 
-
-
 `default["postgres"]["databases"]` -- A databases hash is in dbname => options format.
 
 Example:
@@ -65,7 +64,6 @@ Example:
     "dbname1" => {
       "owner" => "user1",
       "read" => ["readonlyuser"],
-      #"write" => "user2" # TODO
     },
     "dbname2" => {
       "owner" => "user2"
@@ -73,6 +71,7 @@ Example:
   }
 }
 ```
+
 
 #### owner
 
@@ -82,13 +81,6 @@ The user that creates, and owns, the database.
 #### read
 
 Users that have readonly access to the database
-
-
-#### write
-
-**TO BE IMPLEMENTED** when we need it!
-
-Users that have read/write access to the database but do not own it
 
 
 -------------------------------------------------------------------------------
