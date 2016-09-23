@@ -130,10 +130,6 @@ module Postgres
       query = is_create ? "CREATE USER" : "ALTER USER"
       query += " #{username} WITH"
       opts = options.map { |k, v| [k.upcase, v] }.to_h
-      read_only = opts.delete("READONLY")
-      if read_only
-        @read_only_users << username
-      end
 
       opts.each do |k, v|
         if v.is_a?(TrueClass)

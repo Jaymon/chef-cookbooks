@@ -29,6 +29,7 @@ n.each do |dbname, options|
     # that is to revoke create from the public role and then grant all permissions
     # back for the owner
     # http://dba.stackexchange.com/a/35317
+    # http://dba.stackexchange.com/questions/35316/why-is-a-new-user-allowed-to-create-a-table
     execute admin.get_command("REVOKE CREATE ON SCHEMA public FROM public", dbname)
     execute admin.get_command("GRANT ALL ON schema public TO #{owner}", dbname)
 
