@@ -3,6 +3,7 @@ n = node[name]
 bin_cmd = ::File.join(n["binroot"], "certbot-auto")
 staging = n.fetch("staging", false)
 
+include ::Chef::Mixin::ShellOut
 
 #include_recipe "pip" # to make this work, you need depends "pip" in metadata
 
@@ -119,6 +120,18 @@ n["servers"].each do |server, options|
     arg_str += " --staging"
   end
 
+  http_port = options.fetch("http-port", n.fetch("http-port", 0)).to_i
+  https_port = options.fetch("https-port", n.fetch("https-port", 0)).to_i
+
+  if http_port > 0
+    arg_str += " --http-01-port #{http_port}"
+  end
+
+  if https_port > 0
+    arg_str += " --tls-sni-01-port #{https_port}"
+  end
+
+
   # TODO -- would a better test be to move on if a valid ssl connection is made?
   # probably not because this would mean we couldn't replace an existing valid
   # server with Let's Encrypt certs
@@ -131,24 +144,20 @@ n["servers"].each do |server, options|
 
       ret_codes = [0, 8] # 8 is 404 NOT FOUND
 
-      `wget -qO- "http://#{server}/.well-known/acme-challenge"`
-      ret_http = $?.exitstatus
+      begin
+        cmd = shell_out!("wget -qO- \"http://#{server}/.well-known/acme-challenge\"", {:returns => ret_codes})
 
-      if !ret_codes.include?(ret_http)
-
-        `wget -qO- "https://#{server}/.well-known/acme-challenge"`
-        ret_https = $?.exitstatus
-
-        if !ret_codes.include?(ret_https)
-          raise IOError, "Could not request #{server} using http or https"
-        end
+      rescue ::Chef::Exceptions::ShellCommandFailed
+        cmd = shell_out!("wget -qO- \"https://#{server}/.well-known/acme-challenge\"", {:returns => ret_codes})
 
       end
 
     end
+
     ignore_failure true
     notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
     not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
+
   end
 
   execute "letsencrypt webroot #{server}" do
