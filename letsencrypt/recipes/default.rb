@@ -3,7 +3,7 @@ n = node[name]
 bin_cmd = ::File.join(n["binroot"], "certbot-auto")
 staging = n.fetch("staging", false)
 
-include ::Chef::Mixin::ShellOut
+extend ::Chef::Mixin::ShellOut
 
 #include_recipe "pip" # to make this work, you need depends "pip" in metadata
 

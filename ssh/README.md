@@ -1,6 +1,7 @@
 # SSH Cookbook
 
-Just some ssh fu 
+Just some ssh fu.
+
 
 ## Attributes
 
@@ -24,19 +25,22 @@ Just some ssh fu
 
 * ssh::authorized_keys
 
-    Configure who has access to the server
+    Configure who has access to the server, authorized keys are `id_rsa.pub` and `id_dsa.pub` files.
 
         "ssh" => {
-          "authorized_keys" => [...]
+          "authorized_keys" => {
+            "users" => [...],
+            "keys" => ["/path/to/key.pub"]
+          }
         }
 
 
-    `node["ssh"]["authorized_keys"]` -- a list of key files that will be used to make a master authorized_keys file
+    `node["ssh"]["authorized_keys"]["keys"]` -- a list of key files, or public key strings, that will be used to make a master authorized_keys file
 
 
 * ssh:private_keys
 
-    Configure any private keys a user should have, private keys are `id_rsa` and `id_dsa` files
+    Configure any private keys a user should have, private keys are `id_rsa` and `id_dsa` files.
 
         "ssh" => {
           "private_keys" => {
