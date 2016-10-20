@@ -35,8 +35,9 @@ On vanilla servers, we may need to [Force dependencies](https://github.com/certb
 
 ## Helpful links
 
-[Certbot installation](https://certbot.eff.org/docs/intro.html#installation)
-[Certbot repo](https://github.com/certbot/certbot)
-[This issue helped sort through stuff](https://github.com/certbot/certbot/issues/1706)
-[Digital Ocean tutorial](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-14-04)
+* [Certbot installation](https://certbot.eff.org/docs/intro.html#installation)
+* [Certbot repo](https://github.com/certbot/certbot)
+* [This issue helped sort through stuff](https://github.com/certbot/certbot/issues/1706)
+* [Digital Ocean tutorial](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-14-04)
+* [DNS Domain validation](https://github.com/lukas2511/dehydrated/wiki/Examples-for-DNS-01-hooks)
 

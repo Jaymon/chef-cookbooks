@@ -145,6 +145,7 @@ n["servers"].each do |server, options|
       ret_codes = [0, 8] # 8 is 404 NOT FOUND
 
       begin
+        # http://www.rubydoc.info/gems/chef/0.10.4/Chef/ShellOut
         cmd = shell_out!("wget -qO- \"http://#{server}/.well-known/acme-challenge\"", {:returns => ret_codes})
 
       rescue ::Chef::Exceptions::ShellCommandFailed
