@@ -195,7 +195,7 @@ end
 # setup renew command to run twice a day, this is recommended by let's encrypt
 # to handle any certificate revocations
 cron "letsencrypt renew" do
-  command "#{bin_cmd} renew -q"
+  command "#{bin_cmd} renew -q --noninteractive"
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
