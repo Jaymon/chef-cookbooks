@@ -26,6 +26,12 @@ n["servers"].each do |server, options|
   # if this file exists then LE has been configured for the server
   # TODO: check to make sure it is a webroot conf file
   renew_conf_f = ::File.join(n["renewroot"], "#{server}.conf")
+  archive_d = ::File.join(n["archiveroot"], server)
+
+  # cleanup a failed attempt
+  execute "rm \"#{renew_conf_f}\"" do
+    only_if "test ! -d \"#{archive_d}\""
+  end
 
   # email is required
   email = options.fetch("email", nil)
@@ -45,18 +51,6 @@ n["servers"].each do |server, options|
       recursive true
     end
   end
-
-#   full_path = ::File.join(root_dir, ".well-known")
-#   directory "#{full_path}" do
-#     mode '0755'
-#     owner username
-#     group group
-#     recursive true
-#   end
-
-
-  # make sure the directory actually got created
-  execute "test -d \"#{full_path}\""
 
   # build a list of all the servers
   # https://github.com/chef/chef/blob/master/lib/chef/node/immutable_collections.rb#L108

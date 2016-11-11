@@ -11,6 +11,7 @@ root = ::File.join("", "etc", "letsencrypt")
 default[name]["root"] = root
 default[name]["certroot"] = ::File.join(root, "live")
 default[name]["renewroot"] = ::File.join(root, "renewal")
+default[name]["archiveroot"] = ::File.join(root, "archive")
 
 default[name]["webroot"] = ::File.join(".well-known", "acme-challenge")
 
