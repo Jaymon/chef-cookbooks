@@ -63,7 +63,7 @@ n["servers"].each do |server, options|
 
   execute "#{name} #{rname} #{server}" do
     command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
-    action :nothing
+    not_if "test -f \"#{renew_conf_f}\""
     notifies :create, "cron[#{name} renew]", :delayed
   end
 
