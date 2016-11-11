@@ -42,6 +42,9 @@ n["servers"].each do |server, options|
     recursive true
   end
 
+  # make sure the directory actually got created
+  execute "test -d \"#{full_path}\""
+
   # build a list of all the servers
   # https://github.com/chef/chef/blob/master/lib/chef/node/immutable_collections.rb#L108
   domains = options.fetch("domains", []).dup
