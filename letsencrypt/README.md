@@ -35,6 +35,7 @@ On vanilla servers, we may need to [Force dependencies](https://github.com/certb
 
 ## Helpful links
 
+* [ACME (Automatic Certificate Management Environment) Spec](https://ietf-wg-acme.github.io/acme/)
 * [Certbot installation](https://certbot.eff.org/docs/intro.html#installation)
 * [Certbot repo](https://github.com/certbot/certbot)
 * [This issue helped sort through stuff](https://github.com/certbot/certbot/issues/1706)

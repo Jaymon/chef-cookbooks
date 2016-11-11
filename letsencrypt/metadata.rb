@@ -3,11 +3,13 @@ name              "letsencrypt"
 maintainer        "Jay Marcyes"
 maintainer_email  "jay@marcyes.com"
 description       "Install and configure Let's Encrypt ssl certificates"
-version           "0.2"
+version           "0.3"
 long_description  IO.read(::File.join(::File.dirname(__FILE__), 'README.md'))
 supports          "ubuntu", "14.04"
 
 #depends           "pip"
 
-recipe            "letsencrypt", "Install and configure Let's Encrypt ssl certificates"
+recipe            "letsencrypt", "Install Let's Encrypt client and prepare environment"
+recipe            "letsencrypt::http", "Let's Encrypt ssl certificates generation using http webroot"
+recipe            "letsencrypt::snakeoil", "Generate fake certificates so servers can start"
 

@@ -3,9 +3,17 @@ name = "letsencrypt"
 
 default[name] = {}
 
-default[name]["binroot"] = ::File.join("", "opt", "letsencrypt")
-default[name]["certroot"] = ::File.join("", "etc", "letsencrypt", "live")
+binroot = ::File.join("", "opt", "letsencrypt")
+default[name]["binroot"] = binroot
+default[name]["bincmd"] = ::File.join(binroot, "certbot-auto")
+
+root = ::File.join("", "etc", "letsencrypt")
+default[name]["root"] = root
+default[name]["certroot"] = ::File.join(root, "live")
+default[name]["renewroot"] = ::File.join(root, "renewal")
+
 default[name]["webroot"] = ::File.join(".well-known", "acme-challenge")
+
 default[name]["staging"] = false
 default[name]["servers"] = {}
 

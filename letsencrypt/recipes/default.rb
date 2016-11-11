@@ -1,9 +1,8 @@
 name = cookbook_name.to_s
 n = node[name]
-bin_cmd = ::File.join(n["binroot"], "certbot-auto")
-staging = n.fetch("staging", false)
+bin_cmd = n["bincmd"]
 
-extend ::Chef::Mixin::ShellOut
+#extend ::Chef::Mixin::ShellOut
 
 #include_recipe "pip" # to make this work, you need depends "pip" in metadata
 
@@ -20,7 +19,7 @@ end
 
 remote_file bin_cmd do
   source 'https://dl.eff.org/certbot-auto'
-  mode '0700'
+  mode '0655'
   action :create_if_missing
   #notifies :create, "remote_file[letsencrypt verify]", :immediately
 end
@@ -64,142 +63,22 @@ end
 
 ###############################################################################
 
-n["servers"].each do |server, options|
-  root_dir = options["root"]
-  username = options.fetch("user", n.fetch("user", nil))
-  group = options.fetch("group", n.fetch("group", username))
-
-  # email is required
-  email = n.fetch("email", nil)
-  if !email
-    email = options.fetch("email")
-  end
-
-  # https://certbot.eff.org/docs/using.html#webroot
-  full_path = ::File.join(root_dir, ".well-known", "acme-challenge")
-  directory "#{full_path}" do
-    mode '0755'
-    owner username
-    group group
-    recursive true
-  end
-
-#   directory ::File.join(root_dir, ".well-known") do
-#     mode '0744'
-#     owner username
-#     group group
-#     recursive true
-#   end
-# 
-#   directory ::File.join(root_dir, ".well-known", "acme-challenge") do
-#     mode '0744'
-#     owner username
-#     group group
-#     recursive true
-#   end
-
-
-  # this tries to verify the ssl certs and I can't find a way to turn it off
-#   http_request "letsencrypt #{server} port 80" do
-#     url "http://#{server}"
-#     action :head
-#     ignore_failure true
-#     notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
-#     not_if "test -f #{::File.join(n["certroot"], server, "fullchain.pem")}"
-#   end
-
-  # build a list of all the servers
-  # https://github.com/chef/chef/blob/master/lib/chef/node/immutable_collections.rb#L108
-  domains = options.fetch("domains", []).dup
-  domains.unshift(server)
-
-  arg_str = "-d #{domains.join(" -d ")}"
-  arg_str += " --email #{email} --agree-tos --non-interactive --no-verify-ssl"
-
-  if staging
-    arg_str += " --staging"
-  end
-
-  http_port = options.fetch("http-port", n.fetch("http-port", 0)).to_i
-  https_port = options.fetch("https-port", n.fetch("https-port", 0)).to_i
-
-  if http_port > 0
-    arg_str += " --http-01-port #{http_port}"
-  end
-
-  if https_port > 0
-    arg_str += " --tls-sni-01-port #{https_port}"
-  end
-
-
-  # TODO -- would a better test be to move on if a valid ssl connection is made?
-  # probably not because this would mean we couldn't replace an existing valid
-  # server with Let's Encrypt certs
-
-  ##############################################################################
-  # Try installing letsencrypt using webroot
-  ##############################################################################
-  ruby_block "letsencrypt #{server}" do
-    block do
-
-      ret_codes = [0, 8] # 8 is 404 NOT FOUND
-
-      begin
-        # http://www.rubydoc.info/gems/chef/0.10.4/Chef/ShellOut
-        cmd = shell_out!("wget -qO- \"http://#{server}/.well-known/acme-challenge\"", {:returns => ret_codes})
-
-      rescue ::Chef::Exceptions::ShellCommandFailed
-        cmd = shell_out!("wget -qO- \"https://#{server}/.well-known/acme-challenge\"", {:returns => ret_codes})
-
-      end
-
-    end
-
-    ignore_failure true
-    notifies :run, "execute[letsencrypt webroot #{server}]", :immediately
-    not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
-
-  end
-
-  execute "letsencrypt webroot #{server}" do
-    command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
-    action :nothing
-    notifies :create, "cron[letsencrypt renew]", :delayed
-  end
-
-
-  ##############################################################################
-  # Try installing letsencrypt using standalone 
-  ##############################################################################
-  execute "letsencrypt standalone #{server}" do
-    command "#{bin_cmd} certonly --standalone #{arg_str}"
-    action :run
-    notifies :create, "cron[letsencrypt renew]", :immediately
-    not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
-  end
-
-
-  # copy snake oil certs if the directory didn't exist
-#   remote_file "creating snakeoil cert for #{server}" do
-#     path ::File.join(n["root"], server, "fullchain.pem")
-#     source ::File.join("", "etc", "ssl", "certs", "ssl-cert-snakeoil.pem")
-#   end
-# 
-#   remote_file "creating snakeoil key for #{server}" do
-#     path ::File.join(n["root"], server, "privkey.pem")
-#     source ::File.join("", "etc", "ssl", "certs", "ssl-cert-snakeoil.key")
-#   end
-
-end
-
 # setup renew command to run twice a day, this is recommended by let's encrypt
 # to handle any certificate revocations
-cron "letsencrypt renew" do
+cron "#{name} renew" do
   command "#{bin_cmd} renew -q --noninteractive"
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
-  action :nothing
+  action :nothing # defined but actually ran by child recipes when cert added
 end
 
+
+# validate the configuration
+# n["servers"].each do |server, options|
+#   plugin = options.fetch("plugin", n.fetch("plugin", nil))
+#   if !plugin || plugin.empty?
+#     ::Chef::Application.fatal!("[#{server}] has no plugin defined for generating certs", 1)
+#   end
+# end
 
