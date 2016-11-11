@@ -34,13 +34,26 @@ n["servers"].each do |server, options|
   end
 
   # https://certbot.eff.org/docs/using.html#webroot
-  full_path = ::File.join(root_dir, ".well-known", "acme-challenge")
-  directory "#{full_path}" do
-    mode '0755'
-    owner username
-    group group
-    recursive true
+  # we do these one at a time so they have correct permissions
+  full_path = roo_dir
+  [".well-known", "acme-challenge"].each do |bit|
+    full_path = ::File.join(full_path, bit)
+    directory "#{full_path}" do
+      mode '0755'
+      owner username
+      group group
+      recursive true
+    end
   end
+
+#   full_path = ::File.join(root_dir, ".well-known")
+#   directory "#{full_path}" do
+#     mode '0755'
+#     owner username
+#     group group
+#     recursive true
+#   end
+
 
   # make sure the directory actually got created
   execute "test -d \"#{full_path}\""
