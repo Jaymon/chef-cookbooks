@@ -35,7 +35,7 @@ n["servers"].each do |server, options|
 
   # https://certbot.eff.org/docs/using.html#webroot
   # we do these one at a time so they have correct permissions
-  full_path = roo_dir
+  full_path = root_dir
   [".well-known", "acme-challenge"].each do |bit|
     full_path = ::File.join(full_path, bit)
     directory "#{full_path}" do
