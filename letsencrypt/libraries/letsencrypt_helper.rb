@@ -1,7 +1,7 @@
 # https://docs.chef.io/libraries.html
 # https://blog.chef.io/2014/03/12/writing-libraries-in-chef-cookbooks/
 module Letsencrypt
-  class SelfSignedCert
+  class Cert
 
     include ::Chef::Mixin::ShellOut
 
@@ -10,11 +10,45 @@ module Letsencrypt
       @domain = domain
     end
 
+    def root_d()
+      return ::File.join(@cert_d, @domain)
+    end
+
+    def key_name()
+      return "privkey.pem"
+    end
+
+    def cert_name()
+      return "fullchain.pem"
+    end
+
+    def key_f()
+      key_f = ::File.join(self.root_d, self.key_name)
+      return key_f
+    end
+
+    def cert_f()
+      cert_f = ::File.join(self.root_d, self.cert_name)
+      return cert_f
+    end
+
+    def key_exists?()
+      return ::File.exists?(self.key_f)
+    end
+
+    def cert_exists?()
+      return ::File.exists?(self.cert_f)
+    end
+
+    def exists?()
+      return self.key_exists?() && self.cert_exists?()
+    end
+
     def generate()
 
-      key_f = ::File.join(@cert_d, @domain, "privkey.pem")
-      cert_f = ::File.join(@cert_d, @domain, "fullchain.pem")
-      if !::File.exists?(key_f) || !::File.exists?(cert_f)
+      key_f = self.key_f
+      cert_f = self.cert_f
+      if !self.key_exists?() || !self.cert_exists?()
 
         country = "US"
         state = "Tri-state Area"

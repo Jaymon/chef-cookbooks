@@ -19,6 +19,7 @@ n["servers"].each do |server, options|
   end
   next if plugin != rname
 
+  le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
   root_dir = options["root"]
   username = options.fetch("user", n.fetch("user", nil))
   group = options.fetch("group", n.fetch("group", username))
@@ -30,7 +31,7 @@ n["servers"].each do |server, options|
 
   # cleanup a failed attempt
   execute "rm \"#{renew_conf_f}\"" do
-    only_if "test ! -d \"#{archive_d}\""
+    not_if { le_cert.exists?() }
   end
 
   # email is required

@@ -12,8 +12,7 @@ default[name]["root"] = root
 default[name]["certroot"] = ::File.join(root, "live")
 default[name]["renewroot"] = ::File.join(root, "renewal")
 default[name]["archiveroot"] = ::File.join(root, "archive")
-
-default[name]["webroot"] = ::File.join(".well-known", "acme-challenge")
+default[name]["snakeoilroot"] = ::File.join(root, "snakeoil")
 
 default[name]["staging"] = false
 default[name]["servers"] = {}
