@@ -93,9 +93,24 @@ n["servers"].each do |server, options|
     notifies :create, "cron[#{name} renew]", :delayed
   end
 
-  options.fetch('notifies', n.fetch("notifies", [])).each do |params|
+  notifications = options.fetch('notifies', n.fetch("notifies", []))
+  notifications.each do |params|
     ex.notifies(*params)
   end
+
+  ruby_block "#{name} #{rname} renew-hook #{server}" do
+    block do
+
+      n = Notification.new(params[0], params[1], self)
+      n.resolve_resource_reference(run_context.resource_collection)
+      p "======================================================================"
+      p n.resource
+      p "======================================================================"
+
+    end # block
+
+  end # ruby_block
+
 
 end
 
