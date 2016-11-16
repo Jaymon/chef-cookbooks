@@ -101,9 +101,11 @@ n["servers"].each do |server, options|
   ruby_block "#{name} #{rname} renew-hook #{server}" do
     block do
 
-      n = ::Chef::Resource::Notification.new(params[0], params[1], self)
-      n.resolve_resource_reference(run_context.resource_collection)
       p "======================================================================"
+      n = ::Chef::Resource::Notification.new(params[0], params[1], self)
+      p n.resource
+      p run_context.resource_collection
+      n.resolve_resource_reference(run_context.resource_collection)
       p n.resource
       p "======================================================================"
 
