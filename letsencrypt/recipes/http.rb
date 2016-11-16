@@ -34,6 +34,16 @@ n["servers"].each do |server, options|
     not_if { le_cert.exists?() }
   end
 
+  # get rid of any snakeoil certs
+  # we have to do this because the client checks for the existence of the directory
+  # and fails if it exists, sigh
+  # https://github.com/certbot/certbot/blob/master/certbot/storage.py#L816
+  live_cert = Letsencrypt::Cert.new(n["certroot"], server)
+  directory live_cert.root_d do
+    action :delete
+    not_if { le_cert.exists?() }
+  end
+
   # email is required
   email = options.fetch("email", nil)
   if !email || email.empty?
