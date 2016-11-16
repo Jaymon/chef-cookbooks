@@ -30,6 +30,12 @@ n["servers"].each do |server, options|
   renew_conf_f = ::File.join(n["renewroot"], "#{server}.conf")
   archive_d = ::File.join(n["archiveroot"], server)
 
+  p "=========================================================================="
+  p le_cert.root_d
+  p le_cert.exists?
+  p "=========================================================================="
+
+
   # cleanup a failed attempt
   #execute "rm \"#{renew_conf_f}\"" do
   file renew_conf_f do
