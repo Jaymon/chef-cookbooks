@@ -98,7 +98,7 @@ n["servers"].each do |server, options|
     ex.notifies(*params)
   end
 
-  ruby_block "#{name} #{rname} renew-hook #{index} #{server}" do
+  ruby_block "#{name} #{rname} renew-hook #{server}" do
     block do
 
       notifications.each_with_index do |params, index|
