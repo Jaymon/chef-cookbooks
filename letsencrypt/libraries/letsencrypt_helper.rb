@@ -15,11 +15,11 @@ module Letsencrypt
     end
 
     def key_name()
-      return "privkey.pem"
+      return "privkey1.pem"
     end
 
     def cert_name()
-      return "fullchain.pem"
+      return "fullchain1.pem"
     end
 
     def key_f()
