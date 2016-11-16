@@ -101,7 +101,7 @@ n["servers"].each do |server, options|
   ruby_block "#{name} #{rname} renew-hook #{server}" do
     block do
 
-      n = ::Chef::Recipe::Notification.new(params[0], params[1], self)
+      n = ::Chef::Recipe::Notification.new(params[0], params[1], nil)
       n.resolve_resource_reference(run_context.resource_collection)
       p "======================================================================"
       p n.resource
