@@ -106,8 +106,9 @@ n["servers"].each do |server, options|
         n = ::Chef::Resource::Notification.new(params[1], params[0], self)
         p n.resource
         n.resolve_resource_reference(run_context.resource_collection)
-        p n.resource
+        #p n.resource
         pr = n.resource.provider_for_action(params[0])
+        p pr
         p "======================================================================"
       end
 
