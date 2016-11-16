@@ -30,7 +30,9 @@ n["servers"].each do |server, options|
   archive_d = ::File.join(n["archiveroot"], server)
 
   # cleanup a failed attempt
-  execute "rm \"#{renew_conf_f}\"" do
+  #execute "rm \"#{renew_conf_f}\"" do
+  file renew_conf_f do
+    action :delete
     not_if { le_cert.exists?() }
   end
 
