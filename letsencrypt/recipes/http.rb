@@ -107,8 +107,7 @@ n["servers"].each do |server, options|
         p n.resource
         n.resolve_resource_reference(run_context.resource_collection)
         p n.resource
-        p n.resource.start_command
-        p n.resource.restart_command
+        pr = n.resource.provider_for_action(params[0])
         p "======================================================================"
       end
 
