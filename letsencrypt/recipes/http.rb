@@ -25,19 +25,9 @@ n["servers"].each do |server, options|
   group = options.fetch("group", n.fetch("group", username))
   staging = options.fetch("staging", n.fetch("staging", false))
 
-  # if this file exists then LE has been configured for the server
+  # cleanup a failed attempt
   # TODO: check to make sure it is a webroot conf file
   renew_conf_f = ::File.join(n["renewroot"], "#{server}.conf")
-  archive_d = ::File.join(n["archiveroot"], server)
-
-  p "=========================================================================="
-  p le_cert.root_d
-  p le_cert.exists?
-  p "=========================================================================="
-
-
-  # cleanup a failed attempt
-  #execute "rm \"#{renew_conf_f}\"" do
   file renew_conf_f do
     action :delete
     not_if { le_cert.exists?() }
@@ -92,10 +82,14 @@ n["servers"].each do |server, options|
 #     notifies :run, "execute[#{name} #{rname} #{server}]", :immediately
 #   end
 
-  execute "#{name} #{rname} #{server}" do
+  ex = execute "#{name} #{rname} #{server}" do
     command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
     not_if { le_cert.exists?() }
     notifies :create, "cron[#{name} renew]", :delayed
+  end
+
+  options.fetch('notifies', n.fetch("notifies", [])).each do |params|
+    ex.notifies(*params)
   end
 
 end
