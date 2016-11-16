@@ -30,8 +30,8 @@ n["servers"].each do |server, options|
       so_cert.generate()
 
     end # block
-    notifies :create, "link[#{name} #{rname} symlink cert #{server}]", :delayed
-    notifies :create, "link[#{name} #{rname} symlink key #{server}]", :delayed
+    #notifies :create, "link[#{name} #{rname} symlink cert #{server}]", :delayed
+    #notifies :create, "link[#{name} #{rname} symlink key #{server}]", :delayed
     not_if { le_cert.exists?() }
 
   end # ruby_block
@@ -39,13 +39,15 @@ n["servers"].each do |server, options|
   link "#{name} #{rname} symlink key #{server}" do
     target_file ::File.join(cert_d, server, so_cert.key_name)
     to so_cert.key_f
-    action :nothing
+    #action :nothing
+    not_if { le_cert.exists?() }
   end
 
   link "#{name} #{rname} symlink cert #{server}" do
     target_file ::File.join(cert_d, server, so_cert.cert_name)
     to so_cert.cert_f
-    action :nothing
+    #action :nothing
+    not_if { le_cert.exists?() }
   end
 
 end
