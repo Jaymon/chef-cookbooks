@@ -98,20 +98,23 @@ n["servers"].each do |server, options|
     ex.notifies(*params)
   end
 
-  ruby_block "#{name} #{rname} renew-hook #{server}" do
+  ruby_block "#{name} #{rname} renew-hook #{index} #{server}" do
     block do
 
-      p "======================================================================"
-      n = ::Chef::Resource::Notification.new(params[0], params[1], self)
-      p n.resource
-      p run_context.resource_collection
-      n.resolve_resource_reference(run_context.resource_collection)
-      p n.resource
-      p "======================================================================"
+      notifications.each_with_index do |params, index|
+        p "======================================================================"
+        n = ::Chef::Resource::Notification.new(params[0], params[1], self)
+        p n.resource
+        n.resolve_resource_reference(run_context.resource_collection)
+        p n.resource
+        p "======================================================================"
+      end
 
     end # block
 
   end # ruby_block
+
+
 
 
 end
