@@ -19,7 +19,9 @@ n["servers"].each do |server, options|
     recursive true
   end
 
-  directory ::File.join(cert_d, server) do
+  path = ::File.join(cert_d, server)
+  directory "create #{path}" do
+    path path
     mode "0755"
     recursive true
   end
