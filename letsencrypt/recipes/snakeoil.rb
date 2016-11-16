@@ -30,8 +30,8 @@ n["servers"].each do |server, options|
       so_cert.generate()
 
     end # block
-    #notifies :create, "link[#{name} #{rname} symlink cert #{server}]", :delayed
-    #notifies :create, "link[#{name} #{rname} symlink key #{server}]", :delayed
+    #notifies :create, "link[#{name} #{rname} symlink cert #{server}]", :immediately
+    #notifies :create, "link[#{name} #{rname} symlink key #{server}]", :immediately
     not_if { le_cert.exists?() }
 
   end # ruby_block
