@@ -87,7 +87,7 @@ n["servers"].each do |server, options|
 
   execute "#{name} #{rname} #{server}" do
     command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
-    not_if "test -f \"#{renew_conf_f}\""
+    not_if { le_cert.exists?() }
     notifies :create, "cron[#{name} renew]", :delayed
   end
 
