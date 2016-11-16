@@ -23,6 +23,7 @@ n["servers"].each do |server, options|
   root_dir = options["root"]
   username = options.fetch("user", n.fetch("user", nil))
   group = options.fetch("group", n.fetch("group", username))
+  staging = options.fetch("staging", n.fetch("staging", false))
 
   # if this file exists then LE has been configured for the server
   # TODO: check to make sure it is a webroot conf file
