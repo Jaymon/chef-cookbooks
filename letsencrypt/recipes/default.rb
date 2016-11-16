@@ -65,13 +65,34 @@ end
 
 # setup renew command to run twice a day, this is recommended by let's encrypt
 # to handle any certificate revocations
+
+arg_str = "-q --noninteractive"
+
+["pre-hook", "post-hook", "renew-hook"].each do |hook|
+  hook_path = n["#{hook}_path"]
+  commands = n.fetch(hook, [])
+  commands.unshift("#!/bin/bash")
+  commands.unshift("")
+  commands << ""
+  if commands
+    file hook_path do
+      content commands.join("\n")
+      mode "0655"
+    end
+
+    arg_str += " --#{hook} \"#{hook_path}\""
+  end
+end
+
+
 cron "#{name} renew" do
-  command "#{bin_cmd} renew -q --noninteractive"
+  command "#{bin_cmd} renew #{arg_str}"
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
   action :nothing # defined but actually ran by child recipes when cert added
 end
+
 
 
 # validate the configuration

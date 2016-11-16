@@ -14,6 +14,14 @@ default[name]["renewroot"] = ::File.join(root, "renewal")
 default[name]["archiveroot"] = ::File.join(root, "archive")
 default[name]["snakeoilroot"] = ::File.join(root, "snakeoil")
 
+default[name]["pre-hook"] = []
+default[name]["post-hook"] = []
+default[name]["renew-hook"] = []
+default[name]["pre-hook_path"] = ::File.join(binroot, "pre-hook.sh")
+default[name]["post-hook_path"] = ::File.join(binroot, "post-hook.sh")
+default[name]["renew-hook_path"] = ::File.join(binroot, "renew-hook.sh")
+
+
 default[name]["staging"] = false
 default[name]["servers"] = {}
 
