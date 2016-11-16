@@ -38,11 +38,16 @@ n["servers"].each do |server, options|
   # and fails if it exists, sigh
   # https://github.com/certbot/certbot/blob/master/certbot/storage.py#L816
   live_cert = Letsencrypt::Cert.new(n["certroot"], server)
-  directory "delete #{live_cert.root_d}" do
-    path live_cert.root_d
-    action :delete
+  execute "rm -rf \"#{live_cert.root_d}\"" do
     not_if { le_cert.exists?() }
   end
+
+  # turns out this doesn't work if directory has something in it
+#   directory "delete #{live_cert.root_d}" do
+#     path live_cert.root_d
+#     action :delete
+#     not_if { le_cert.exists?() }
+#   end
 
   # email is required
   email = options.fetch("email", nil)
