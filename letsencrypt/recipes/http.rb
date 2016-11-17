@@ -103,6 +103,10 @@ n["servers"].each do |server, options|
   # the command until it is running it and it relies on 2-3 different classes to build
   # the command which would basically mean I would have to reproduce it all here to
   # make it work, not exactly low coupling
+  # https://github.com/chef/chef/blob/master/lib/chef/provider/service.rb
+  # https://github.com/chef/chef/blob/master/lib/chef/platform/service_helpers.rb
+  # https://github.com/chef/chef/blob/master/lib/chef/provider/service/init.rb
+  # https://github.com/chef/chef/blob/master/lib/chef/resource/service.rb
 #   ruby_block "#{name} #{rname} renew-hook #{server}" do
 #     block do
 # 

@@ -23,22 +23,97 @@ This is how you configure it:
 },
 ```
 
+A more complete example with more stuff fleshed out:
+
+```ruby
+attrs["letsencrypt"] = {
+  "user" => "USERNAME",
+  "email" => "NAME@EMAIL.COM",
+  "plugin" => "http",
+  "staging" => true, # for testing
+  "renew-hook" => [
+    "/etc/init.d/nginx reload",
+  ],
+  "pre-hook" => [
+    "/etc/init.d/nginx stop",
+    "stop SOMETHING_ELSE",
+  ],
+  "post-hook" => [
+    "/etc/init.d/nginx start",
+    "start SOMETHING_ELSE",
+  ],
+  "servers" => {
+    "server.com" => {
+      "root" => "/path/to/base/directory/of/server",
+      "staging" => true,
+      "root" => attrs.in_web("le1"),
+      "notifies" => [
+        [:reload, "service[NAME]", :delayed],
+      ],
+    },
+    "server2.com" => {
+      "root" => "/path/to/base/directory/of/server2",
+      "domains" => ["www.server2.com", "foo.server2.com"] # cert can handle multiple subdomains
+    },
+  },
+}
+```
+
+## The HTTP recipe
+
+Currently, we are using **webroot** validation through the `letsencrypt::http` recipe. How this works is you need to use the `letsencrypt::snakeoil` recipe before your webserver recipe, and then after your webserver recipe you would run the `letsencrypt::http` recipe, the order here is important
+
+```ruby
+base_run_list = [
+  "recipe[letsencrypt::snakeoil]",
+  "recipe[nginx]",
+  "recipe[letsencrypt::http]",
+]
+```
+
+The reason why we do this is because we have a bit of a chicken/egg problem here, in order for the webserver (like nginx) to start, we need certificates, but in order to use Let's Encrypt's webroot, the webserver needs to be up and answering requests on port 80, so the snakeoil recipe will create fake certs and place them in the correct location to allow the webserver to start, and then the http recipe will go in and create real certificates, and the `notifies` list in the configuration block for the domain will be able to restart/reload your webserver service on successful Let's Encrypt SSL certificate creation.
+
+So, once again, the steps to make `letsencrypt::http` to work:
+
+* Run `letsencrypt::snakeoil` before your webserver recipe
+* Run your webserver recipe, your webserver must answer requests on port 80, even if it is just forwarding those to port 443.
+* Run `letsencrypt::http` after you run your webserver recipe, this will add actual legit SSL certs
+* In your `letsencrypt` configuration server block, add a `notifies` value that will tell your webserver to reload/restart on successful SSL certificate creation.
+
+Yes, you are right, Let's Encrypt sucks for automation.
+
+
 ## Caveats and Known problems
 
-This will first try and see if the server is up and responding and then use the webroot authentication method, if that fails then it will use the standalone. So that means this should probably be ran before you configure your servers like nginx, because then nginx won't be running and you can use standalone to generate the certificates that nginx can then use in its configuration, if you specify in a server configuration the cert/key you want to use and it doesn't yet exist then you've got a bit of a chicken/egg problem.
+### Let's Encrypt uses port 80
 
-This has a problem when validating the url, it currently uses port 80, but if that fails then there is no way to have it try port 443. This is a problem
+You cannot change this, it is what it is:
+
+* https://community.letsencrypt.org/t/generate-certificate-8443-instead-of-443/19623/8
+* https://community.letsencrypt.org/t/support-for-ports-other-than-80-and-443/3419/77
+* https://community.letsencrypt.org/t/domain-validation-on-80-and-443-but-no-override/21598/11
+* https://community.letsencrypt.org/t/how-to-specify-a-port-different-from-443-for-the-dvsni-challenge/12753/2
+* https://github.com/certbot/certbot/issues/2801
+* https://github.com/letsencrypt/acme-spec/issues/33
+
+### Route 53
 
 If you have multiple boxes that are behind Route53, then this fails because it will only put the certificates on one box and not on the others, and even if we figured out a good way to distribute the certs you still have to deal with renewing them. It might work just fine with a different certificate on each server, we would need further testing.
 
+### Other
+
 On vanilla servers, we may need to [Force dependencies](https://github.com/certbot/certbot/issues/1706#issuecomment-197380593)
+
 
 ## Helpful links
 
 * [ACME (Automatic Certificate Management Environment) Spec](https://ietf-wg-acme.github.io/acme/)
 * [Certbot installation](https://certbot.eff.org/docs/intro.html#installation)
+* [Let's Encrypt Docs](https://letsencrypt.org/docs/)
 * [Certbot repo](https://github.com/certbot/certbot)
 * [This issue helped sort through stuff](https://github.com/certbot/certbot/issues/1706)
 * [Digital Ocean tutorial](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-14-04)
 * [DNS Domain validation](https://github.com/lukas2511/dehydrated/wiki/Examples-for-DNS-01-hooks)
+* [Let's Encrypt Community Q&A site](https://community.letsencrypt.org/)
+* [Mixing standalon and webroot](https://github.com/certbot/certbot/issues/2364)
 
