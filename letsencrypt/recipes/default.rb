@@ -71,10 +71,10 @@ arg_str = "-q --noninteractive"
 ["pre-hook", "post-hook", "renew-hook"].each do |hook|
   hook_path = n["#{hook}_path"]
   commands = n.fetch(hook, []).dup
-  commands.unshift("")
-  commands.unshift("#!/bin/bash")
-  commands << ""
   if commands.length > 0
+    commands.unshift("")
+    commands.unshift("#!/bin/bash")
+    commands << ""
     file hook_path do
       content commands.join("\n")
       mode "0655"
