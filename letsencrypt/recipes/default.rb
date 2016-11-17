@@ -70,7 +70,7 @@ arg_str = "-q --noninteractive"
 
 ["pre-hook", "post-hook", "renew-hook"].each do |hook|
   hook_path = n["#{hook}_path"]
-  commands = n.fetch(hook, [])
+  commands = n.fetch(hook, []).dup
   commands.unshift("#!/bin/bash")
   commands.unshift("")
   commands << ""
