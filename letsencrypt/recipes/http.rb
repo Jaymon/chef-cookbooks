@@ -90,7 +90,7 @@ n["servers"].each do |server, options|
   ex = execute "#{name} #{rname} #{server}" do
     command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
     not_if { le_cert.exists?() }
-    notifies :create, "cron[#{name} renew]", :delayed
+    #notifies :create, "cron[#{name} renew]", :delayed
   end
 
   notifications = options.fetch('notifies', n.fetch("notifies", []))

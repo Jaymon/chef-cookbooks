@@ -90,7 +90,15 @@ cron "#{name} renew" do
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
-  action :nothing # defined but actually ran by child recipes when cert added
+  #action :nothing # defined but actually ran by child recipes when cert added
+  only_if {
+    n.fetch("servers", []).each do |server, options|
+      le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
+      if le_cert.exists?
+        return true
+      end
+    end
+  }
 end
 
 
