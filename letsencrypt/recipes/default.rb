@@ -92,12 +92,15 @@ cron "#{name} renew" do
   #day "1"
   #action :nothing # defined but actually ran by child recipes when cert added
   only_if {
+    doit = false
     n.fetch("servers", []).each do |server, options|
       le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
       if le_cert.exists?
-        return true
+        doit = true
+        break
       end
     end
+    doit
   }
 end
 
