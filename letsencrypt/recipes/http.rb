@@ -98,28 +98,30 @@ n["servers"].each do |server, options|
     ex.notifies(*params)
   end
 
-  ruby_block "#{name} #{rname} renew-hook #{server}" do
-    block do
-
-      notifications.each_with_index do |params, index|
-        p "======================================================================"
-        n = ::Chef::Resource::Notification.new(params[1], params[0], self)
-        p n.resource
-        n.resolve_resource_reference(run_context.resource_collection)
-        #p n.resource
-        pr = n.resource.provider_for_action(params[0])
-        p pr.new_resource.start_command
-        p pr.new_resource.restart_command
-        p pr.new_resource.default_init_command
-        p "======================================================================"
-      end
-
-    end # block
-
-  end # ruby_block
-
-
-
+  # sadly, it doesn't look like I can inspect the notification to get the command
+  # that would actually be run by the service resource, turns out chef doesn't build
+  # the command until it is running it and it relies on 2-3 different classes to build
+  # the command which would basically mean I would have to reproduce it all here to
+  # make it work, not exactly low coupling
+#   ruby_block "#{name} #{rname} renew-hook #{server}" do
+#     block do
+# 
+#       notifications.each_with_index do |params, index|
+#         p "======================================================================"
+#         n = ::Chef::Resource::Notification.new(params[1], params[0], self)
+#         p n.resource
+#         n.resolve_resource_reference(run_context.resource_collection)
+#         #p n.resource
+#         pr = n.resource.provider_for_action(params[0])
+#         p pr.new_resource.start_command
+#         p pr.new_resource.restart_command
+#         p pr.new_resource.default_init_command
+#         p "======================================================================"
+#       end
+# 
+#     end # block
+# 
+#   end # ruby_block
 
 end
 
