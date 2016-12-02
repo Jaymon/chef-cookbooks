@@ -1,6 +1,42 @@
 # https://docs.chef.io/libraries.html
 # https://blog.chef.io/2014/03/12/writing-libraries-in-chef-cookbooks/
 module Letsencrypt
+
+  def get_common_args(server, options, n)
+    # build a list of all the servers
+    # https://github.com/chef/chef/blob/master/lib/chef/node/immutable_collections.rb#L108
+    domains = options.fetch("domains", []).dup
+    domains.unshift(server)
+
+    email = get_email(options, n)
+
+    arg_str = "-d #{domains.join(" -d ")}"
+    arg_str += " --email #{email} --agree-tos --non-interactive --no-verify-ssl"
+
+    staging = options.fetch("staging", n.fetch("staging", false))
+    if staging
+      arg_str += " --staging"
+    end
+
+    return arg_str
+  end
+
+  def get_email(options, n)
+    email = options.fetch("email", nil)
+    if !email || email.empty?
+      email = n["email"]
+    end
+    return email
+  end
+
+  def correct_plugin?(name, options)
+    plugin = options.fetch("plugin", nil)
+    if !plugin || plugin.empty?
+      plugin = n["plugin"]
+    end
+    return plugin == name
+  end
+
   class Cert
 
     include ::Chef::Mixin::ShellOut

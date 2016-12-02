@@ -2,6 +2,7 @@
 
 This cookbook was setup using [this guide](https://gist.github.com/cecilemuller/a26737699a7e70a7093d4dc115915de8).
 
+
 ## Configuration
 
 This is how you configure it:
@@ -11,6 +12,7 @@ This is how you configure it:
   "user" => "USERNAME",
   "email" => "NAME@EMAIL.COM",
   "staging" => true, # for testing
+  "plugin" => "http", # available: http, standalone
   "servers" => {
     "server.com" => {
       "root" => "/path/to/base/directory/of/server",
@@ -23,7 +25,7 @@ This is how you configure it:
 },
 ```
 
-A more complete example with more stuff fleshed out:
+A more complete example with more stuff fleshed out options:
 
 ```ruby
 attrs["letsencrypt"] = {
@@ -59,9 +61,12 @@ attrs["letsencrypt"] = {
 }
 ```
 
+It's advisable to not mix and match your plugins for the box, because the renew command isn't good when the some domains use **standalone** while others user **http**.
+
+
 ## The HTTP recipe
 
-Currently, we are using **webroot** validation through the `letsencrypt::http` recipe. How this works is you need to use the `letsencrypt::snakeoil` recipe before your webserver recipe, and then after your webserver recipe you would run the `letsencrypt::http` recipe, the order here is important
+Create certificates through **webroot** validation using the `letsencrypt::http` recipe. How this works is you need to use the `letsencrypt::snakeoil` recipe before your webserver recipe, and then after your webserver recipe you would run the `letsencrypt::http` recipe, the order here is important
 
 ```ruby
 base_run_list = [
@@ -73,7 +78,7 @@ base_run_list = [
 
 The reason why we do this is because we have a bit of a chicken/egg problem here, in order for the webserver (like nginx) to start, we need certificates, but in order to use Let's Encrypt's webroot, the webserver needs to be up and answering requests on port 80, so the snakeoil recipe will create fake certs and place them in the correct location to allow the webserver to start, and then the http recipe will go in and create real certificates, and the `notifies` list in the configuration block for the domain will be able to restart/reload your webserver service on successful Let's Encrypt SSL certificate creation.
 
-So, once again, the steps to make `letsencrypt::http` to work:
+So, once again, the steps to make `letsencrypt::http` work:
 
 * Run `letsencrypt::snakeoil` before your webserver recipe
 * Run your webserver recipe, your webserver must answer requests on port 80, even if it is just forwarding those to port 443.
@@ -81,6 +86,22 @@ So, once again, the steps to make `letsencrypt::http` to work:
 * In your `letsencrypt` configuration server block, add a `notifies` value that will tell your webserver to reload/restart on successful SSL certificate creation.
 
 Yes, you are right, Let's Encrypt sucks for automation.
+
+
+## The Standalone recipe
+
+Create certificates through **standalone** validation using the `letsencrypt::standalone` recipe. This means Let's Encrypt will start a standalone web server on port 80 to do its domain validation, that means you can't have anything else running on port 80.
+
+You will want to add the **standalone** recipe before you install your webserver:
+
+```ruby
+base_run_list = [
+  "recipe[letsencrypt::standalone]",
+  "recipe[nginx]",
+]
+```
+
+And you will want your `post-hook` and `pre-hook` configuration blocks to stop the server (in the `pre-hook`) and to start the server (in the `post-hook`) so when Let's Encrypt renews the certificate it can use port 80 again. You obviously don't need to do that if your webserver doesn't use port 80, but you would want to reload or restart the server on a successful renew so the server can pick up the new certs.
 
 
 ## Caveats and Known problems
