@@ -12,10 +12,10 @@ n["servers"].each do |server, options|
 
   #plugin = options.fetch("plugin", n.fetch("plugin", nil))
   #::Chef::Log.warn("[#{server}] has no ")
-  next if !Letsencrypt.correct_plugin?(rname, options)
+  next if !correct_plugin?(rname, options)
 
-  le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
-  arg_str = Letsencrypt.get_common_args(server, options, n)
+  le_cert = Cert.new(n["archiveroot"], server)
+  arg_str = get_common_args(server, options, n)
 
   snakeoil_cleanup server do
     root n["root"]

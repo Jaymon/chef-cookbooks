@@ -115,5 +115,6 @@ module Letsencrypt
 end
 
 # http://stackoverflow.com/questions/20835697/how-to-require-my-library-in-chef-ruby-block
-#::Chef::Recipe.send(:include, Letsencrypt::Helper)
-#::Chef::Resource::User.send(:include, Ssh::Helper)
+::Chef::Recipe.send(:include, Letsencrypt)
+::Chef::Resource::User.send(:include, Letsencrypt)
+
