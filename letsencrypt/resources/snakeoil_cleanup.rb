@@ -1,7 +1,8 @@
 # https://docs.chef.io/custom_resources.html
 
+resource_name :snakeoil_cleanup # https://docs.chef.io/custom_resources.html#resource-name
+
 property :server, String, name_property: true
-property :root, String, required: true
 property :root, String, required: true
 
 default_action :run
