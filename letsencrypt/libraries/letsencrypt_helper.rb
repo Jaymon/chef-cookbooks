@@ -29,7 +29,7 @@ module Letsencrypt
     return email
   end
 
-  def correct_plugin?(name, options)
+  def correct_plugin?(name, options, n)
     plugin = options.fetch("plugin", nil)
     if !plugin || plugin.empty?
       plugin = n["plugin"]

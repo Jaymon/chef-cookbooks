@@ -12,7 +12,7 @@ n["servers"].each do |server, options|
 
   #plugin = options.fetch("plugin", n.fetch("plugin", nil))
   #::Chef::Log.warn("[#{server}] has no ")
-  next if !correct_plugin?(rname, options)
+  next if !correct_plugin?(rname, options, n)
 
   le_cert = Cert.new(n["archiveroot"], server)
   arg_str = get_common_args(server, options, n)
