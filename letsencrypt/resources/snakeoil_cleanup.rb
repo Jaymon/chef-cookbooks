@@ -22,5 +22,11 @@ action :run do
   live_cert = Letsencrypt::Cert.new(::File.join(root, "live"), server)
   execute "rm -rf \"#{live_cert.root_d}\""
 
+  # turns out this doesn't work if directory has something in it
+#   directory "delete #{live_cert.root_d}" do
+#     path live_cert.root_d
+#     action :delete
+#     not_if { le_cert.exists?() }
+#   end
 end
 
