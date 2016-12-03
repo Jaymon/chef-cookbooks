@@ -2,6 +2,11 @@
 # https://blog.chef.io/2014/03/12/writing-libraries-in-chef-cookbooks/
 module Letsencrypt
 
+  def merge_options(options, n)
+    all_options = n.to_hash
+    all_options.merge!(options)
+    return all_options
+
   def get_common_args(server, options, n)
     # build a list of all the servers
     # https://github.com/chef/chef/blob/master/lib/chef/node/immutable_collections.rb#L108

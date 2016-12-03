@@ -1,6 +1,6 @@
 name = cookbook_name.to_s
 n = node[name]
-current_hostname = node.hostname
+current_hostname = node["hostname"]
 new_hostname = n.fetch('hostname', current_hostname)
 
 # p "==========================================================================="

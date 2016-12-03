@@ -75,7 +75,7 @@ n['servers'].each do |server_name, _config|
     # create the user that will manage uwsgi (if they don't already exist)
     u = server_config['uid']
     server_config['gid'] = server_config.fetch("gid", u)
-    user name do
+    user "create user #{u} for #{name} #{server_name}" do
       username u
       system true
       gid server_config['gid']
