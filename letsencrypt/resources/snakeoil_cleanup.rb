@@ -1,4 +1,5 @@
 # https://docs.chef.io/custom_resources.html
+# http://stackoverflow.com/questions/21725768/chef-libraries-or-definitions
 
 resource_name :snakeoil_cleanup # https://docs.chef.io/custom_resources.html#resource-name
 

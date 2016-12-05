@@ -7,8 +7,6 @@ version           "0.4"
 long_description  IO.read(::File.join(::File.dirname(__FILE__), 'README.md'))
 supports          "ubuntu", "14.04"
 
-#depends           "pip"
-
 recipe            "letsencrypt", "Install Let's Encrypt client and prepare environment"
 recipe            "letsencrypt::http", "Let's Encrypt ssl certificates generation using http webroot"
 recipe            "letsencrypt::standalone", "Let's Encrypt ssl certificates generation using standalone webserver"

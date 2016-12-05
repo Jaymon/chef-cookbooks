@@ -5,6 +5,97 @@ This cookbook was setup using [this guide](https://gist.github.com/cecilemuller/
 
 ## Configuration
 
+
+### keys
+
+Here are some of the different keys you can set in the configuration hash
+
+#### email
+
+**required**
+
+The email address that Let's Encrypt will use to create the certificates.
+
+
+#### plugin
+
+**required**
+
+possible values: _http_ or _standalone_
+
+* _http_ - use the [webroot validation method](https://certbot.eff.org/docs/using.html#webroot) on a currently running server to create and renew certificates
+
+* _standalone_ - use the [standalone validation method](https://certbot.eff.org/docs/using.html#standalone) on port 80 to create and renew the certificates. This means port 80 has to be available when the certificates are generated or renewed.
+
+Look at the sections for each of these plugins below to learn how to configure them.
+
+
+#### servers
+
+**required**
+
+A hash of servers and server specific configuration. So the key would be the server's host (eg, _example.com_ ).
+
+Server blocks can be configured to [notify](https://docs.chef.io/resource_common.html#notifications) services.
+
+
+#### renew-hook
+
+A list of commands that should be run on domain certificate renewal, from 
+
+```
+$ ./certbot-auto --help renew
+  --renew-hook RENEW_HOOK
+                    Command to be run in a shell once for each
+                    successfully renewed certificate. For this command,
+                    the shell variable $RENEWED_LINEAGE will point to the
+                    config live subdirectory containing the new certs and
+                    keys; the shell variable $RENEWED_DOMAINS will contain
+                    a space-delimited list of renewed cert domains
+                    (default: None)
+```
+
+These commands will be placed in a file that will be hooked up to the renew cronjob.
+
+
+#### pre-hook
+
+```
+$ ./certbot-auto --help renew
+  --pre-hook PRE_HOOK   Command to be run in a shell before obtaining any
+                        certificates. Intended primarily for renewal, where it
+                        can be used to temporarily shut down a webserver that
+                        might conflict with the standalone plugin. This will
+                        only be called if a certificate is actually to be
+                        obtained/renewed. (default: None)
+```
+
+
+#### post-hook
+
+```
+$ ./certbot-auto --help renew
+  --post-hook POST_HOOK
+                        Command to be run in a shell after attempting to
+                        obtain/renew certificates. Can be used to deploy
+                        renewed certificates, or to restart any servers that
+                        were stopped by --pre-hook. This is only run if an
+                        attempt was made to obtain/renew a certificate.
+                        (default: None)
+```
+
+
+#### user
+
+For http plugin certificates, a directory needs to be created that can be read by the running webserver, those directories will be created by this username.
+
+#### staging
+
+mainly for testing, set to **true** if you want Let's Encrypt to make non-valid certificates.
+
+
+### Example hashes
+
 This is how you configure it:
 
 ```ruby
@@ -61,7 +152,7 @@ attrs["letsencrypt"] = {
 }
 ```
 
-It's advisable to not mix and match your plugins for the box, because the renew command isn't good when the some domains use **standalone** while others user **http**.
+It's advisable to not mix and match your plugins for the box, because the renew command isn't good when some domains use **standalone** while others user **http**.
 
 
 ## The HTTP recipe
@@ -87,6 +178,23 @@ So, once again, the steps to make `letsencrypt::http` work:
 
 Yes, you are right, Let's Encrypt sucks for automation.
 
+Because you don't need to stop server, you'll want your configuration to reload the server on successful certificate generation and renewal so it can load the new certifcates:
+
+```ruby
+"servers" => {
+  "renew-hook" => [
+    "reload SERVICE",
+  ],
+  "example.com" => {
+    "plugin" => "http",
+    "root" => "/webroot/path",
+    "notifies" => [
+      [:reload, "service[NAME]", :delayed],
+    ],
+  },
+},
+```
+
 
 ## The Standalone recipe
 
@@ -102,6 +210,26 @@ base_run_list = [
 ```
 
 And you will want your `post-hook` and `pre-hook` configuration blocks to stop the server (in the `pre-hook`) and to start the server (in the `post-hook`) so when Let's Encrypt renews the certificate it can use port 80 again. You obviously don't need to do that if your webserver doesn't use port 80, but you would want to reload or restart the server on a successful renew so the server can pick up the new certs.
+
+Also, to make sure there aren't any problems while running Chef you will probably want to configure your server block to stop and start the server if needed:
+
+```ruby
+"servers" => {
+  "pre-hook" => [
+    "stop SERVICE_ON_PORT_80",
+  ],
+  "post-hook" => [
+    "start SERVICE_ON_PORT_80",
+  ],
+  "example.com" => {
+    "plugin" => "standalone",
+    "notifies" => [
+      [:stop, "service[NAME]", :before],
+      [:reload, "service[NAME]", :delayed],
+    ],
+  },
+},
+```
 
 
 ## Caveats and Known problems
