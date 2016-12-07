@@ -168,6 +168,32 @@ It's advisable to not mix and match your plugins for the box, because the Let's 
 
 ## The HTTP recipe
 
+-----
+
+**NOTE** - This recipe has serious problems working with our _nginx_ recipe, what happens is the _nginx_ recipe doesn't start any new servers until the end of the run, so what that means is on first run through this recipe won't be able to access anything because the server isn't actually started, but this recipe also cleans up the snakeoil stuff, so it leaves the server in a bad state where it can't start the server but also can't get the Let's Encrypt certificates. Now, what might work is making sure the server is started before running this, similar to how we do do standalone:
+
+```ruby
+"renew-hook" => [
+  "reload SERVICE",
+],
+"domains" => {
+  "example.com" => {
+    "plugin" => "http",
+    "root" => "/webroot/path",
+    "notifies" => [
+      [:start, "service[NAME]", :before],
+      [:reload, "service[NAME]", :delayed],
+    ],
+  },
+},
+```
+
+This might work, but I will need to clean room test it, in the meantime we're just going to use _standalone_ exclusively.
+
+Another way to go about it is to just use standalone to get the certs if the server is not answering requests on port 80 and then change the config to use `webroot` renewal.
+
+-----
+
 Create certificates through **webroot** validation using the `letsencrypt::http` recipe. How this works is you need to use the `letsencrypt::snakeoil` recipe before your webserver recipe, and then after your webserver recipe you would run the `letsencrypt::http` recipe, the order here is important
 
 ```ruby

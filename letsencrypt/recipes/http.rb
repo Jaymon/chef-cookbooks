@@ -21,6 +21,7 @@ n["domains"].each do |domain, _options|
   snakeoil_cleanup domain do
     root n["root"]
     not_if { le_cert.exists?() }
+    action :nothing
   end
 
   root_dir = options["root"]
@@ -61,6 +62,9 @@ n["domains"].each do |domain, _options|
   notifications.each do |params|
     ex.notifies(*params)
   end
+
+  # cleanup the snakeoil stuff last of all
+  ex.notifies(:run, "snakeoil_cleanup[#{domain}]", :before)
 
   # sadly, it doesn't look like I can inspect the notification to get the command
   # that would actually be run by the service resource, turns out chef doesn't build
