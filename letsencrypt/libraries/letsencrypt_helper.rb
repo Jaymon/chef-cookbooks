@@ -84,10 +84,13 @@ module Letsencrypt
     end
 
     def key_name()
+      # we use *1.pem here so we can use this class for the actual Let's Encrypt
+      # certs, if you look at snakeoil_create you will see it doesn't put the 1 in
       return "privkey1.pem"
     end
 
     def cert_name()
+      # see key_name() for why we do *1.pem
       return "fullchain1.pem"
     end
 

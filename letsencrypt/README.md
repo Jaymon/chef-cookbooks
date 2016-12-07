@@ -10,12 +10,17 @@ This cookbook was setup using [this guide](https://gist.github.com/cecilemuller/
 
 Here are some of the different keys you can set in the configuration hash
 
+
+-------------------------------------------------------------------------------
+
 #### email
 
 **required**
 
 The email address that Let's Encrypt will use to create the certificates.
 
+
+-------------------------------------------------------------------------------
 
 #### plugin
 
@@ -29,6 +34,8 @@ possible values: _http_ or _standalone_
 
 Look at the sections for each of these recipes below to learn how to configure them.
 
+
+-------------------------------------------------------------------------------
 
 #### domains
 
@@ -49,9 +56,11 @@ Domain blocks can be configured to [notify](https://docs.chef.io/resource_common
 ```
 
 
+-------------------------------------------------------------------------------
+
 #### renew-hook
 
-A list of commands that should be run on domain certificate renewal, from 
+A list of commands that should be run on domain after a successful certificate renewal
 
 ```
 $ ./certbot-auto --help renew
@@ -68,7 +77,11 @@ $ ./certbot-auto --help renew
 These commands will be placed in a file that will be hooked up to the renew cronjob.
 
 
+-------------------------------------------------------------------------------
+
 #### pre-hook
+
+A list of commands that should be run before a domain certificate renewal
 
 ```
 $ ./certbot-auto --help renew
@@ -81,7 +94,11 @@ $ ./certbot-auto --help renew
 ```
 
 
+-------------------------------------------------------------------------------
+
 #### post-hook
+
+A list of commands that should be run after a domain certificate renewal
 
 ```
 $ ./certbot-auto --help renew
@@ -95,14 +112,18 @@ $ ./certbot-auto --help renew
 ```
 
 
+-------------------------------------------------------------------------------
+
 #### user
 
 For _http_ plugin generated SSL certificates, a directory needs to be created that can be read by the running webserver, those directories will be owned by this username. That means this is **not** needed if you use `letsencrypt::standalone` recipe.
 
 
+-------------------------------------------------------------------------------
+
 #### staging
 
-mainly for testing, set to **true** if you want Let's Encrypt to generate non-valid certificates.
+Mainly for testing, set to **true** if you want Let's Encrypt to generate non-valid certificates. These certificates are not subject to usage restrictions and domain throttling, so you can request them again and again without being throttled.
 
 
 ### Example hashes
@@ -142,7 +163,7 @@ attrs["letsencrypt"] = {
 }
 ```
 
-It's advisable to not mix and match your plugins for the box, because the renew command isn't good when some domains use **standalone** while others user **http**.
+It's advisable to not mix and match your plugins for the box, because the Let's encrypt renew command (that this cookbook sets up in a cron job) isn't good when some domains use **standalone** while others user **http**.
 
 
 ## The HTTP recipe

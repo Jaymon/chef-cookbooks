@@ -36,11 +36,11 @@ action :run do
     end
   end
 
-  link ::File.join(cert_root, domain, so_cert.key_name) do
+  link ::File.join(cert_root, domain, "privkey.pem") do
     to so_cert.key_f
   end
 
-  link ::File.join(cert_root, domain, so_cert.cert_name) do
+  link ::File.join(cert_root, domain, "fullchain.pem") do
     to so_cert.cert_f
   end
 
