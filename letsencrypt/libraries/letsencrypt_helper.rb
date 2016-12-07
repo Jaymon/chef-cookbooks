@@ -10,9 +10,10 @@ module Letsencrypt
     all_options = n.to_hash
 
     # we need the options domains to always override the node domains
-    options["domains"] ||= []
+    opts = options.to_hash
+    opts["domains"] ||= []
 
-    all_options.merge!(options)
+    all_options.merge!(opts)
     return all_options
   end
 
