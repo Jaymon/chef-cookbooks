@@ -33,15 +33,15 @@ n["domains"].each do |domain, _options|
   [".well-known", "acme-challenge"].each do |bit|
 
     full_path = ::File.join(full_path, bit)
-    execute "mkdir -p \"#{full_path}\"; chown #{username}:#{group} #{full_path}; chmod 0755 #{full_path}"
-
     # This doesn't seem to work reliably when there is a .dot-folder in the path
-#     directory "#{full_path}" do
-#       mode '0755'
-#       owner username
-#       group group
-#       recursive true
-#     end
+    #execute "mkdir -p \"#{full_path}\"; chown #{username}:#{group} #{full_path}; chmod 0755 #{full_path}"
+
+    directory "#{full_path}" do
+      mode '0755'
+      owner username
+      group group
+      recursive true
+    end
   end
 
 #   execute "#{name} http validation check for #{domain}" do
