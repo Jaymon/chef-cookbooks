@@ -8,7 +8,7 @@ bin_cmd = n["bincmd"]
 include_recipe name
 
 
-n["domains"].each do |domain, options|
+n["domains"].each do |domain, _options|
 
   options = merge_options(_options, n)
 
