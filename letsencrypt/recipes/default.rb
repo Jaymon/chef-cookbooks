@@ -93,7 +93,7 @@ cron "#{name} renew" do
   #action :nothing # defined but actually ran by child recipes when cert added
   only_if {
     doit = false
-    n.fetch("servers", []).each do |server, options|
+    n.fetch("domains", []).each do |server, options|
       le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
       if le_cert.exists?
         doit = true
@@ -103,14 +103,4 @@ cron "#{name} renew" do
     doit
   }
 end
-
-
-
-# validate the configuration
-# n["servers"].each do |server, options|
-#   plugin = options.fetch("plugin", n.fetch("plugin", nil))
-#   if !plugin || plugin.empty?
-#     ::Chef::Application.fatal!("[#{server}] has no plugin defined for generating certs", 1)
-#   end
-# end
 

@@ -8,21 +8,21 @@ bin_cmd = n["bincmd"]
 include_recipe name
 
 
-n["servers"].each do |server, options|
+n["domains"].each do |domain, options|
 
-  #plugin = options.fetch("plugin", n.fetch("plugin", nil))
-  #::Chef::Log.warn("[#{server}] has no ")
-  next if !correct_plugin?(rname, options, n)
+  options = merge_options(_options, n)
 
-  le_cert = Cert.new(n["archiveroot"], server)
-  arg_str = get_common_args(server, options, n)
+  next if !correct_plugin?(rname, options)
 
-  snakeoil_cleanup server do
+  le_cert = Cert.new(n["archiveroot"], domain)
+  arg_str = get_common_args(domain, options)
+
+  snakeoil_cleanup domain do
     root n["root"]
     not_if { le_cert.exists?() }
   end
 
-  ex = execute "letsencrypt standalone #{server}" do
+  ex = execute "letsencrypt standalone #{domain}" do
     command "#{bin_cmd} certonly --standalone #{arg_str}"
     not_if { le_cert.exists?() }
   end

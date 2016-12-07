@@ -8,23 +8,24 @@ bin_cmd = n["bincmd"]
 include_recipe name
 
 
-n["servers"].each do |server, options|
+n["domains"].each do |domain, _options|
 
-  #::Chef::Log.warn("[#{server}] has no ")
-  next if !correct_plugin?(rname, options, n)
+  options = merge_options(_options, n)
 
-  le_cert = Cert.new(n["archiveroot"], server)
-  arg_str = get_common_args(server, options, n)
+  next if !correct_plugin?(rname, options)
+
+  le_cert = Cert.new(n["archiveroot"], domain)
+  arg_str = get_common_args(domain, options)
 
   # cleanup a failed attempt
-  snakeoil_cleanup server do
+  snakeoil_cleanup domain do
     root n["root"]
     not_if { le_cert.exists?() }
   end
 
   root_dir = options["root"]
-  username = options.fetch("user", n.fetch("user", nil))
-  group = options.fetch("group", n.fetch("group", username))
+  username = options.fetch("user", nil)
+  group = options.fetch("group", username)
 
   # https://certbot.eff.org/docs/using.html#webroot
   # we do these one at a time so they have correct permissions
@@ -39,20 +40,20 @@ n["servers"].each do |server, options|
     end
   end
 
-#   execute "#{name} http validation check for #{server}" do
-#     command "wget -qO- \"http://#{server}/.well-known/acme-challenge\""
+#   execute "#{name} http validation check for #{domain}" do
+#     command "wget -qO- \"http://#{domain}/.well-known/acme-challenge\""
 #     returns [0, 8] # 8 is 404 NOT FOUND
-#     not_if "test -f #{::File.join(n["certroot"], server, "cert.pem")}"
-#     notifies :run, "execute[#{name} #{rname} #{server}]", :immediately
+#     not_if "test -f #{::File.join(n["certroot"], domain, "cert.pem")}"
+#     notifies :run, "execute[#{name} #{rname} #{domain}]", :immediately
 #   end
 
-  ex = execute "#{name} #{rname} #{server}" do
+  ex = execute "#{name} #{rname} #{domain}" do
     command "#{bin_cmd} certonly --webroot -w #{root_dir} #{arg_str}"
     not_if { le_cert.exists?() }
     #notifies :create, "cron[#{name} renew]", :delayed
   end
 
-  notifications = options.fetch('notifies', n.fetch("notifies", []))
+  notifications = options.fetch('notifies', [])
   notifications.each do |params|
     ex.notifies(*params)
   end
@@ -66,7 +67,7 @@ n["servers"].each do |server, options|
   # https://github.com/chef/chef/blob/master/lib/chef/platform/service_helpers.rb
   # https://github.com/chef/chef/blob/master/lib/chef/provider/service/init.rb
   # https://github.com/chef/chef/blob/master/lib/chef/resource/service.rb
-#   ruby_block "#{name} #{rname} renew-hook #{server}" do
+#   ruby_block "#{name} #{rname} renew-hook #{domain}" do
 #     block do
 # 
 #       notifications.each_with_index do |params, index|

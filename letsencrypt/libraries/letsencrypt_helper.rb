@@ -2,23 +2,33 @@
 # https://blog.chef.io/2014/03/12/writing-libraries-in-chef-cookbooks/
 module Letsencrypt
 
+  ##
+  # merge the domain specific config block with the global config block producing
+  # one master block
+  ##
   def merge_options(options, n)
     all_options = n.to_hash
     all_options.merge!(options)
     return all_options
+  end
 
-  def get_common_args(server, options, n)
-    # build a list of all the servers
+  ##
+  # Get the common command line arguments that both recipes use to generate certs
+  #
+  # returns a string ready to be concatenated to the end of a shell command
+  ##
+  def get_common_args(domain, options)
+    # build a list of all the domains
     # https://github.com/chef/chef/blob/master/lib/chef/node/immutable_collections.rb#L108
     domains = options.fetch("domains", []).dup
-    domains.unshift(server)
+    domains.unshift(domain)
 
-    email = get_email(options, n)
+    email = get_email(options)
 
     arg_str = "-d #{domains.join(" -d ")}"
     arg_str += " --email #{email} --agree-tos --non-interactive --no-verify-ssl"
 
-    staging = options.fetch("staging", n.fetch("staging", false))
+    staging = options.fetch("staging", false)
     if staging
       arg_str += " --staging"
     end
@@ -26,22 +36,35 @@ module Letsencrypt
     return arg_str
   end
 
-  def get_email(options, n)
+  ##
+  # Return the email address, raise error if it isn't there
+  ##
+  def get_email(options)
+    email = options["email"]
     email = options.fetch("email", nil)
     if !email || email.empty?
-      email = n["email"]
+      ::Chef::Application.fatal!("No email found")
     end
     return email
   end
 
-  def correct_plugin?(name, options, n)
-    plugin = options.fetch("plugin", nil)
+  ##
+  # True if name matches the plugin block, raises error if no plugin is found
+  ##
+  def correct_plugin?(name, options)
+    plugin = options["plugin"]
     if !plugin || plugin.empty?
-      plugin = n["plugin"]
+      ::Chef::Application.fatal!("No plugin name found")
     end
+    #::Chef::Log.warn("[#{domain] has no ")
     return plugin == name
   end
 
+  ##
+  # This is a small wrapper class around ssl certificates, its purpose is to make
+  # it easier to generate fake Snakeoil certificates and to check for the validaty
+  # of real certs
+  ##
   class Cert
 
     include ::Chef::Mixin::ShellOut
@@ -85,6 +108,9 @@ module Letsencrypt
       return self.key_exists?() && self.cert_exists?()
     end
 
+    ##
+    # Create fake snakeoil certificates for the internal domain
+    ##
     def generate()
 
       key_f = self.key_f

@@ -23,20 +23,30 @@ The email address that Let's Encrypt will use to create the certificates.
 
 possible values: _http_ or _standalone_
 
-* _http_ - use the [webroot validation method](https://certbot.eff.org/docs/using.html#webroot) on a currently running server to create and renew certificates
+* _http_ - Configures the `letsencrypt::http` recipe and uses the [webroot validation method](https://certbot.eff.org/docs/using.html#webroot) on a currently running webserver to create and renew certificates
 
-* _standalone_ - use the [standalone validation method](https://certbot.eff.org/docs/using.html#standalone) on port 80 to create and renew the certificates. This means port 80 has to be available when the certificates are generated or renewed.
+* _standalone_ - Configures the `letsencrypt::standalone` recipe and uses the [standalone validation method](https://certbot.eff.org/docs/using.html#standalone) on port 80 to create and renew the certificates. This means port 80 has to be available when the certificates are generated or renewed.
 
-Look at the sections for each of these plugins below to learn how to configure them.
+Look at the sections for each of these recipes below to learn how to configure them.
 
 
-#### servers
+#### domains
 
 **required**
 
-A hash of servers and server specific configuration. So the key would be the server's host (eg, _example.com_ ).
+A hash of domains containing domain (eg, _example.com_ ) specific configuration for each domain key in the `domains` hash. So the key is the domain you are configuring Let's Encrypt for, and the value is a hash of configuration that is specific for that domain.
 
-Server blocks can be configured to [notify](https://docs.chef.io/resource_common.html#notifications) services.
+Domain blocks can be configured to [notify](https://docs.chef.io/resource_common.html#notifications) services:
+
+```ruby
+"domains" => {
+  "example.com" => {
+    "notifies" => [
+      [:reload, "service[NAME]", :delayed],
+    ],
+  },
+},
+```
 
 
 #### renew-hook
@@ -87,42 +97,23 @@ $ ./certbot-auto --help renew
 
 #### user
 
-For http plugin certificates, a directory needs to be created that can be read by the running webserver, those directories will be created by this username.
+For _http_ plugin generated SSL certificates, a directory needs to be created that can be read by the running webserver, those directories will be owned by this username. That means this is **not** needed if you use `letsencrypt::standalone` recipe.
+
 
 #### staging
 
-mainly for testing, set to **true** if you want Let's Encrypt to make non-valid certificates.
+mainly for testing, set to **true** if you want Let's Encrypt to generate non-valid certificates.
 
 
 ### Example hashes
 
-This is how you configure it:
-
-```ruby
-"letsencrypt" => {
-  "user" => "USERNAME",
-  "email" => "NAME@EMAIL.COM",
-  "staging" => true, # for testing
-  "plugin" => "http", # available: http, standalone
-  "servers" => {
-    "server.com" => {
-      "root" => "/path/to/base/directory/of/server",
-    },
-    "server2.com" => {
-      "root" => "/path/to/base/directory/of/server2",
-      "domains" => ["www.server2.com", "foo.server2.com"] # cert can handle multiple subdomains
-    },
-  },
-},
-```
-
-A more complete example with more stuff fleshed out options:
+This is an example with all the configuration parameters:
 
 ```ruby
 attrs["letsencrypt"] = {
   "user" => "USERNAME",
   "email" => "NAME@EMAIL.COM",
-  "plugin" => "http",
+  "plugin" => "http", # or "standalone"
   "staging" => true, # for testing
   "renew-hook" => [
     "/etc/init.d/nginx reload",
@@ -135,18 +126,17 @@ attrs["letsencrypt"] = {
     "/etc/init.d/nginx start",
     "start SOMETHING_ELSE",
   ],
-  "servers" => {
-    "server.com" => {
-      "root" => "/path/to/base/directory/of/server",
+  "domains" => {
+    "example.com" => {
+      "root" => "/path/to/base/directory/of/domain",
       "staging" => true,
-      "root" => attrs.in_web("le1"),
       "notifies" => [
         [:reload, "service[NAME]", :delayed],
       ],
     },
-    "server2.com" => {
-      "root" => "/path/to/base/directory/of/server2",
-      "domains" => ["www.server2.com", "foo.server2.com"] # cert can handle multiple subdomains
+    "example2.com" => {
+      "root" => "/path/to/base/directory/of/domain2",
+      "domains" => ["www.example2.com", "foo.example2.com"] # cert can handle multiple subdomains
     },
   },
 }
@@ -167,24 +157,24 @@ base_run_list = [
 ]
 ```
 
-The reason why we do this is because we have a bit of a chicken/egg problem here, in order for the webserver (like nginx) to start, we need certificates, but in order to use Let's Encrypt's webroot, the webserver needs to be up and answering requests on port 80, so the snakeoil recipe will create fake certs and place them in the correct location to allow the webserver to start, and then the http recipe will go in and create real certificates, and the `notifies` list in the configuration block for the domain will be able to restart/reload your webserver service on successful Let's Encrypt SSL certificate creation.
+The reason why we do this is because we have a bit of a chicken/egg problem here, in order for the webserver (like nginx) to start, we need certificates to exist, but in order to use Let's Encrypt's webroot, the webserver needs to be up and answering requests on port 80, so the snakeoil recipe will create fake certifcates and place them in the correct location to allow the webserver to start, and then the http recipe will go in and replace the fake certificates with real certificates, and the `notifies` list in the configuration block for the domain will be able to restart/reload the webserver service on a successful Let's Encrypt SSL certificate creation.
 
 So, once again, the steps to make `letsencrypt::http` work:
 
-* Run `letsencrypt::snakeoil` before your webserver recipe
-* Run your webserver recipe, your webserver must answer requests on port 80, even if it is just forwarding those to port 443.
-* Run `letsencrypt::http` after you run your webserver recipe, this will add actual legit SSL certs
-* In your `letsencrypt` configuration server block, add a `notifies` value that will tell your webserver to reload/restart on successful SSL certificate creation.
+* Run `letsencrypt::snakeoil` before any webserver related recipes
+* Run webserver setup recipes, the webserver must answer requests on port 80, even if it is just forwarding those to port 443.
+* Run `letsencrypt::http` after running the webserver setup recipes, this will add the actual valid Let's Encrypt SSL certs
+* In the `letsencrypt` configuration domain block, add a `notifies` value that will tell the webserver to reload/restart on successful SSL certificate creation, causing the webserver to pick up the new valid Let's Encrypt SSL certificates.
 
 Yes, you are right, Let's Encrypt sucks for automation.
 
-Because you don't need to stop server, you'll want your configuration to reload the server on successful certificate generation and renewal so it can load the new certifcates:
+Because the webserver shouldn't be stopped while using the `letsencrypt::http` recipe, the domain configuration should be setup to reload the server on successful certificate generation and renewal so the new certificates can be picked up.
 
 ```ruby
-"servers" => {
-  "renew-hook" => [
-    "reload SERVICE",
-  ],
+"renew-hook" => [
+  "reload SERVICE",
+],
+"domains" => {
   "example.com" => {
     "plugin" => "http",
     "root" => "/webroot/path",
@@ -198,7 +188,7 @@ Because you don't need to stop server, you'll want your configuration to reload 
 
 ## The Standalone recipe
 
-Create certificates through **standalone** validation using the `letsencrypt::standalone` recipe. This means Let's Encrypt will start a standalone web server on port 80 to do its domain validation, that means you can't have anything else running on port 80.
+Create certificates through **standalone** validation using the `letsencrypt::standalone` recipe. This means Let's Encrypt will start a standalone webserver on port 80 to do its domain validation, that means nothing else can be running on port 80.
 
 You will want to add the **standalone** recipe before you install your webserver:
 
@@ -209,18 +199,18 @@ base_run_list = [
 ]
 ```
 
-And you will want your `post-hook` and `pre-hook` configuration blocks to stop the server (in the `pre-hook`) and to start the server (in the `post-hook`) so when Let's Encrypt renews the certificate it can use port 80 again. You obviously don't need to do that if your webserver doesn't use port 80, but you would want to reload or restart the server on a successful renew so the server can pick up the new certs.
+And you will want your `post-hook` and `pre-hook` configuration blocks to stop the webserver (in the `pre-hook`) and to start the webserver (in the `post-hook`) so when Let's Encrypt renews the certificate it can use port 80 again. You obviously don't need to do that if your webserver doesn't use port 80, but you would want to reload or restart the webserver on a successful renew so the webserver can pick up the new certs.
 
-Also, to make sure there aren't any problems while running Chef you will probably want to configure your server block to stop and start the server if needed:
+Also, to make sure there aren't any problems while running Chef you will probably want to configure your domain block to stop and start the webserver if needed:
 
 ```ruby
-"servers" => {
-  "pre-hook" => [
-    "stop SERVICE_ON_PORT_80",
-  ],
-  "post-hook" => [
-    "start SERVICE_ON_PORT_80",
-  ],
+"pre-hook" => [
+  "stop SERVICE_ON_PORT_80",
+],
+"post-hook" => [
+  "start SERVICE_ON_PORT_80",
+],
+"domains" => {
   "example.com" => {
     "plugin" => "standalone",
     "notifies" => [
@@ -245,9 +235,11 @@ You cannot change this, it is what it is:
 * https://github.com/certbot/certbot/issues/2801
 * https://github.com/letsencrypt/acme-spec/issues/33
 
+
 ### Route 53
 
 If you have multiple boxes that are behind Route53, then this fails because it will only put the certificates on one box and not on the others, and even if we figured out a good way to distribute the certs you still have to deal with renewing them. It might work just fine with a different certificate on each server, we would need further testing.
+
 
 ### Other
 
