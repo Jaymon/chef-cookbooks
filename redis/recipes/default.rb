@@ -94,6 +94,7 @@ redis_conf = ::File.join(dirs['etc'][0], 'redis.conf')
 # we move the redis.conf to its final resting place if it isn't already there
 src_redis_conf = ::File.join(n['src_dir'], 'redis.conf')
 remote_file "move #{src_redis_conf} to #{redis_conf}" do
+  path redis_conf
   source "file://#{src_redis_conf}"
   mode "0644"
   action :create_if_missing
@@ -197,11 +198,12 @@ if n.has_key?("conf")
       end
 
     end
-    notifies :create, "remote_file[#{redis_conf}]", :immediately
+    notifies :create, "remote_file[move #{cache_conf_file} to #{redis_conf}]", :immediately
 
   end
 
   remote_file "move #{cache_conf_file} to #{redis_conf}" do
+    path redis_conf
     source "file://#{cache_conf_file}"
     mode "0644"
     action :nothing
