@@ -8,6 +8,10 @@ module Letsencrypt
   ##
   def merge_options(options, n)
     all_options = n.to_hash
+
+    # we need the options domains to always override the node domains
+    options["domains"] ||= []
+
     all_options.merge!(options)
     return all_options
   end
