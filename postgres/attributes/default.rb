@@ -22,7 +22,7 @@ default[name]["system_conf_dir"] = ::File.join("", "etc", "postgresql-common")
 
 default[name]["conf"] = {}
 default[name]["conf"]["listen_addresses"] = "'*'"
-default[name]["conf"]["port"] = port
+default[name]["conf"]["port"] = pg_port
 
 default[name]["hba"] = []
 
@@ -57,7 +57,7 @@ default[name]["pgbouncer"]["version"] = "1.5.4"
 default[name]["pgbouncer"]["user"] = "postgres"
 
 default[name]["pgbouncer"]["databases"] = {
-  '*' => "host=127.0.0.1 port=#{port}", # fallback connection string
+  '*' => "host=127.0.0.1 port=#{pg_port}", # fallback connection string
 }
 
 default[name]["pgbouncer"]["pgbouncer"] = {
