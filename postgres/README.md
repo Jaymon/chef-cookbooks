@@ -129,10 +129,29 @@ Refer to the comments in the installed `pg_hba.conf` file or the **Client Authen
 ### ssl_files
 
 `default["postgres"]["ssl_files"]` -- Source of SSL certificate and key files. The destination
-for these files must be specified in `default["postgres"]["conf"]`.
+for these files must be specified in `default["postgres"]["conf"]`, basically, the `ssl_files` block provides the source for the paths that are specified in the conf block because Postgres is super picky about the location of the ssl files.
 
-* ssl_key_file -- path to the ssl key that should be copied to the location specified in `default["postgres"]["ssl"]["ssl_key_file"]`.
-* ssl_cert_file -- path to ssl certificate that should be copied to the location specified in `default["postgres"]["ssl"]["ssl_cert_file"]`.
+* ssl_key_file -- path to the ssl key that should be copied to the location specified in `default["postgres"]["conf"]["ssl_key_file"]`.
+* ssl_cert_file -- path to ssl certificate that should be copied to the location specified in `default["postgres"]["conf"]["ssl_cert_file"]`.
+
+#### Example
+
+It might be easier to understand this with an example, so suppose your ssl configuration was:
+
+
+```ruby
+"conf" => {
+  "ssl" => "true",
+  "ssl_cert_file" => "'/etc/ssl/certs/postgres.crt'",
+  "ssl_key_file" => "'/etc/ssl/private/postgres.key'",
+},
+"ssl_files" => {
+  "ssl_cert_file" => '/source/postgres.crt',
+  "ssl_key_file" => /source/postgres.key',
+},
+```
+
+So `/source/postgres.crt` (the value in _ssl_files.ssl_cert_file_ ) will be moved to `/etc/ssl/certs/postgres.crt` (the value in _conf.ssl_cert_file_ ) and likewise for the `ssl_key_file` values.
 
 
 -------------------------------------------------------------------------------

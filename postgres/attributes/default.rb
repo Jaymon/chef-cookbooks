@@ -1,5 +1,7 @@
 # http://docs.opscode.com/essentials_cookbook_attribute_files.html
 name = "postgres"
+pg_port = 5432
+pgbouncer_port = 6432
 
 # the user that will run postgres, best not to change this
 default[name]["user"] = "postgres"
@@ -20,6 +22,7 @@ default[name]["system_conf_dir"] = ::File.join("", "etc", "postgresql-common")
 
 default[name]["conf"] = {}
 default[name]["conf"]["listen_addresses"] = "'*'"
+default[name]["conf"]["port"] = port
 
 default[name]["hba"] = []
 
@@ -54,7 +57,7 @@ default[name]["pgbouncer"]["version"] = "1.5.4"
 default[name]["pgbouncer"]["user"] = "postgres"
 
 default[name]["pgbouncer"]["databases"] = {
-  '*' => "host=127.0.0.1 port=5432", # fallback connection string
+  '*' => "host=127.0.0.1 port=#{port}", # fallback connection string
 }
 
 default[name]["pgbouncer"]["pgbouncer"] = {
@@ -63,7 +66,7 @@ default[name]["pgbouncer"]["pgbouncer"] = {
   'unix_socket_dir' => ::File.join("", "var", "run", "pgbouncer"),
   'auth_file' => ::File.join("", "etc", "pgbouncer", "userlist.txt"),
   "listen_addr" => "127.0.0.1", # "*" might be better default
-  "listen_port" => 6432,
+  "listen_port" => pgbouncer_port,
   "pool_mode" => "session",
   "max_client_conn" => 100,
   "default_pool_size" => 20,
