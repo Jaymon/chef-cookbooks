@@ -1,2 +1,19 @@
 description "daemon catch-all, this will start all registered daemons at once"
+start on (local-filesystems and runlevel [2345])
+
+pre-start script
+  <% @instance_names.each do |name| %>
+    if [ -n "$(status <%= name %> | grep 'stop/waiting')" ]; then
+        initctl start <%= name %>
+    fi
+  <% end %>
+end script
+
+post-stop script
+  <% @instance_names.each do |name| %>
+    if [ -n "$(status <%= name %> | grep 'start/running')" ]; then
+        initctl stop <%= name %>
+    fi
+  <% end %>
+end script
 

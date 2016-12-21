@@ -5,7 +5,9 @@ if n and not (n["open_ports"].empty? and n["whitelist"].empty? and n["accept"].e
   rules = []
 
   n["open_ports"].uniq.each do |port|
-    rules.push("iptables -A INPUT -p tcp --dport #{port} -j ACCEPT #rule: open_ports")
+    #rules.push("iptables -A INPUT -p tcp --dport #{port} -j ACCEPT #rule: open_ports")
+    #rules.push("iptables -A INPUT -p udp --dport #{port} -j ACCEPT #rule: open_ports")
+    rules.push("iptables -A INPUT -p all --dport #{port} -j ACCEPT #rule: open_ports")
   end
 
   n["whitelist"].uniq.each do |source_ip|
