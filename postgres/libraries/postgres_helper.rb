@@ -36,6 +36,39 @@ module Postgres
       @cmd_user = "sudo -u #{username}"
     end
 
+    def pgpasses(options)
+      # hostname:port:database:username:password
+      pgpasses = options.fetch("pgpass", []).dup
+      if pgpasses.count > 0
+        pgpasses.map! { |pgpass|
+          if pgpass.has_key?("hostname")
+            pgpass["host"] ||= pgpass["hostname"]
+          end
+          pgpass["password"] ||= options.fetch("password", "*")
+          pgpass["username"] ||= @username
+          ["host", "port", "database"].each do |k|
+            pgpass[k] ||= "*"
+          end
+
+          pgpass
+
+        }
+
+      else
+        pgpasses << {
+          "host" => "*",
+          "port" => "*",
+          "database" => "*",
+          "password" => options.fetch("password", "*"),
+          "username" => @username,
+        }
+      end
+
+      p pgpasses
+      return pgpasses
+
+    end
+
     ##
     # return the home directory path of the initialized user
     ##

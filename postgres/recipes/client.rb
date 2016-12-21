@@ -46,14 +46,13 @@ n_pg["users"].each do |username, options|
     template ::File.join(user_home, ".pgpass") do
       source "pgpass.erb"
       variables(
-        :username => username,
-        :password => options.fetch("password", "*")
+        :rows => user.pgpasses(options),
       )
       owner username
       group username
       mode "0600"
       sensitive true
-      action :create_if_missing
+      action :create
       only_if "test -d #{user_home}"
     end
 

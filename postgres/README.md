@@ -50,6 +50,10 @@ The `options` key has the same names as defined [here](https://www.postgresql.or
 this is the password the user will use to log into the database, it corresponds to the `ENCRYPTED PASSWORD` option.
 
 
+#### pgpass
+
+A list of dictionary values you would like put into a `~/.pgpass` file for the user. Possible keys for the dictionary: `host`, `port`, `database`, `username` (defaults to username key of the `users` dict), `password` (defaults to the `password` key discussed above).
+
 -------------------------------------------------------------------------------
 
 ### databases

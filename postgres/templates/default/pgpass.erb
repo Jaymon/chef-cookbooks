@@ -1,1 +1,3 @@
-*:*:*:<%= @username %>:<%= @password %>
+<% @rows.each do |opts| %>
+<%= opts["host"] %>:<%= opts["port"] %>:<%= opts["database"] %>:<%= opts["username"] %>:<%= opts["password"] %>
+<% end %>
