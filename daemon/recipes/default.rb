@@ -23,8 +23,8 @@ if n.has_key?('names')
     source "all.conf.erb"
     mode "0644"
     variables({"instance_names" => n['names'].keys})
-    notifies :stop, "service[#{name}]", :immediately
-    notifies :start, "service[#{name}]", :immediately
+    #notifies :stop, "service[#{name}]", :immediately
+    #notifies :start, "service[#{name}]", :immediately
   end
 
   default_options = n.fetch('defaults', {})

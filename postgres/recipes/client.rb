@@ -42,6 +42,7 @@ n_pg["users"].each do |username, options|
   if !user_home.empty?
     # http://wiki.opscode.com/display/ChefCN/Templates
     # https://www.postgresql.org/docs/9.5/static/libpq-pgpass.html
+    # hostname:port:database:username:password
     template ::File.join(user_home, ".pgpass") do
       source "pgpass.erb"
       variables(

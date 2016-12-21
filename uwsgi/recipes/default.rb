@@ -157,7 +157,7 @@ template ::File.join("", "etc", "init", "#{name}.conf") do
   source "servers.conf.erb"
   mode "0644"
   variables({"server_names" => n['servers'].keys})
-  notifies :stop, "service[#{name}]", :delayed
+  #notifies :stop, "service[#{name}]", :delayed
   notifies :start, "service[#{name}]", :delayed
 end
 
