@@ -24,8 +24,11 @@ end
 # http://www.postgresql.org/docs/9.2/static/app-psql.html
 cookbook_file ::File.join(n_pg["system_conf_dir"], "psqlrc") do
   source "psqlrc.sh"
-  owner u
-  group u
+  # NOTE 12-22-2016, if this file is installed by itself "postgres" user doesn't
+  # exist and that will cause provision to fail, testing it looks like this file
+  # being root works just find
+  #owner u
+  #group u
   mode "0644"
   action :create
 end
