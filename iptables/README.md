@@ -2,11 +2,12 @@
 
 reproduce and update an iptables configuration
 
+
 ## Attributes
 
-<pre>
- node["iptables"] => {
-  "open_ports" => [],              # List of server tcp ports that are open to all client IPs
+```ruby
+node["iptables"] => {
+  "open_ports" => [],              # List of server tcp/udp ports that are open to all client IPs
   "whitelist" => [],               # List of client IPs to allow access to all server ports
   "accept" => [{
     "name" => "rule name",         # Descriptive name for this rule
@@ -14,8 +15,9 @@ reproduce and update an iptables configuration
     "source_ip" => "10.10.10.10",  # Optional: client IP that this rule applies to
     "dest_port" => "22",           # Optional: Server port to open
   }],
- }
-</pre>
+}
+```
+
 
 ## Using
 
@@ -30,9 +32,10 @@ This will dump a script in `/opt/iptables-config.sh` that will contain your conf
 
     $ sudo start iptables-config
 
-The recipe will call this automatically, but you should be aware of it in case you want to run it manually.
+The recipe will call this automatically, but you should be aware of it in case you want to run it manually, upstart is also configured to run on startup so a rebooted box will re-apply set rules. The upstart service basically just calls `/opt/iptables-config.sh` so that script is the fountain of truth, not the upstart init script.
+
 
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04, nothing else has been tested
 
