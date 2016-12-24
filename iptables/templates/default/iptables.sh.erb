@@ -4,6 +4,7 @@
 # http://www.etoyoc.com/linux/iptables-lockdown.html
 
 # set -x
+set -e
 
 # flush rules
 iptables -F
@@ -17,9 +18,6 @@ iptables -A INPUT ! -i lo -d 127.0.0.0/8 -j REJECT
 
 # allow connections which are already established
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-# allow all outbound connections
-iptables -A OUTPUT -j ACCEPT
 
 # add rules from Chef scripts
 <% @rules.each do |val| %>
@@ -37,4 +35,5 @@ iptables -A FORWARD -j REJECT
 iptables -A OUTPUT -j ACCEPT
 
 # set +x
+set +e
 
