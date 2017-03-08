@@ -68,6 +68,7 @@ end
 
 arg_str = "-q --noninteractive"
 
+
 ["pre-hook", "post-hook", "renew-hook"].each do |hook|
   hook_path = n["#{hook}_path"]
   commands = n.fetch(hook, []).dup
@@ -85,8 +86,44 @@ arg_str = "-q --noninteractive"
 end
 
 
+# https://certbot.eff.org/docs/install.html#problems-with-python-virtual-environment
+swap_hooks = {
+  "on" => {
+    "path" => ::File.join(n["binroot"], "swap-on.sh"),
+    "commands" => [
+      "#!/bin/bash",
+      "",
+      "fallocate -l 1G /tmp/swapfile",
+      "chmod 600 /tmp/swapfile",
+      "mkswap /tmp/swapfile",
+      "swapon /tmp/swapfile",
+      "",
+    ],
+  },
+  "off" => {
+    "path" => ::File.join(n["binroot"], "swap-off.sh"),
+    "commands" => [
+      "#!/bin/bash",
+      "",
+      "swapoff /tmp/swapfile",
+      "rm /tmp/swapfile",
+      "",
+    ],
+  },
+}
+
+swap_hooks.each do |swap_type, swap_info|
+  file swap_info["path"] do
+    content swap_info["commands"].join("\n")
+    mode "0655"
+  end
+end
+
+
 cron "#{name} renew" do
-  command "#{bin_cmd} renew #{arg_str}"
+  # http://stackoverflow.com/questions/2388087/how-to-get-cron-to-call-in-the-correct-paths
+  path ["/usr/bin", "/bin", "/usr/local/sbin", "/usr/sbin", "/sbin"].join(::File::PATH_SEPARATOR)
+  command "#{swap_hooks["on"]}; #{bin_cmd} renew #{arg_str}; #{swap_hooks["off"]}"
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"

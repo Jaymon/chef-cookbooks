@@ -47,11 +47,42 @@ Something like `127.0.0.1:9001`. Set this to activate uwsgi passing on the socke
 a list of servers to 301 redirect to the server `host`.
 
 ```
-"servers" -> {
+"servers" => {
   "example.com" => {
     "redirect" => ["www.example.com", "www2.example.com"]
   }
 }
+```
+
+#### headers
+
+A dictionary of `header_name`/`header_value`. Any headers defined here will be sent down on requests, so:
+
+```
+"headers" => {
+  "X-Frame-Options" => "ALLOW-FROM https://example.com"
+}
+```
+
+Would result in this being added to the configuration:
+
+```
+add_header X-Frame-Options "ALLOW-FROM https://example.com"
+```
+
+#### gzip
+
+Set to **true** to enable gzip compression.
+
+#### gzip_types
+
+a list of mimetypes to compress
+
+```
+"gzip_types" => [
+  "text/plain",
+  "text/javascript",
+]
 ```
 
 

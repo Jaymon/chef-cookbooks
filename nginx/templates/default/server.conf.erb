@@ -81,8 +81,29 @@ server {
 
   <% end %>
 
+  # user defined headers
+  <% if @headers %>
+    <% @headers.each do |hn, hv| %>
+  add_header <%= hn %> "<%= hv %>";
+    <% end %>
+  <% end %>
+
   access_log /var/log/nginx/access.<%= @server_name %>.log;
   error_log /var/log/nginx/error.<%= @server_name %>.log;
+
+  # enable gzip
+  # http://nginx.org/en/docs/http/ngx_http_gzip_module.html
+  <% 
+  # https://easyengine.io/tutorials/nginx/enable-gzip/
+  %>
+  <% if @gzip %>
+  gzip on;
+  gzip_disable "msie6";
+  <% #gzip_vary on; %>
+  gzip_proxied any;
+  gzip_comp_level 6;
+  gzip_types <%= @gzip_types.join(" ") %>;
+  <% end %>
 
   <% if @uwsgi_socket %>
 
