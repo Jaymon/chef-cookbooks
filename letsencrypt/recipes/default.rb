@@ -93,10 +93,12 @@ swap_hooks = {
     "commands" => [
       "#!/bin/bash",
       "",
+      "{",
       "fallocate -l 1G /tmp/swapfile",
       "chmod 600 /tmp/swapfile",
       "mkswap /tmp/swapfile",
       "swapon /tmp/swapfile",
+      "} &> /dev/null",
       "",
     ],
   },
@@ -105,8 +107,10 @@ swap_hooks = {
     "commands" => [
       "#!/bin/bash",
       "",
+      "{",
       "swapoff /tmp/swapfile",
       "rm /tmp/swapfile",
+      "} &> /dev/null",
       "",
     ],
   },
