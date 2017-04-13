@@ -5,6 +5,7 @@
 # http://serverfault.com/questions/250476/how-to-force-or-redirect-to-ssl-in-nginx/474345#474345
 # http://serverfault.com/questions/250476/how-to-force-or-redirect-to-ssl-in-nginx
 %>
+
 server {
   listen   80;
   listen   [::]:80;
@@ -26,6 +27,7 @@ server {
 <% end %>
 <% end %>
 
+
 server {
 
   <% @port.each do |p| %>
@@ -36,6 +38,10 @@ server {
   listen <%= p %>;
   listen [::]:<%= p %>;
   <% end %>
+  <% end %>
+
+  <% if @expires %>
+  expires $expires;
   <% end %>
 
   charset utf-8;
@@ -57,7 +63,7 @@ server {
 
   ssl_session_timeout 1d;
   ssl_session_cache shared:SSL:50m;
-  <% #ssl_session_tickets off; # first appeard in 1.5.9, 14.04 is 1.4.6 %>
+  ssl_session_tickets off;
 
   ssl_protocols TLSv1.2;
   ssl_ciphers EECDH+AESGCM:EECDH+AES;
@@ -88,7 +94,11 @@ server {
     <% end %>
   <% end %>
 
+  <% if @access_log_format %>
+  access_log /var/log/nginx/access.<%= @server_name %>.log <%= @access_log_format %>;
+  <% else %>
   access_log /var/log/nginx/access.<%= @server_name %>.log;
+  <% end %>
   error_log /var/log/nginx/error.<%= @server_name %>.log;
 
   # enable gzip

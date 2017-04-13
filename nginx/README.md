@@ -54,6 +54,7 @@ a list of servers to 301 redirect to the server `host`.
 }
 ```
 
+
 #### headers
 
 A dictionary of `header_name`/`header_value`. Any headers defined here will be sent down on requests, so:
@@ -70,9 +71,11 @@ Would result in this being added to the configuration:
 add_header X-Frame-Options "ALLOW-FROM https://example.com"
 ```
 
+
 #### gzip
 
 Set to **true** to enable gzip compression.
+
 
 #### gzip_types
 
@@ -84,6 +87,35 @@ a list of mimetypes to compress
   "text/javascript",
 ]
 ```
+
+
+#### access_log_format
+
+You can set this to a name defined in the `node["conf"]["log_format"]` dict, by default there is a `duration` key that will make the nginx log add the duration to the request also.
+
+
+#### expires
+
+boolean, set this to **true** or **false** to turn on/off caching for the server.
+
+
+### conf
+
+#### expires
+
+A dict of content types and their cache values:
+
+```
+"expires" => {
+  "text/html" => "epoch",
+  "application/javascript" => "max",
+}
+```
+
+Read more about the [possible values](https://www.digitalocean.com/community/tutorials/how-to-implement-browser-caching-with-nginx-s-header-module-on-ubuntu-16-04#step-3-—-configuring-cache-control-and-expires-headers)
+
+
+
 
 
 ## Using 

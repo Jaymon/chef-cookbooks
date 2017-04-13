@@ -1,0 +1,21 @@
+
+<% if @expires %>
+# Expires map
+# https://www.digitalocean.com/community/tutorials/how-to-implement-browser-caching-with-nginx-s-header-module-on-ubuntu-16-04#step-3-—-configuring-cache-control-and-expires-headers
+# http://stackoverflow.com/questions/22379738/nginx-caching-headers-by-file-type
+map $sent_http_content_type $expires {
+<% @expires.each do |cn, cv| %>
+  <%= cn %> <%= cv %>;
+<% end %>
+}
+<% end %>
+
+
+<% if @log_format %>
+# https://lincolnloop.com/blog/tracking-application-response-time-nginx/
+# http://articles.slicehost.com/2010/8/27/customizing-nginx-web-logs
+<% @log_format.each do |fn, fv| %>
+log_format <%= fn %> '<%= fv %>';
+<% end %>
+<% end %>
+
