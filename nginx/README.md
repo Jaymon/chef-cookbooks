@@ -112,7 +112,7 @@ A dict of content types and their cache values:
 }
 ```
 
-Read more about the [possible values](https://www.digitalocean.com/community/tutorials/how-to-implement-browser-caching-with-nginx-s-header-module-on-ubuntu-16-04#step-3-—-configuring-cache-control-and-expires-headers)
+Read more about the [possible values](https://www.digitalocean.com/community/tutorials/how-to-implement-browser-caching-with-nginx-s-header-module-on-ubuntu-16-04#step-3-—-configuring-cache-control-and-expires-headers). You can also read about [caching in Nginx in general](https://www.nginx.com/blog/nginx-caching-guide/)
 
 
 

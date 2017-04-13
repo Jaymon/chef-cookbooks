@@ -39,6 +39,7 @@ end
 
 if n.has_key?("version") && !n["version"].empty?
 
+  # http://stackoverflow.com/a/40237749/5006
   ["nginx-full", "nginx-common", "nginx"].each do |pkg|
     package "nginx-remove-#{pkg}" do
       package_name pkg
