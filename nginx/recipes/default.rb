@@ -39,10 +39,12 @@ end
 
 if n.has_key?("version") && !n["version"].empty?
 
-  package "nginx-remove" do
-    package_name "nginx"
-    action :remove
-    not_if "nginx -v 2>&1 | grep \"#{n["version"]}\""
+  ["nginx-full", "nginx-common", "nginx"].each do |pkg|
+    package "nginx-remove-#{pkg}" do
+      package_name pkg
+      action :remove
+      not_if "nginx -v 2>&1 | grep \"#{n["version"]}\""
+    end
   end
 
 end
