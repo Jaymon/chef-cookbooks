@@ -7,11 +7,24 @@ package "#{name}-lsb-release" do
 end
 
 nginx_path = "/etc/apt/sources.list.d/nginx.list"
-execute "#{name}-repo-install" do
-  command "bash LIST=\"#{nginx_path}\"; OS=`lsb_release -si | tr '[:upper:]' '[:lower:]'`; RELEASE=`lsb_release -sc`; if [ ! -f $LIST ]; then echo -e \"deb http://nginx.org/packages/$OS/ $RELEASE nginx\ndeb-src http://nginx.org/packages/$OS/ $RELEASE nginx\" > $LIST; else echo \"File $LIST exists! Check it.\"; fi"
+
+bash "#{name}-repo-install" do
+  code <<-EOH
+    LIST="#{nginx_path}"
+    OS=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
+    RELEASE=$(lsb_release -sc)
+    if [ ! -f $LIST ]; then
+      echo -e "deb https://nginx.org/packages/$OS/ $RELEASE nginx\ndeb-src https://nginx.org/packages/$OS/ $RELEASE nginx" > $LIST;
+    fi
+    EOH
   notifies :run, "execute[#{name}-repo-key]", :immediately
   not_if { ::File.exists?(nginx_path) }
 end
+# execute "#{name}-repo-install" do
+#   command "bash LIST=\"#{nginx_path}\"; OS=`lsb_release -si | tr '[:upper:]' '[:lower:]'`; RELEASE=`lsb_release -sc`; if [ ! -f $LIST ]; then echo -e \"deb http://nginx.org/packages/$OS/ $RELEASE nginx\ndeb-src http://nginx.org/packages/$OS/ $RELEASE nginx\" > $LIST; else echo \"File $LIST exists! Check it.\"; fi"
+#   notifies :run, "execute[#{name}-repo-key]", :immediately
+#   not_if { ::File.exists?(nginx_path) }
+# end
 
 execute "#{name}-repo-key" do
   command "wget -q -O- https://nginx.org/keys/nginx_signing.key | apt-key add -"
