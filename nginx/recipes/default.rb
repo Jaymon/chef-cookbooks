@@ -8,7 +8,7 @@ end
 
 nginx_path = "/etc/apt/sources.list.d/nginx.list"
 execute "#{name}-repo-install" do
-  command "LIST=\"#{nginx_path}\"; OS=`lsb_release -si | tr '[:upper:]' '[:lower:]'`; RELEASE=`lsb_release -sc`; if [ ! -f $LIST ]; then echo -e \"deb http://nginx.org/packages/$OS/ $RELEASE nginx\ndeb-src http://nginx.org/packages/$OS/ $RELEASE nginx\" > $LIST; else echo \"File $LIST exists! Check it.\"; fi"
+  command "bash LIST=\"#{nginx_path}\"; OS=`lsb_release -si | tr '[:upper:]' '[:lower:]'`; RELEASE=`lsb_release -sc`; if [ ! -f $LIST ]; then echo -e \"deb http://nginx.org/packages/$OS/ $RELEASE nginx\ndeb-src http://nginx.org/packages/$OS/ $RELEASE nginx\" > $LIST; else echo \"File $LIST exists! Check it.\"; fi"
   notifies :run, "execute[#{name}-repo-key]", :immediately
   not_if { ::File.exists?(nginx_path) }
 end
