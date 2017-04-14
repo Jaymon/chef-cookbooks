@@ -21,6 +21,7 @@ default[name]["defaults"]["gzip_types"] = [
 ]
 
 default[name]["conf"] = {}
+# this will set caching headers for these mimetypes
 default[name]["conf"]["expires"] = {
   "default" => "off",
   "text/html" => "epoch",
@@ -28,6 +29,13 @@ default[name]["conf"]["expires"] = {
   "application/javascript" => "max",
   "~image/" => "max",
 }
+# any additional mime types you want nginx to recognize
+default[name]["conf"]["types"] = {
+  "application/x-font-ttf" => "ttc ttf",
+  "application/x-font-otf" => "otf",
+  "application/font-woff2" => "woff2",
+}
+
 #default[name]["defaults"]["access_log_format"] = "duration"
 
 default[name]["conf"]["log_format"] = {

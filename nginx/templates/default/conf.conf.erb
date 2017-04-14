@@ -19,3 +19,12 @@ log_format <%= fn %> '<%= fv %>';
 <% end %>
 <% end %>
 
+
+<% if @types %>
+types {
+<% @types.each do |n, v| %>
+  <%= n %> <%= v %>;
+<% end %>
+}
+<% end %>
+

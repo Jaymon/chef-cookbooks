@@ -115,7 +115,18 @@ A dict of content types and their cache values:
 Read more about the [possible values](https://www.digitalocean.com/community/tutorials/how-to-implement-browser-caching-with-nginx-s-header-module-on-ubuntu-16-04#step-3-—-configuring-cache-control-and-expires-headers). You can also read about [caching in Nginx in general](https://www.nginx.com/blog/nginx-caching-guide/)
 
 
+#### types
 
+A dict of content types and there extensions so nginx can serve the correct mime type for things.
+
+```
+"types" => {
+  "text/foo" => "foo",
+  "text/bar" => "bar baz",
+}
+```
+
+Nginx comes with `/etc/nginx/mime.types` that has the most common extensions and their mime types, this allows you to supplement those with other formats Nginx does not recognize by default yet (like webfonts).
 
 
 ## Using 
