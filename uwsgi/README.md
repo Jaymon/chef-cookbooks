@@ -19,22 +19,36 @@ string -- the user uWSGI will run as
 
     node["uwsgi"]["user"] = "www-data"
 
+
+-------------------------------------------------------------------------------
+
 ### init
 
-dict -- any specific init script configuration
+dict -- any specific init script configuration, this block can affect how the Upstart script is configured.
+
 
 #### env
 
-string -- a directory of file that will be sourced before calling `command`
+list -- a directory, list, or files that will be sourced before calling `command`
+
+    "env" => [
+      "/any/files/in/directory/will/be/sourced",
+      "/a/file/will/be/sourced.sh",
+      "VALUE=will_be_added_to_environment"
+    ]
+
 
 #### command
 
 string -- the command, defaults to `uwsgi`
 
 
+-------------------------------------------------------------------------------
+
 ### server
 
-dict -- any common configuration you want all the individual `server` keys to share.
+dict -- any common configuration you want all the individual `server` keys to share. This has the same structure as the `server` dict in the individual server configuration dicts.
+
 
 ### servers
 
