@@ -97,6 +97,7 @@ n.each do |key, options|
           res = ::Chef::Resource::Pip.new(pip_file, run_context)
           #res.not_if { ::File.exists?(pip_sentinal_file) }
           res.notifies_immediately :create, "remote_file[pip sentinal #{d}]"
+          res.flags = "--no-cache-dir"
           res.run_action(:install)
 
         end
