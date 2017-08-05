@@ -181,7 +181,9 @@ if n.has_key?("conf")
           new_conf_ignore.merge(conf_lookup[key])
         else
           # just put lines without previous values at the end of all lines
-          conf_lines += [""] + new_conf_lines
+          if !new_conf_lines.empty?
+            conf_lines += [""] + new_conf_lines
+          end
         end
       end
 
