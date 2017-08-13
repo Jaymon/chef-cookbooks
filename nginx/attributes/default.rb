@@ -3,7 +3,7 @@
 name = "nginx"
 
 default[name] = {}
-default[name]["version"] = "1.12.0"
+default[name]["version"] = "1.12.1"
 #default[name]["version"] = "1.10.3"
 #default[name]["version"] = "1.10.3-1~trusty"
 default[name]["defaults"] = {}
