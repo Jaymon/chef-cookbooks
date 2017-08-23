@@ -28,7 +28,9 @@ cmd_user = "sudo -E -u #{u}"
 ###############################################################################
 if !n.empty?
 
-  recovery_file = ::File.join(n_pg["data_dir"], "recovery.conf")
+  version = n_pg["version"]
+  data_dir = get_data_dir(version)
+  recovery_file = ::File.join(data_dir, "recovery.conf")
   host, port = n["master"].split(":")
 
   # http://stackoverflow.com/questions/27535197/stop-service-in-chef-after-it-has-been-notified-to-restart
@@ -42,7 +44,7 @@ if !n.empty?
   end
 
   execute "pg_clear_data_for_replication" do
-    command "rm -rf #{n_pg["data_dir"]}"
+    command "rm -rf #{data_dir}"
     action :nothing
     notifies :run, "execute[pg_basebackup]", :immediately
   end
@@ -52,7 +54,7 @@ if !n.empty?
     basebackup_cmd += " -p #{port}"
   end
   # can't use --write-recovery-conf here because it doesn't set a trigger_file :(
-  basebackup_cmd += " -D #{n_pg["data_dir"]} -U #{n["user"]} -X stream"
+  basebackup_cmd += " -D #{data_dir} -U #{n["user"]} -X stream"
 
   execute "pg_basebackup" do
     command basebackup_cmd

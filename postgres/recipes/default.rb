@@ -9,14 +9,46 @@
 name = cookbook_name.to_s
 n = node[name]
 u = n["user"]
+version = n["version"]
 
 
 ###############################################################################
 # actually install postgres db
 ###############################################################################
 
-["postgresql", "postgresql-contrib"].each do |p|
-  package p
+default_version = get_version()
+if version != default_version
+
+  # https://www.postgresql.org/download/linux/ubuntu/
+
+  sources_path = "/etc/apt/sources.list.d/pgdg.list"
+  execute "#{name}-sources-install" do
+    command "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" > #{sources_path}"
+    notifies :run, "execute[#{name}-sources-key]", :immediately
+    not_if { ::File.exists?(sources_path) }
+  end
+
+  execute "#{name}-sources-key" do
+    command "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
+    notifies :run, "execute[#{name}-sources-update]", :immediately
+    action :nothing
+  end
+
+  execute "#{name}-sources-update" do
+    command "apt-get update"
+    action :nothing
+  end
+
+  ["postgresql-#{version}", "postgresql-contrib-#{version}"].each do |p|
+    package p
+  end
+
+else
+
+  ["postgresql", "postgresql-contrib"].each do |p|
+    package p
+  end
+
 end
 
 
@@ -44,11 +76,12 @@ end
 # the code to configure postgres is kind of a chicken/egg problem, on first run
 # there is no postgres.conf file to read from, so you can't have this code run
 # until postgres is actually installed, so on first run through, the cache_conf_file
-# and n['conf_file'] are pointing to files that don't actually exist, which is 
+# and get_conf_file() are pointing to files that don't actually exist, which is 
 # why we use a ruby_block and notifications
 
 if n.has_key?("conf")
 
+  conf_file = get_conf_file(version)
   cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
 
   # copy ssl cert if in conf
@@ -89,7 +122,7 @@ if n.has_key?("conf")
       # build a config file mapping we can manipulate
       conf_lines = []
       conf_lookup = {}
-      ::File.read(n["conf_file"]).each_line.with_index do |conf_line, index|
+      ::File.read(conf_file).each_line.with_index do |conf_line, index|
         if conf_line.match(/^\S+\s*=/)
           conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
           conf_val, conf_comment = conf_val.split(/#/, 2)
@@ -134,11 +167,11 @@ if n.has_key?("conf")
       end
 
     end
-    notifies :create, "remote_file[#{n['conf_file']}]", :delayed
+    notifies :create, "remote_file[#{conf_file}]", :delayed
 
   end
 
-  remote_file n['conf_file'] do
+  remote_file conf_file do
     source "file://#{cache_conf_file}"
     owner u
     group u
@@ -156,12 +189,9 @@ end
 # http://stackoverflow.com/questions/1287067/unable-to-connect-postgresql-to-remote-database-using-pgadmin
 if n.has_key?("hba")
 
-  # the code to configure postgres is kind of a chicken/egg problem, on first run
-  # there is no postgres.conf file to read from, so you can't have this code run
-  # until postgres is actually installed, so on first run through, the cache_conf_file
-  # and n['conf_file'] are pointing to files that don't actually exist, which is 
-  # why we use a ruby_block and notifications
+  # same issue as with conf
 
+  hba_file = get_hba_file(version)
   cache_hba_file = ::File.join(Chef::Config[:file_cache_path], "pg_hba.conf")
 
   ruby_block "configure pg_hba" do
@@ -169,7 +199,7 @@ if n.has_key?("hba")
       # build a file mapping we can manipulate
       conf_lines = []
       conf_lookup = []
-      ::File.read(n["hba_file"]).each_line.with_index do |conf_line, index|
+      ::File.read(hba_file).each_line.with_index do |conf_line, index|
         conf_line.strip!
         conf_lines << conf_line
 
@@ -274,10 +304,10 @@ if n.has_key?("hba")
       end
 
     end
-    notifies :create, "remote_file[#{n['hba_file']}]", :delayed
+    notifies :create, "remote_file[#{hba_file}]", :delayed
   end
 
-  remote_file n['hba_file'] do
+  remote_file hba_file do
     source "file://#{cache_hba_file}"
     owner u
     group u

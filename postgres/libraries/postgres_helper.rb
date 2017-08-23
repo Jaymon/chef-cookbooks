@@ -16,6 +16,26 @@ module Postgres
     return m[1]
   end
 
+  def get_main_dir(version)
+    return ::File.join("", "etc", "postgresql", version, "main")
+  end
+
+  def get_data_dir(version)
+    return ::File.join("", "var", "lib", "postgresql", version, "main")
+  end
+
+  def get_system_conf_dir(version)
+    return ::File.join("", "etc", "postgresql-common")
+  end
+
+  def get_conf_file(version)
+    return ::File.join(get_main_dir(version), "postgresql.conf")
+  end
+
+  def get_hba_file(version)
+    return ::File.join(get_main_dir(version), "pg_hba.conf")
+  end
+
   ##
   # creating an instance of this class will allow you to format queries and run
   # commands and check things on the db from the perspective of the passed in db
@@ -193,7 +213,7 @@ end
 # http://stackoverflow.com/questions/20835697/how-to-require-my-library-in-chef-ruby-block
 #::Chef::Recipe.send(:include, Postgres::Helper)
 #::Chef::Recipe.send(:include, Postgres)
-# Chef::Recipe.send(:include, ::Postgres::Helper)
+::Chef::Recipe.send(:include, ::Postgres)
 # Chef::Resource.send(:include, ::Postgres::Helper)
 # Chef::Provider.send(:include, ::Postgres::Helper)
 ::Chef::Node::Attribute.send(:include, ::Postgres)
