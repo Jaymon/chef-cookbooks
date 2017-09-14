@@ -17,7 +17,7 @@ name = recipe_name.to_s
 n_pg = node[name_pg]
 n = n_pg[name]
 #admin = Postgres::User.new(n_pg['user'])
-admin = User.new(n_pg['user'])
+admin = PostgresUser.new(n_pg['user'])
 
 
 n.each do |username, options|

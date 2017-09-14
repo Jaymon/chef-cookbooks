@@ -29,7 +29,7 @@ cmd_user = "sudo -E -u #{u}"
 if !n.empty?
 
   version = n_pg["version"]
-  data_dir = get_data_dir(version)
+  data_dir = Postgres.get_data_dir(version)
   recovery_file = ::File.join(data_dir, "recovery.conf")
   host, port = n["master"].split(":")
 

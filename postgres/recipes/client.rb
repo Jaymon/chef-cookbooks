@@ -9,7 +9,7 @@ n_pg = node[name_pg]
 n = n_pg.fetch(name, {})
 u = n_pg["user"]
 version = n_pg["version"]
-system_conf_dir = get_system_conf_dir(version)
+system_conf_dir = Postgres.get_system_conf_dir(version)
 
 
 ["postgresql-client"].each do |p|
@@ -41,7 +41,7 @@ end
 
 n_pg["users"].each do |username, options|
 
-  user = ::Postgres::User.new(username)
+  user = PostgresUser.new(username)
   user_home = user.homedir
 
   if !user_home.empty?

@@ -16,39 +16,36 @@ version = n["version"]
 # actually install postgres db
 ###############################################################################
 
-default_version = get_version()
-if version != default_version
 
-  # https://www.postgresql.org/download/linux/ubuntu/
+# TODO -- check for an existing postgres installation and if version and current_version
+# are different then we would need to uninstall the current postgres in order to
+# upgrade, what it currently does is install the new version but keeps the existing
+# version, which is strange
+# https://stackoverflow.com/questions/13733719/which-version-of-postgresql-am-i-running
 
-  sources_path = "/etc/apt/sources.list.d/pgdg.list"
-  execute "#{name}-sources-install" do
-    command "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" > #{sources_path}"
-    notifies :run, "execute[#{name}-sources-key]", :immediately
-    not_if { ::File.exists?(sources_path) }
-  end
+# https://www.postgresql.org/download/linux/ubuntu/
+# https://askubuntu.com/questions/633919/how-install-postgresql-9-4
+# https://askubuntu.com/questions/638725/install-postgres-9-4-on-ubuntu-14-04-2
+sources_path = "/etc/apt/sources.list.d/pgdg.list"
+execute "#{name}-sources-install" do
+  command "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" > #{sources_path}"
+  notifies :run, "execute[#{name}-sources-key]", :immediately
+  not_if { ::File.exists?(sources_path) }
+end
 
-  execute "#{name}-sources-key" do
-    command "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
-    notifies :run, "execute[#{name}-sources-update]", :immediately
-    action :nothing
-  end
+execute "#{name}-sources-key" do
+  command "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
+  notifies :run, "execute[#{name}-sources-update]", :immediately
+  action :nothing
+end
 
-  execute "#{name}-sources-update" do
-    command "apt-get update"
-    action :nothing
-  end
+execute "#{name}-sources-update" do
+  command "apt-get update"
+  action :nothing
+end
 
-  ["postgresql-#{version}", "postgresql-contrib-#{version}"].each do |p|
-    package p
-  end
-
-else
-
-  ["postgresql", "postgresql-contrib"].each do |p|
-    package p
-  end
-
+["postgresql-#{version}", "postgresql-contrib-#{version}"].each do |p|
+  package p
 end
 
 
@@ -81,7 +78,7 @@ end
 
 if n.has_key?("conf")
 
-  conf_file = get_conf_file(version)
+  conf_file = Postgres.get_conf_file(version)
   cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
 
   # copy ssl cert if in conf
@@ -191,7 +188,7 @@ if n.has_key?("hba")
 
   # same issue as with conf
 
-  hba_file = get_hba_file(version)
+  hba_file = Postgres.get_hba_file(version)
   cache_hba_file = ::File.join(Chef::Config[:file_cache_path], "pg_hba.conf")
 
   ruby_block "configure pg_hba" do

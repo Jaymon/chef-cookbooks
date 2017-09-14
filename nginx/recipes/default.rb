@@ -54,7 +54,7 @@ end
 # https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-14-04-lts
 package "nginx" do
   notifies :create, "directory[/var/log/nginx]", :immediately
-  version get_version(n["version"])
+  version Nginx.get_version(n["version"])
 end
 
 # set permissions on first nginx install
