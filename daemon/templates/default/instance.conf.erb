@@ -15,7 +15,9 @@ respawn
 respawn limit 5 5
 limit nofile 100000 100000
 
+<% if defined?(@dir) %>
 chdir <%= @dir %>
+<% end %>
 <% if defined?(@username) %>
 setuid <%= @username %>
 <% end %>
