@@ -50,25 +50,44 @@ if n.has_key?('names')
     instance_name = service_name.to_s
     count = options.fetch('count', 1)
     if count == 1
-      template ::File.join("", "etc", "init", "#{instance_name}.conf") do
+      path = ::File.join("", "etc", "init", "#{instance_name}.conf")
+      template path do
         source "instance.conf.erb"
         mode "0644"
         variables options
+        notifies "execute[verify #{path}]", :immediately
       end
+
+      # https://askubuntu.com/a/640892
+      execute "verify #{path}" do
+        command "init-checkconf -d #{path}"
+        action :nothing
+      end
+
     else
       options['instance_name'] = instance_name
+
       template ::File.join("", "etc", "init", "#{instance_name}.conf") do
         source "instances.conf.erb"
         mode "0644"
         variables options
       end
-      template ::File.join("", "etc", "init", "child-#{instance_name}.conf") do
+
+      path = ::File.join("", "etc", "init", "child-#{instance_name}.conf")
+      template path do
         source "instance.conf.erb"
         mode "0644"
         variables options
+        notifies "execute[verify #{path}]", :immediately
+      end
+
+      execute "verify #{path}" do
+        command "init-checkconf -d #{path}"
+        action :nothing
       end
 
     end
+
 
     r = service instance_name do
       provider Chef::Provider::Service::Upstart
