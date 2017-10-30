@@ -14,7 +14,7 @@ end
 
 include_recipe "pip" # to make this work, you need depends "pip" in metadata
 
-# !!! why we need --no-binary 
+# !!! why we need --no-binary
 # Warning Because the psycopg wheel package uses its own libssl binary, it is incompatible
 # with other extension modules binding with libssl as well, for instance the Python ssl
 # module: the result will likely be a segfault. If you need using both psycopg2 and
@@ -22,6 +22,5 @@ include_recipe "pip" # to make this work, you need depends "pip" in metadata
 # http://initd.org/psycopg/docs/install.html#binary-install-from-pypi
 pip "psycopg2" do
   action :install
-  flags "--no-binary=:all:",
+  flags "--no-binary=:all:"
 end
-

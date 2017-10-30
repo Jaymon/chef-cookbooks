@@ -55,7 +55,7 @@ if n.has_key?('names')
         source "instance.conf.erb"
         mode "0644"
         variables options
-        notifies "execute[verify #{path}]", :immediately
+        notifies :run, "execute[verify #{path}]", :immediately
       end
 
       # https://askubuntu.com/a/640892
@@ -78,7 +78,7 @@ if n.has_key?('names')
         source "instance.conf.erb"
         mode "0644"
         variables options
-        notifies "execute[verify #{path}]", :immediately
+        notifies :run, "execute[verify #{path}]", :immediately
       end
 
       execute "verify #{path}" do
@@ -103,4 +103,3 @@ if n.has_key?('names')
 
 
 end
-
