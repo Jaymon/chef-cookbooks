@@ -15,8 +15,6 @@ package "openjdk-7-jre-headless" do
   options "--no-install-recommends"
 end
 
-include_recipe "#{name}::xvfb"
-
 version = n["server_version"]
 folder_version = version[/^\d+\.\d+/]
 selenium_basename = "selenium-server-standalone-#{version}.jar"
