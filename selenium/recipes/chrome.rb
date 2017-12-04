@@ -9,7 +9,9 @@ n = node[name]
 ###############################################################################
 # install prereqs
 ###############################################################################
-include_recipe name # we want to install selenium
+# ??? - I don't think this is necessary if you are going to use python, so I think
+# this should now be explicitly done
+#include_recipe name # we want to install selenium
 
 # unzip is for chrome driver, everything else is for chrome
 %W{libxss1 libappindicator1 libindicator7 gconf-service libnss3-dev libasound2 libnspr4 libpango1.0-0 xdg-utils fonts-liberation libxtst6 unzip}.each do |p|
@@ -34,7 +36,7 @@ end
 execute "#{name}::#{rname}-install" do
   command "dpkg -i #{chrome_deb_f}"
   #not_if "which google-chrome"
-  action :nohting
+  action :nothing
 end
 
 
@@ -51,7 +53,7 @@ remote_file chrome_driver_f do
 end
 
 execute "#{name}::#{rname}-driver-install" do
-  command "unzip #{chrome_driver_f} -d /usr/local/bin/"
+  command "unzip #{chrome_driver_f} -o -d /usr/local/bin/"
   #not_if "which chromedriver"
   action :nothing
 end

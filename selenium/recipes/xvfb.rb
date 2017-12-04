@@ -5,3 +5,9 @@ package "xvfb" do
   options "--no-install-recommends"
 end
 
+# from python recipe
+# include_recipe "#{name}::xvfb"
+# pip "pyvirtualdisplay" do
+#   action :install
+# end
+# 
