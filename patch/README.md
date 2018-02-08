@@ -1,6 +1,8 @@
 # Patch Cookbook
 
-Fixes security vulnerabilities like heartbleed and shellshocker.
+Fixes security vulnerabilities like heartbleed, shellshocker, spectre, and meltdown
+
+After running this, you may need to restart the boxes, this isn't done automatically, so handle that manually however you do it.
 
 ## Platform
 
