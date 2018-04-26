@@ -1,12 +1,16 @@
 # Cookbooks
 
-The common cookbooks that are used to configure our boxes.
+Writing a new cookbook? [Chef resources](https://docs.chef.io/resource.html)
+
+The common cookbooks I use to configure boxes. This repo is really designed to be a sub-repo in other repos.
 
 Every cookbook should have a `README.md` file that should tell you how to configure it and what it does (if the name isn't self explanatory enough).
+
 
 ## Common pitfalls when writing cookbooks
 
 these are things I always forget and have to remember time and time again.
+
 
 ### Upstart and Vagrant shared folders
 
