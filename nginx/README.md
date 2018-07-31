@@ -5,10 +5,14 @@ Installs Nginx
 
 ## Attributes
 
+------------------------------------------------------------------------------
+
 ### defaults
 
 dict -- this will be merged into the values of each of the configured servers (with the server specific configuration taking precedence).
 
+
+------------------------------------------------------------------------------
 
 ### servers
 
@@ -99,7 +103,49 @@ You can set this to a name defined in the `node["conf"]["log_format"]` dict, by 
 boolean, set this to **true** or **false** to turn on/off caching for the server.
 
 
+#### fallback
+
+In the `try_files` of a static site it will check path, then path/ and in the end it will use this, by default this will just return 404 but if you have a static file you would rather server you can put the path (relative to root) here and if it didn't find a real file it would fall back to that path.
+
+so basically, by default, a config like this:
+
+```ruby
+"servers" => {
+    "example.com" => {
+        "root" => "/opt/example",
+    },
+}
+```
+
+Would create a `try_files` like:
+
+```
+try_files $uri $uri/ =404;
+```
+
+But, one like this:
+
+```ruby
+"servers" => {
+    "example.com" => {
+        "root" => "/opt/example",
+        "fallback" => "/index.html",
+    }
+}
+```
+
+Would create a `try_files` like:
+
+```
+try_files $uri $uri/ /index.html;
+```
+
+-------------------------------------------------------------------------------
+
 ### conf
+
+the conf dict holds configuration that is true for every site, it's basically the global configuration for nginx
+
 
 #### expires
 
@@ -117,7 +163,7 @@ Read more about the [possible values](https://www.digitalocean.com/community/tut
 
 #### types
 
-A dict of content types and there extensions so nginx can serve the correct mime type for things.
+A dict of content types and their extensions so nginx can serve the correct mime type for things.
 
 ```
 "types" => {
@@ -129,19 +175,21 @@ A dict of content types and there extensions so nginx can serve the correct mime
 Nginx comes with `/etc/nginx/mime.types` that has the most common extensions and their mime types, this allows you to supplement those with other formats Nginx does not recognize by default yet (like webfonts).
 
 
+-------------------------------------------------------------------------------
+
 ## Using 
 
-Each server name under the `servers` configuration can be started and stopped using init:
+Each server name under the `servers` configuration can be started, restarted, and stopped using init:
+
+    $ sudo /etc/init.d/nginx start
+
+and to restart it:
 
     $ sudo /etc/init.d/nginx restart
 
 and stop it:
 
     $ sudo /etc/init.d/nginx stop
-
-and you can manage all installed uWSGI servers using `uwsgi`:
-
-    $ sudo /etc/init.d/nginx start
 
 
 ## Platform

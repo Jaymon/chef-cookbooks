@@ -131,8 +131,8 @@ server {
   index index.html index.htm;
 
   location / {
-    # First attempt to serve request as file, then as directory, then fall back to 404.
-    try_files $uri $uri/ =404;
+    # First attempt to serve request as file, then as directory, then to the configured fallback
+    try_files $uri $uri/ <%= @fallback %>;
   }
 
   <% end %>

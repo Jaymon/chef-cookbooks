@@ -101,6 +101,9 @@ n["servers"].each do |server_name, server_options|
   variables = default_options.merge(server_options)
   #variables = server_options.to_hash
   variables["server_name"] = server_name
+  if !variables.has_key?("host")
+      variables["host"] = server_name
+  end
   # http://stackoverflow.com/a/1528891/5006
   variables["port"] = [*variables["port"]]
   variables["port"].map!(&:to_i)
@@ -112,6 +115,8 @@ n["servers"].each do |server_name, server_options|
   #available_path = ::File.join(n['available-dir'], "#{server_name}.conf")
   #enabled_path = ::File.join(n['enabled-dir'], "#{server_name}.conf")
   server_path = ::File.join(n['conf-dir'], "#{server_name}.conf")
+
+  pp variables
 
   # http://serverfault.com/questions/10854/nginx-https-serving-with-same-config-as-http
   template server_path do
