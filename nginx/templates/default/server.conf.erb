@@ -117,10 +117,10 @@ server {
 
   <% if @uwsgi_socket %>
 
-  try_files $uri @python;
+  try_files $uri @uwsgi;
 
   # pass the python scripts to UWSGI server listening on some socket (eg 127.0.0.1:9001)
-  location @python {
+  location @uwsgi {
     include uwsgi_params;
     uwsgi_param HTTP_X_FORWARDED_PROTOCOL $scheme;
     uwsgi_pass <%= @uwsgi_socket %>;

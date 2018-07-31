@@ -107,6 +107,8 @@ boolean, set this to **true** or **false** to turn on/off caching for the server
 
 In the `try_files` of a static site it will check path, then path/ and in the end it will use this, by default this will just return 404 but if you have a static file you would rather server you can put the path (relative to root) here and if it didn't find a real file it would fall back to that path.
 
+The `fallback` value is mutually exclusive with `uwsgi_socket` with `uwsgi_socket` taking precedence (ie, if you define both `fallback` and `uwsgi_socket` in your server dict configuration `fallback` will be ignored).
+
 so basically, by default, a config like this:
 
 ```ruby
