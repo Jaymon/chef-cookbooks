@@ -9,4 +9,5 @@ default[name]["user"] = "www-data"
 default[name]["init"] = {}
 default[name]["init"]["command"] = "uwsgi"
 default[name]["server"] = {}
+default[name]["servers"] = {}
 
