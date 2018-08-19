@@ -41,21 +41,26 @@ end
 
 
 n["versions"].each do |username, versions|
-  source_cmd = "source /etc/profile.d/pyenv.sh"
-  sudo_cmd = "sudo -H -u #{username}"
+  source_cmd = "source #{environ_path}"
+  #sudo_cmd = "sudo -H -u #{username}"
   versions.each do |version|
-    install_cmd = "pyenv install #{version}"
+    install_cmd = "pyenv install --skip-existing #{version}"
 
-    bash "#{name} install #{version}" do
+    bash "#{username} #{name} install #{version}" do
       code <<-EOH
-        #{source_cmd}
-        # we have to set the home directory otherwise it will use root's
+        #set -x
+        # we have to set the home directory otherwise it will use root's, this needs
+        # to be done before sourcing #{environ_path} because otherwise it will throw
+        # an error when penv init tries to mkdir /root
         export HOME=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
-        eval "$(pyenv init -)";
+        #{source_cmd}
+        #eval "$(pyenv init -)";
         #{install_cmd}
+        #set +x
         EOH
       user username
       group username
+      #not_if 'pyenv versions | grep -q "#{version}"' # --skip-existing takes care of this
     end
 
   end
