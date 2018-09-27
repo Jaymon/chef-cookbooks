@@ -55,17 +55,17 @@ OK, I just can't for the life of me keep what port does what straight, so hopefu
 ```ruby
 "pipes" => {
   :client => {
-    "spiped-pg-client" => { # to talk to the master db
+    "spiped-client" => { # to talk to the master db
       "source" => "[127.0.0.1]:5434", # clients will connect to this address
-      "target" => "[#{dbmaster_server}]:5433", # where the remote server is listening
-      "key" => attrs.in_ops("certs", "prod_postgres.key")
+      "target" => "[#{remote_server}]:5433", # where the remote server is listening
+      "key" => "fdkasjflkdsafjdlafjdlkfdfeiyuiryqweieofjdklbfafoieoj"
     }
   },
   :server => {
-    "spiped-pg-server" => {
+    "spiped-server" => {
       "source" => "[0.0.0.0]:5433", # new port the server will receive connections on
       "target" => "[127.0.0.1]:5432", # raw connection to the server
-      "key" => attrs.in_ops("certs", "prod_postgres.key")
+      "key" => "fdkasjflkdsafjdlafjdlkfdfeiyuiryqweieofjdklbfafoieoj"
     }
   }
 }
@@ -73,7 +73,7 @@ OK, I just can't for the life of me keep what port does what straight, so hopefu
 
 So, the _source_ port on **:client** connections is the port that all the applications will use to connect to the server. That means the _target_ on **:client** connections should correspond to the _source_ value on **:server** configurations.
 
-The _target_ value on **:server** connections should point to the original connection host and port in the configuration for the service, then the _source_ value will be the new publicly available port that service will broadcast on (see how in the above server source value it is `0.0.0.0`, that means it broadcasts on all ip addresses, so postgres db would be available to other remote boxes on port 5433).
+The _target_ value on **:server** connections should point to the original connection host and port in the configuration for the service, then the _source_ value will be the new publicly available port that service will broadcast on (see how in the above server source value it is `0.0.0.0`, that means it broadcasts on all ip addresses, so the server would be available to other remote boxes on port 5433).
 
 
 ## Platform

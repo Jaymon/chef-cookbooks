@@ -1,4 +1,5 @@
 require 'tmpdir'
+require 'digest'
 
 name = cookbook_name.to_s
 n = node[name]
@@ -89,13 +90,27 @@ n["pipes"].each do |pipe_type, pipes|
 
     exec = ::File.join("", "usr", "local", "bin", "spiped")
     pid_filepath = ::File.join(pid_dir, pname)
-    key_filepath = ::File.join(dirs['etc'][0], "#{pname}.key")
+    key_dest_filepath = ::File.join(dirs['etc'][0], "#{pname}.key")
+
+    if ::File.file?(vals['key'])
+        key_source_filepath = vals['key']
+
+    else
+        md5 = ::Digest::MD5.new
+        md5.update(vals['key'])
+        key_source_filepath = ::File.join(tempdir, "#{md5.hexdigest}.key")
+        file key_source_filepath do
+          content vals['key']
+          mode "0644"
+        end
+
+    end
 
     # we need to move the key to a final resting place on the system, this is to
     # address a problem mainly with vagrant boxes not having access to shared
     # folders when a box is brought back up, causing the spiped daemons to die
-    remote_file key_filepath do
-      source "file://#{vals['key']}"
+    remote_file key_dest_filepath do
+      source "file://#{key_source_filepath}"
       mode "0644"
       notifies :restart, "service[#{pname}]", :delayed
     end
@@ -110,7 +125,7 @@ n["pipes"].each do |pipe_type, pipes|
     host.tr!("][", "")
     args += " -t [#{host}]:#{ip}"
 
-    args += " -k \"#{key_filepath}\""
+    args += " -k \"#{key_dest_filepath}\""
     args += " -p \"#{pid_filepath}\""
 
     if vals.has_key?("connections")
