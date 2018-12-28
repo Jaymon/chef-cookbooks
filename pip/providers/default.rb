@@ -64,7 +64,8 @@ action :upgrade do
     pip_cmd += " " + new_resource.flags
   end
 
-  pip_cmd += " --build #{build_tmp}"
+  # no longer needed pip >=8.1.1
+  #pip_cmd += " --build #{build_tmp}"
 
   if ::File.exists?(p) # file? That means it is a requirements file created from pip freeze
     pip_cmd += " -r #{p}"

@@ -14,7 +14,20 @@ n = node[name]
 #include_recipe name # we want to install selenium
 
 # unzip is for chrome driver, everything else is for chrome
-%W{libxss1 libappindicator1 libindicator7 gconf-service libnss3-dev libasound2 libnspr4 libpango1.0-0 xdg-utils fonts-liberation libxtst6 unzip}.each do |p|
+# %W{libindicator3-7 libdbusmenu-gtk3-4 libappindicator3-1}.each do |p|
+#   package "#{name} #{p}" do
+#     package_name p
+#     options "--no-install-recommends"
+#   end
+# end
+%W{libappindicator3-1}.each do |p|
+  package "#{name} #{p}" do
+    package_name p
+  end
+end
+
+
+%W{libxss1 gconf-service libnss3-dev libasound2 libnspr4 libpango1.0-0 xdg-utils fonts-liberation libxtst6 unzip}.each do |p|
   package "#{name} #{p}" do
     package_name p
     options "--no-install-recommends"
@@ -53,7 +66,7 @@ remote_file chrome_driver_f do
 end
 
 execute "#{name}::#{rname}-driver-install" do
-  command "unzip #{chrome_driver_f} -o -d /usr/local/bin/"
+  command "unzip -o #{chrome_driver_f} -d /usr/local/bin/"
   #not_if "which chromedriver"
   action :nothing
 end
