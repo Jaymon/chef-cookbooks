@@ -7,32 +7,6 @@ include_recipe "package::update"
 
 
 ###############################################################################
-# patch shellshocker vulnerability
-###############################################################################
-# https://shellshocker.net/
-# you can test vulnerability with this script: https://github.com/hannob/bashcheck/blob/master/bashcheck
-#execute "apt-get install --only-upgrade bash"
-# safe version is: 4.2-2ubuntu2.6
-package "#{name} bash" do
-    package_name "bash"
-    action :upgrade
-end
-
-
-###############################################################################
-# patch heartbleed
-###############################################################################
-# you can test heartbleed with this site: https://filippo.io/Heartbleed/
-#execute "apt-get install --only-upgrade openssl"
-# safe version is: 1.0.1-4ubuntu5.18
-# you can verify your package by doing: dpkg -l | grep openssl
-package "#{name} openssl" do
-    package_name "openssl"
-    action :upgrade
-end
-
-
-###############################################################################
 # patch Spectre and Meltdown
 ###############################################################################
 # export DEBIAN_FRONTEND=noninteractive

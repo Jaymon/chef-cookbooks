@@ -1,4 +1,4 @@
-# Patch Cookbook
+# Update Cookbook
 
 Fixes security vulnerabilities like heartbleed, shellshocker, spectre, and meltdown
 
@@ -6,5 +6,5 @@ After running this, you may need to restart the boxes, this isn't done automatic
 
 ## Platform
 
-Ubuntu 12.04, nothing else has been tested
+Ubuntu 14.04, nothing else has been tested
 
