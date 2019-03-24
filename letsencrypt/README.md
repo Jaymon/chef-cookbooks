@@ -305,3 +305,35 @@ On vanilla servers, we may need to [Force dependencies](https://github.com/certb
 * [Let's Encrypt Community Q&A site](https://community.letsencrypt.org/)
 * [Mixing standalon and webroot](https://github.com/certbot/certbot/issues/2364)
 
+
+## Troubleshooting
+
+If you ever get a `_remove_dead_weakref` error:
+
+```
+Error: couldn’t get currently installed version for /opt/eff.org/certbot/venv/bin/letsencrypt:
+Traceback (most recent call last):
+File “/opt/eff.org/certbot/venv/bin/letsencrypt”, line 7, in 
+from certbot.main import main
+File “/opt/eff.org/certbot/venv/local/lib/python2.7/site-packages/certbot/main.py”, line 4, in 
+import logging.handlers
+File “/usr/lib/python2.7/logging/init.py”, line 26, in 
+import sys, os, time, cStringIO, traceback, warnings, weakref, collections
+File “/usr/lib/python2.7/weakref.py”, line 14, in 
+from _weakref import (
+ImportError: cannot import name _remove_dead_weakref
+```
+
+And this works in your environment (run from the command line):
+
+```
+$ python2 -c 'import weakref'
+```
+
+The virtual environment certbot uses has gotten out of sync, this can happen if you use the `update::python2` recipe. The fix is to just remove the `eff.org` environment:
+
+```
+$ rm -rf /opt/eff.org
+```
+
+via [Cannot renew certificate “ImportError: cannot import name \_remove\_dead\_weakref”](https://community.letsencrypt.org/t/cannot-renew-certificate-importerror-cannot-import-name-remove-dead-weakref/58148)
