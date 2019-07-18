@@ -203,6 +203,19 @@ These are the sources I used to get replication working:
 [purge PG](http://stackoverflow.com/questions/2748607/how-to-thoroughly-purge-and-reinstall-postgresql-on-ubuntu)
 
 
+### Helpful
+
+Check what version of postgres you have installed:
+
+    $ $(locate bin/postgres) -V
+    postgres (PostgreSQL) 9.3.25
+
+and check the client version:
+
+    $ psql -V
+
+[via](https://chartio.com/resources/tutorials/how-to-view-which-postgres-version-is-running/)
+
 -------------------------------------------------------------------------------
 
 ## Platform

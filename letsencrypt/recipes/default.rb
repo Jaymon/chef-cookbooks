@@ -128,6 +128,8 @@ cron "#{name} renew" do
   # http://stackoverflow.com/questions/2388087/how-to-get-cron-to-call-in-the-correct-paths
   path ["/usr/bin", "/bin", "/usr/local/sbin", "/usr/sbin", "/sbin"].join(::File::PATH_SEPARATOR)
   command "#{swap_hooks["on"]["path"]}; #{bin_cmd} renew #{arg_str}; #{swap_hooks["off"]["path"]}"
+  # if we start getting trailing newlines (like May 2019) then we can use below that trims:
+  #command "#{swap_hooks["on"]["path"]}; #{bin_cmd} renew #{arg_str} | tr -d '\n'; #{swap_hooks["off"]["path"]}"
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
