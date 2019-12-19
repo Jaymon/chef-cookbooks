@@ -4,5 +4,5 @@ name = "pyenv"
 default[name] = {}
 default[name]["versions"] = {}
 default[name]["dir"] = ::File.join("", "opt", "pyenv")
-default[name]["repo"] = "https://github.com/yyuu/pyenv.git"
+default[name]["repo"] = "https://github.com/pyenv/pyenv.git"
 

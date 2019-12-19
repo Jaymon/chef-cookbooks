@@ -2,6 +2,8 @@ name = cookbook_name.to_s
 n = node[name]
 
 
+# dependencies for ubuntu/debian are listed here:
+# https://github.com/pyenv/pyenv/wiki/common-build-problems#prerequisites
 %W{build-essential libbz2-dev libssl-dev libreadline-dev libsqlite3-dev tk-dev git}.each do |p|
   package "#{name} #{p}" do
     package_name p
@@ -18,7 +20,7 @@ directory n["dir"] do
 end
 
 git n["dir"] do
-  repository "https://github.com/yyuu/pyenv.git"
+  repository n["repo"]
   action :sync
 end
 
@@ -42,19 +44,23 @@ end
 
 n["versions"].each do |username, versions|
   source_cmd = "source #{environ_path}"
-  #sudo_cmd = "sudo -H -u #{username}"
   versions.each do |version|
     install_cmd = "pyenv install --skip-existing #{version}"
+
+    # TODO -- it would be nice to add PYTHON_CONFIGURE_OPTS="--enable-unicode=ucs4" if python <3
 
     bash "#{username} #{name} install #{version}" do
       code <<-EOH
         #set -x
         # we have to set the home directory otherwise it will use root's, this needs
         # to be done before sourcing #{environ_path} because otherwise it will throw
-        # an error when penv init tries to mkdir /root
+        # an error when pyenv init tries to mkdir /root
         export HOME=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
+
+        # we turn on sharing because certain things fail if the python libraries
+        # can't be shared, system python is shared
+        export PYTHON_CONFIGURE_OPTS="--enable-shared"
         #{source_cmd}
-        #eval "$(pyenv init -)";
         #{install_cmd}
         #set +x
         EOH

@@ -1,5 +1,7 @@
 # Pyenv Cookbook
 
+Installs [Pyenv](https://github.com/pyenv/pyenv/) globally, each user of the system can then install any versions they want to use and those versions should be managed separately. So user `foo` could install `3.8.1` and install a bunch of packages and user `bar` could also install `3.8.1` and install different packages and they shouldn't clobber each other.
+
 
 ## Attributes
 
