@@ -4,7 +4,6 @@ n = node[name]
 ###############################################################################
 # prerequisites
 ###############################################################################
-include_recipe "pip"
 
 # needs libpcre for internal routing: http://stackoverflow.com/questions/21669354/
 ['build-essential', 'python-dev', 'libpcre3-dev', 'libssl-dev'].each do |p|
@@ -13,17 +12,109 @@ include_recipe "pip"
   end
 end
 
-
-###############################################################################
-# install it
-###############################################################################
-request_str = "uWSGI"
-if n.has_key?("version")
-  request_str += "==#{n['version']}"
+# create the directories we'll need later
+n["dirs"].each do |k, d|
+  directory d do
+    mode "0755"
+    recursive true
+    action :create
+  end
 end
 
+
+###############################################################################
+# Installation
+###############################################################################
+
+version = n["version"]
+tempdir = ::Dir.tmpdir
+zip_filename = "uwsgi-#{version}.tar.gz"
+zip_filepath = ::File.join(::Chef::Config[:file_cache_path], zip_filename)
+zip_destination = ::File.join(::Chef::Config[:file_cache_path], "uwsgi-#{version}")
+zip_url = "#{n["base_url"]}#{zip_filename}"
+uwsgi_dir = "" # this will be set in a code block
+
+
+if version == "latest"
+
+  remote_file zip_filepath do
+    source zip_url
+    action :create
+    #notifies :extract, "archive_file[#{zip_filepath}]", :immediately
+  end
+
+else
+
+  remote_file zip_filepath do
+    source zip_url
+    action :create
+    #notifies :extract, "archive_file[#{zip_filepath}]", :immediately
+    #only_if { version != UWSGI.current_version() }
+  end
+
+end
+
+archive_file zip_filepath do
+  path zip_filepath
+  destination zip_destination
+  #notifies :run, "ruby_block[find_uwsgi_dir]", :immediately
+end
+
+ruby_block "find_uwsgi_dir" do
+  block do
+    uwsgi_dir = UWSGI.find_codebase_path(zip_destination)
+  end
+  #action :nothing
+  notifies :run, "execute[make_uwsgi]", :immediately
+end
+
+execute "make_uwsgi" do
+  command "make PROFILE=nolang"
+  action :nothing
+  cwd lazy { uwsgi_dir }
+  only_if { UWSGI.current_version() != UWSGI.install_version(uwsgi_dir) }
+  notifies :create, "remote_file[copy_uwsgi_bin]", :immediately
+end
+
+remote_file "copy_uwsgi_bin" do 
+  path ::File.join(n["dirs"]["installation"], "uwsgi")
+  source lazy { "file://#{::File.join(uwsgi_dir, "uwsgi")}" }
+  action :nothing
+  mode "0655"
+  notifies :create, "link[make_uwsgi_global]", :immediately
+end
+
+link "make_uwsgi_global" do
+  to ::File.join(n["dirs"]["installation"], "uwsgi")
+  target_file ::File.join("", "usr", "local", "bin", "uwsgi")
+  link_type :symbolic
+  action :nothing
+end
+
+
+return
+
+
+
+ruby_block "print foo" do
+  block do
+    print(foo)
+  end
+end
+
+
+return
+
+execute "untar #{zip_filepath}" do
+  command "tar -xf \"#{zip_filepath}\" -C /tmp"
+  #notifies :run, "execute[install #{unzip_filepath}]", :immediately
+end
+
+
+
+
+
 # make sure current uwsgi isn't running if we are changing it
-# I'm not sure why we have to do this, but pip update would fail if it stayed running
 ruby_block 'uwsgi_stop' do
   block do
     n['servers'].keys.each do |server_name|
@@ -36,26 +127,55 @@ ruby_block 'uwsgi_stop' do
   only_if "which uwsgi"
 end
 
-pip request_str
+
+
+version = n["version"]
+tempdir = ::Dir.tmpdir
+basename = "spiped-#{version}"
+zip_filename = "#{basename}.tgz"
+zip_filepath = ::File.join(::Chef::Config[:file_cache_path], zip_filename)
+zip_url = "http://www.tarsnap.com/spiped/#{zip_filename}"
+unzip_filepath = ::File.join(tempdir, basename)
+
+remote_file zip_filepath do
+  source zip_url
+  action :create_if_missing
+  notifies :run, "execute[untar #{zip_filepath}]", :immediately
+end
+
+execute "untar #{zip_filepath}" do
+  command "tar -xf \"#{zip_filepath}\" -C /tmp"
+  notifies :run, "execute[install #{unzip_filepath}]", :immediately
+end
+
+execute "install #{unzip_filepath}" do
+  command "make install"
+  cwd unzip_filepath
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ###############################################################################
 # configure
 ###############################################################################
-
-# create needed directories
-dirs = {
-  'etc' => [::File.join("", "etc", name), nil, nil]
-}
-dirs.each do |k, d|
-  directory d[0] do
-    mode "0755"
-    owner d[1]
-    group d[2]
-    recursive true
-    action :create
-  end
-end
 
 n['servers'].each do |server_name, _config|
   variables = {}
