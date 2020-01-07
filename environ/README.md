@@ -1,40 +1,28 @@
 # Environ Cookbook
 
-hooks for manipulating environments and environment variables
+Manipulate environments and environment variables
+
 
 ## Attributes
 
-### global
-
 #### :set
 
-`node["environ"]["global"][:set]` -- a hash of global environment variables to set
+`node["environ"][:set]` -- a hash of global environment variables to set
 
-**NOTE** -- You have to add quotes around values that have spaces, so:
-
-    node["environ"]["global"][:set] = {
-      "ENV_NAME" => '"this is a value with spaces"'
+    node["environ"][:set] = {
+      "ENV_NAME_1" => 'this is a value with spaces',
+      "ENV_NAME_2" => 'AnotherValue'
     }
+
 
 #### :file
 
-`node["environ"]["global"][:file]` -- a list of files to merge into the global environment variables
+`node["environ"][:file]` -- a list of files to merge into the global environment variables
 
-    node["environ"]["global"][:file] = [
+    node["environ"][:file] = [
       '/path/to/first/env/file',
       '/path/to/second/env/file',
     ]
-
-### python
-
-#### sitecustomize
-
-`node["environ"]["python"]["sitecustomize"]` -- the path to a python module that will be symbolic linked to the python site-packages directory.
-
-
-#### usercustomize
-
-`node["environ"]["python"]["usercustomize"]` -- a hash of `username => path to module` that will be symbolic linked to the user's user site directory.
 
 
 ### notifies
@@ -63,7 +51,7 @@ Using the environ resource will also set `ENVIRONMENT_VARIABLE_NAME` in the Ruby
 
 ### Passing in a raw value
 
-By default, Environ will escape each value so you don't have to worry about manually escaping things like Ampersands and equal signs. This is really handy, but sometimes you might want the raw value to make it all the way to the box, you can do that by setting a special comment above the value:
+By default, Environ will escape each value so you don't have to worry about manually escaping things like Ampersands and equal signs. This is really handy, but sometimes you might want the raw value to make it all the way to the box, you can do that by setting a special comment above the value in an environment file:
 
 
     # environ.raw

@@ -2,8 +2,9 @@
 name = "environ"
 
 default[name] = {}
+default[name][:set] = {}
+default[name][:file] = []
 default[name]["global"] = {}
 default[name]["global"][:set] = {}
-
-default[name]["python"] = {}
+default[name]["global"][:file] = []
 

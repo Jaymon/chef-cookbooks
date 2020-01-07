@@ -1,4 +1,5 @@
 # http://docs.opscode.com/chef/lwrps_custom.html
+require "shellwords"
 
 def whyrun_supported?
   true
@@ -17,7 +18,7 @@ action :set do
   if e.set(env_name, env_val)
 
     ENV[env_name] = env_val # keep the RUBY env in sync
-    e.set(env_name, env_val)
+    #e.set(env_name, env_val)
 
     name = "set in #{e.file} #{env_name}=#{env_val}"
     converge_by(name) do

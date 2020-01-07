@@ -27,7 +27,7 @@ end
 ###############################################################################
 
 version = n["version"]
-tempdir = ::Dir.tmpdir
+#tempdir = ::Dir.tmpdir
 zip_filename = "uwsgi-#{version}.tar.gz"
 zip_filepath = ::File.join(::Chef::Config[:file_cache_path], zip_filename)
 zip_destination = ::File.join(::Chef::Config[:file_cache_path], "uwsgi-#{version}")
@@ -76,6 +76,23 @@ execute "make_uwsgi" do
   notifies :create, "remote_file[copy_uwsgi_bin]", :immediately
 end
 
+
+# TODO -- this might not be needed anymore
+# make sure current uwsgi isn't running if we are changing it
+# ruby_block 'uwsgi_stop' do
+#   block do
+#     n['servers'].keys.each do |server_name|
+#       ::Chef::Log.info "stopping service #{server_name}"
+#       r = resources("service[#{server_name}]")
+#       r.run_action(:stop)
+#     end
+#   end
+#   only_if { version != UWSGI.current_version() }
+#   not_if "uwsgi --version | grep -q \"^#{n["version"]}$\""
+#   only_if "which uwsgi"
+# end
+
+
 remote_file "copy_uwsgi_bin" do 
   path ::File.join(n["dirs"]["installation"], "uwsgi")
   source lazy { "file://#{::File.join(uwsgi_dir, "uwsgi")}" }
@@ -90,87 +107,6 @@ link "make_uwsgi_global" do
   link_type :symbolic
   action :nothing
 end
-
-
-return
-
-
-
-ruby_block "print foo" do
-  block do
-    print(foo)
-  end
-end
-
-
-return
-
-execute "untar #{zip_filepath}" do
-  command "tar -xf \"#{zip_filepath}\" -C /tmp"
-  #notifies :run, "execute[install #{unzip_filepath}]", :immediately
-end
-
-
-
-
-
-# make sure current uwsgi isn't running if we are changing it
-ruby_block 'uwsgi_stop' do
-  block do
-    n['servers'].keys.each do |server_name|
-      ::Chef::Log.info "stopping service #{server_name}"
-      r = resources("service[#{server_name}]")
-      r.run_action(:stop)
-    end
-  end
-  not_if "uwsgi --version | grep -q \"^#{n["version"]}$\""
-  only_if "which uwsgi"
-end
-
-
-
-version = n["version"]
-tempdir = ::Dir.tmpdir
-basename = "spiped-#{version}"
-zip_filename = "#{basename}.tgz"
-zip_filepath = ::File.join(::Chef::Config[:file_cache_path], zip_filename)
-zip_url = "http://www.tarsnap.com/spiped/#{zip_filename}"
-unzip_filepath = ::File.join(tempdir, basename)
-
-remote_file zip_filepath do
-  source zip_url
-  action :create_if_missing
-  notifies :run, "execute[untar #{zip_filepath}]", :immediately
-end
-
-execute "untar #{zip_filepath}" do
-  command "tar -xf \"#{zip_filepath}\" -C /tmp"
-  notifies :run, "execute[install #{unzip_filepath}]", :immediately
-end
-
-execute "install #{unzip_filepath}" do
-  command "make install"
-  cwd unzip_filepath
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ###############################################################################
@@ -235,7 +171,7 @@ n['servers'].each do |server_name, _config|
     end
   end
 
-  config_path = ::File.join(dirs["etc"][0], "#{server_name}.ini")
+  config_path = ::File.join(n["dirs"]["configuration"], "#{server_name}.ini")
   template config_path do
     source "ini.erb"
     mode "0644"
