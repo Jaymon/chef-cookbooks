@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-export PYENV_OPT_ROOT=<%= @dir %>
-export PATH="$PYENV_OPT_ROOT/bin:$PATH"
+
+# This is for us only, to point to where pyenv is installed globally
+export PYENV_COMMON_ROOT=<%= @dir %>
+
+# This is used by pyenv to decide where to look for shims, basically pyenv init
+# will use this value to set the shims directory
+export PYENV_ROOT=$(grep -e "^$(whoami):" /etc/passwd | cut -d":" -f6)/.pyenv
+
+# We add the common root to the path so pyenv command can be found
+export PATH="$PYENV_COMMON_ROOT/bin:$PATH"
 
 ###############################################################################
 # The following commands are copied from @dir/bin/pyenv and are here so we can
@@ -9,11 +17,11 @@ export PATH="$PYENV_OPT_ROOT/bin:$PATH"
 ###############################################################################
 shopt -s nullglob
 
-for plugin_bin in "${PYENV_OPT_ROOT}/plugins/"*/bin; do
+for plugin_bin in "${PYENV_COMMON_ROOT}/plugins/"*/bin; do
   PATH="${plugin_bin}:${PATH}"
 done
 
-for plugin_hook in "${PYENV_OPT_ROOT}/plugins/"*/etc/pyenv.d; do
+for plugin_hook in "${PYENV_COMMON_ROOT}/plugins/"*/etc/pyenv.d; do
   PYENV_HOOK_PATH="${PYENV_HOOK_PATH}:${plugin_hook}"
 done
 PYENV_HOOK_PATH="${PYENV_HOOK_PATH#:}"
@@ -24,5 +32,6 @@ export PYENV_HOOK_PATH
 shopt -u nullglob
 ###############################################################################
 
-eval "$(pyenv init -)"
+#eval "$(pyenv init -)"
+<%= @bash_lines.join("\n") %>
 

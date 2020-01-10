@@ -11,7 +11,6 @@ depends           "pip"
 
 recipe            "postgres", "Installs postgreSQL db and psql client"
 recipe            "postgres::pgbouncer", "Installs pgbouncer"
-recipe            "postgres::python", "Installs Postgres psycopg python bindings"
 recipe            "postgres::replication", "Makes the installed PostgreSQL installation act like a slave"
 recipe            "postgres::client", "Installs client tools like psql"
 recipe            "postgres::users", "Adds/updates Postgres users (INTERNAL USE MAINLY)"

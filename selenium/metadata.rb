@@ -7,10 +7,9 @@ version           "0.1"
 long_description  IO.read(::File.join(::File.dirname(__FILE__), 'README.md'))
 supports          "ubuntu", "14.04"
 
-depends           "pip"
+#depends           "pip"
 
 recipe            "selenium", "Install basic Selenium server"
 recipe            "selenium:chrome", "Install selenium chromedriver"
 recipe            "selenium:xvfb", "Install the virtual X11 manager thingy"
-recipe            "selenium:python", "Install Selenium python bindings"
 
