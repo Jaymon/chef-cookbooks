@@ -10,7 +10,6 @@ default[name]["init"] = {}
 default[name]["init"]["command"] = "uwsgi"
 default[name]["server"] = {}
 default[name]["servers"] = {}
-default[name]["plugins"] = {}
 
 default[name]["base_url"] = "https://projects.unbit.it/downloads/"
 

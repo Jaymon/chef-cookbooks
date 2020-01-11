@@ -14,6 +14,7 @@ Handles python installations and versioning.
 * `version` - string - the python version you want to use for the virtual environment.
 * `user` - string - the username you want to own this virtual environment
 * `requirements` - array - what you want pip to install in this virtual environment.
+* `uwsgi` - string - the uwsgi plugin name if you would like to build a plugin for this environment so you can use it with uwsgi. Some implementation details: 1) you will need to run the `python` cookbook after the `uwsgi` cookbook, and in your uwsgi configuration you will need to specify the plugin you want to use (eg, `"plugin" => "python36"`).
 
 
 ### Example

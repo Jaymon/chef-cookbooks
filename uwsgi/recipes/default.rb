@@ -1,6 +1,7 @@
 name = cookbook_name.to_s
 n = node[name]
 
+
 ###############################################################################
 # prerequisites
 ###############################################################################
@@ -101,47 +102,12 @@ execute "copy_uwsgi_dir" do
   notifies :create, "link[make_uwsgi_global]", :immediately
 end
 
-# remote_file "copy_uwsgi_bin" do 
-#   path ::File.join(n["dirs"]["installation"], "uwsgi")
-#   source lazy { "file://#{::File.join(uwsgi_dir, "uwsgi")}" }
-#   action :nothing
-#   mode "0655"
-#   notifies :create, "link[make_uwsgi_global]", :immediately
-# end
-
 link "make_uwsgi_global" do
   to ::File.join(n["dirs"]["installation"], "uwsgi")
   target_file ::File.join("", "usr", "local", "bin", "uwsgi")
   link_type :symbolic
   action :nothing
 end
-
-# n.fetch("plugins", {}).each do |plugin_name, plugin_config|
-# 
-#   uwsgi_plugin_name = "#{plugin_name}_plugin.so"
-# 
-#   bash "uwsgi_build_plugin_#{plugin_name}" do
-#     code <<-EOH
-#       #set -x
-# 
-#       #{plugin_config.fetch("setup", "")}
-#       ./uwsgi --build-plugin "#{plugin_config["plugins_dir"]} #{plugin_name}"
-# 
-#       #set +x
-#       EOH
-#     #cwd n["dirs"]["installation"]
-#     cwd ::File.join(n["dirs"]["installation"]
-#     #notifies :create, "remote_file[uwsgi_copy_plugin_#{plugin_name}]", :immediately
-#     not_if { ::File.exist?(::File.join(n["dirs"]["installation"], uwsgi_plugin_name)) }
-#   end
-# 
-# #   remote_file "uwsgi_copy_plugin_#{plugin_name}" do 
-# #     path ::File.join(n["dirs"]["installation"], uwsgi_plugin_name)
-# #     source lazy { "file://#{::File.join(uwsgi_dir, uwsgi_plugin_name)}" }
-# #     action :nothing
-# #   end
-# 
-# end
 
 
 ###############################################################################
@@ -173,6 +139,10 @@ n['servers'].each do |server_name, _config|
       shell "/bin/false"
       not_if "id -u #{u}"
     end
+  end
+
+  if !server_config.has_key?("plugins-dir")
+    server_config["plugins-dir"] = n["dirs"]["installation"]
   end
 
   # normalize the configuration
