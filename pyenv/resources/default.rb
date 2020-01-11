@@ -22,9 +22,16 @@ action :install do
   # configuration options trick comes from:
   # https://github.com/pyenv/pyenv/issues/86#issuecomment-30906301
   # https://stackoverflow.com/a/42582713/5006
-  pyenv_cmd = "pyenv install --skip-existing #{version}"
+
+
+  venv_cmd = ""
   if venv
-    pyenv_cmd = "pyenv virtualenv #{version} #{venv}"
+    venv_cmd = <<-EOH
+      if [[ ! -d "$(pyenv root)/versions/#{version}/envs/#{venv}" ]]; then
+        pyenv virtualenv #{version} #{venv}
+      fi
+      EOH
+
   end
 
   cache_dir = ::File::join(::Chef::Config[:file_cache_path], "pyenv_pip")
@@ -43,8 +50,8 @@ action :install do
       # can't be shared, system python is shared
       export PYTHON_CONFIGURE_OPTS="--enable-shared #{flags}"
 
-      #pyenv install --skip-existing #{version}
-      #{pyenv_cmd}
+      pyenv install --skip-existing #{version}
+      #{venv_cmd}
 
       #set +x
       EOH

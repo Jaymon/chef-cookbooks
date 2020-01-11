@@ -5,6 +5,7 @@ attribute :package_name, String, name_property: true
 property :version, String, required: true
 property :user, String, required: true
 property :flags, String, default: ""
+property :virtualenv, String, default: ""
 
 default_action :install
 
@@ -13,6 +14,7 @@ action :install do
   p = new_resource.package_name
   version = new_resource.version
   username = new_resource.user
+  venv = new_resource.virtualenv
 
   cache_dir = ::File::join(::Chef::Config[:file_cache_path], "pyenv_pip")
   # pip caching: https://stackoverflow.com/a/41111916/5006
@@ -43,17 +45,25 @@ action :install do
 
   end
 
-  bash "#{username} pyenv #{version} pip install #{package_name}" do
+  pyenv_cmd = "pyenv shell #{version}"
+  if venv
+    #pyenv_cmd = "pyenv activate #{venv} > /dev/null 2&>1"
+    pyenv_cmd = "pyenv shell #{venv}"
+  end
+
+  bash "#{username} pyenv #{version} pip install #{p}" do
     code <<-EOH
       #set -x
 
       export XDG_CACHE_HOME="#{cache_dir}"
+      export PYENV_VIRTUALENV_CACHE_PATH="#{cache_dir}"
 
       . /etc/profile.d/pyenv.sh
 
-      pyenv shell #{version}
+      #pyenv shell #{version}
+      #pip install "#{p}"
+      #{pyenv_cmd}
       #{pip_cmd}
-      #pip install "#{package_name}"
       #set +x
       EOH
     user username
