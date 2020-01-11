@@ -7,12 +7,8 @@ version           "0.1"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 supports          "ubuntu", "14.04"
 
-depends           "pip"
 depends           "pyenv"
 
-recipe            "python", ""
-#recipe            "python::package/redis", ""
-#recipe            "postgres::python", "Installs Postgres psycopg python bindings"
-#recipe            "selenium:python", "Install Selenium python bindings"
+recipe            "python", "Installs python and manages python virtual environments and dependencies"
 
 

@@ -53,3 +53,5 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
 
 end
 
+include_recipe "#{name}::uwsgi"
+

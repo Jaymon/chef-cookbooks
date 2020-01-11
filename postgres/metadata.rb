@@ -7,8 +7,6 @@ version           "0.5"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 supports          "ubuntu", "14.04"
 
-depends           "pip"
-
 recipe            "postgres", "Installs postgreSQL db and psql client"
 recipe            "postgres::pgbouncer", "Installs pgbouncer"
 recipe            "postgres::replication", "Makes the installed PostgreSQL installation act like a slave"

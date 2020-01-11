@@ -50,6 +50,7 @@ else
     action :create
     #notifies :extract, "archive_file[#{zip_filepath}]", :immediately
     #only_if { version != UWSGI.current_version() }
+    not_if { ::File.exist?(zip_filepath) }
   end
 
 end
@@ -73,7 +74,8 @@ execute "make_uwsgi" do
   action :nothing
   cwd lazy { uwsgi_dir }
   only_if { UWSGI.current_version() != UWSGI.install_version(uwsgi_dir) }
-  notifies :create, "remote_file[copy_uwsgi_bin]", :immediately
+  #notifies :create, "remote_file[copy_uwsgi_bin]", :immediately
+  notifies :run, "execute[copy_uwsgi_dir]", :immediately
 end
 
 
@@ -93,13 +95,19 @@ end
 # end
 
 
-remote_file "copy_uwsgi_bin" do 
-  path ::File.join(n["dirs"]["installation"], "uwsgi")
-  source lazy { "file://#{::File.join(uwsgi_dir, "uwsgi")}" }
+execute "copy_uwsgi_dir" do
+  command lazy { "cp -R \"#{uwsgi_dir}\"/* \"#{n["dirs"]["installation"]}\"" }
   action :nothing
-  mode "0655"
   notifies :create, "link[make_uwsgi_global]", :immediately
 end
+
+# remote_file "copy_uwsgi_bin" do 
+#   path ::File.join(n["dirs"]["installation"], "uwsgi")
+#   source lazy { "file://#{::File.join(uwsgi_dir, "uwsgi")}" }
+#   action :nothing
+#   mode "0655"
+#   notifies :create, "link[make_uwsgi_global]", :immediately
+# end
 
 link "make_uwsgi_global" do
   to ::File.join(n["dirs"]["installation"], "uwsgi")
@@ -107,6 +115,33 @@ link "make_uwsgi_global" do
   link_type :symbolic
   action :nothing
 end
+
+# n.fetch("plugins", {}).each do |plugin_name, plugin_config|
+# 
+#   uwsgi_plugin_name = "#{plugin_name}_plugin.so"
+# 
+#   bash "uwsgi_build_plugin_#{plugin_name}" do
+#     code <<-EOH
+#       #set -x
+# 
+#       #{plugin_config.fetch("setup", "")}
+#       ./uwsgi --build-plugin "#{plugin_config["plugins_dir"]} #{plugin_name}"
+# 
+#       #set +x
+#       EOH
+#     #cwd n["dirs"]["installation"]
+#     cwd ::File.join(n["dirs"]["installation"]
+#     #notifies :create, "remote_file[uwsgi_copy_plugin_#{plugin_name}]", :immediately
+#     not_if { ::File.exist?(::File.join(n["dirs"]["installation"], uwsgi_plugin_name)) }
+#   end
+# 
+# #   remote_file "uwsgi_copy_plugin_#{plugin_name}" do 
+# #     path ::File.join(n["dirs"]["installation"], uwsgi_plugin_name)
+# #     source lazy { "file://#{::File.join(uwsgi_dir, uwsgi_plugin_name)}" }
+# #     action :nothing
+# #   end
+# 
+# end
 
 
 ###############################################################################
