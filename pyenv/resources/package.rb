@@ -70,26 +70,5 @@ action :install do
     group username
   end
 
-
-#   bash "#{username} pyenv python install #{version}" do
-#     code <<-EOH
-#       #set -x
-#       # we have to set the home directory otherwise it will use root's
-#       #export HOME=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
-#       . /etc/profile.d/pyenv.sh
-# 
-#       # we turn on sharing because certain things fail if the python libraries
-#       # can't be shared, system python is shared
-#       export PYTHON_CONFIGURE_OPTS="--enable-shared #{new_resource.flags}"
-# 
-#       pyenv install --skip-existing #{version}
-# 
-#       #set +x
-#       EOH
-#     user username
-#     group username
-#     #not_if 'pyenv versions | grep -q "#{version}"' # --skip-existing takes care of this
-#   end
-
 end
 

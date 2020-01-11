@@ -7,15 +7,38 @@ Installs [Pyenv](https://github.com/pyenv/pyenv/) globally, each user of the sys
 
 `node["pyenv"]["versions"]` -- dict -- each key will be a username, with a dict value will be a list of python versions to install:
 
-    "pyenv" => {
-      "versions" => {
-        "USERNAME" => [
-          "3.6.3",
-          "2.7.14",
-        ]
-      }
-    },
+```ruby
+"pyenv" => {
+  "versions" => {
+    "USERNAME" => [
+      "3.6.3",
+      "2.7.14",
+    ]
+  }
+}
+```
 
+
+## TODO
+
+There is no way to use the virtualenv functionality outside of the `python` cookbook right now. I think I might change the config format to:
+
+```ruby
+"pyenv" => {
+  "versions" => {
+    "VERSION" => {
+      "user" => "USERNAME",
+      "virtualenv" => "VENV_NAME",
+    }
+  }
+}
+```
+
+which would be more verbose but would enable the virtualenv stuff, or maybe I just don't worry about and if you want virtualenv support you should use the `python` cookbook instead. I could also merge this into the `python` cookbook so it is all in one place.
+
+## Customization
+
+Because this uses [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv), it will automatically activate/deactivate virtualenvs on entering/leaving directories which contain a `.python-version` file that contains the name of a valid virtual environment as shown in the output of `pyenv virtualenvs`.
 
 ## Platform
 
