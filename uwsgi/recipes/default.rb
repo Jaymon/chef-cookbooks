@@ -116,9 +116,17 @@ end
 
 n['servers'].each do |server_name, _config|
   variables = {}
+
   init_config = n["init"].to_hash
   init_config.merge!(_config.fetch("init", {}))
-  server_config = n["server"].to_hash
+
+  server_config = {
+    # this needs to come before plugin otherwise the plugin won't load, ugh
+    "plugins-dir" => n["dirs"]["installation"]
+  }
+
+
+  server_config.merge!(n["server"].to_hash)
   server_config.merge!(_config["server"])
 
   ['chdir'].each do |key|
