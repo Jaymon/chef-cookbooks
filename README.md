@@ -41,3 +41,8 @@ I don't know how many times I'm going to need to learn this, but on startup, thi
     end script
 
 
+### Running Chef if Vagrant Manually
+
+
+    $ cd /tmp/vagrant-chef
+    $ chef-client --config solo.rb -j dna.json --local-mode

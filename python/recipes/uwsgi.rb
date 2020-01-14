@@ -2,7 +2,7 @@
 # create python plugins for uwsgi
 #
 # I don't love this solution at all, it has high coupling to both the uwsgi cookbook
-# because it currently needs to be run after the uwsgi cookbook and needs access to
+# because it currently needs to be run after the uwsgi cookbook and accesses
 # the uwsgi node configuration. It is also coupled to the pyenv cookbook (but this
 # whole cookbook is) but it basically uses the actual paths to where pyenv installs
 # python
@@ -10,6 +10,8 @@
 name = cookbook_name.to_s
 name_recipe = recipe_name.to_s
 n = node[name]
+
+::Chef::Recipe.send(:include, ::Chef::Mixin::ShellOut)
 
 
 common_config = n.fetch("common", {})
@@ -22,11 +24,39 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
   config.merge!(venv_config)
 
   if config.has_key?("uwsgi")
-    # get the path of uwsgi, this can be done 1 of 2 ways:
+
+    # get the path of uwsgi, this can be done in several ways
     # 1. get it from node["uwsgi"]["dirs"]["installation"]
-    # 2. dirname $(readlink $(which uwsgi)) in a block since it needs to run during run phase
-    #    https://stackoverflow.com/a/29789399/5006
+    # 2. see if it is installed already and get the value using a mix of shell and ruby code
+    # 3. `dirname $(readlink $(which uwsgi))` in a block since it needs to run during run phase
+    #    https://stackoverflow.com/a/29789399/5006 basically we are going to do 2 again
+    #    but this time in a block with the idea it got installed between compile and execute
+    #    stages
     uwsgi_dir = node.fetch("uwsgi", {}).fetch("dirs", {})["installation"]
+    if !uwsgi_dir
+      cmd = shell_out!("which uwsgi")
+      uwsgi_path = cmd.stdout.strip
+      if uwsgi_path
+        uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
+
+      else
+
+        ruby_block "#{name}_find_uwsgi_dir" do
+          block do
+            cmd = shell_out!("which uwsgi")
+            uwsgi_path = cmd.stdout.strip
+            if uwsgi_path
+              uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
+            else
+              ::Chef::Application.fatal!('Could not find uWSGI installation directory')
+            end
+
+          end
+        end
+
+      end
+    end
+
     plugin_name = venv_config["uwsgi"]
 
     version = config["version"]
