@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # This is for us only, to point to where pyenv is installed globally
 export PYENV_COMMON_ROOT=<%= @dir %>
 
@@ -15,8 +13,6 @@ export PATH="$PYENV_COMMON_ROOT/bin:$PATH"
 # globally install pyenv but have each user be able to install their own python
 # versions while leaving the global pyenv untouched
 ###############################################################################
-shopt -s nullglob
-
 for plugin_bin in "${PYENV_COMMON_ROOT}/plugins/"*/bin; do
   PATH="${plugin_bin}:${PATH}"
 done
@@ -28,10 +24,7 @@ PYENV_HOOK_PATH="${PYENV_HOOK_PATH#:}"
 
 export PATH
 export PYENV_HOOK_PATH
-
-shopt -u nullglob
 ###############################################################################
 
-#eval "$(pyenv init -)"
 <%= @bash_lines.join("\n") %>
 
