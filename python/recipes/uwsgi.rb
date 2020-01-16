@@ -57,31 +57,33 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
       end
     end
 
-    plugin_name = venv_config["uwsgi"]
-
     version = config["version"]
     username = config["user"]
 
-    uwsgi_plugin_name = "#{plugin_name}_plugin.so"
+    config["uwsgi"].each do |plugin_name, plugin_builder|
 
-    bash "python uwsgi build plugin #{plugin_name}" do
-      code <<~EOH
-        #set -x
+      uwsgi_plugin_name = "#{plugin_name}_plugin.so"
 
-        homedir=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
-        export PYTHON=${homedir}/.pyenv/versions/#{version}/bin/python
+      bash "python uwsgi build plugin #{plugin_name} using #{plugin_builder}" do
+        code <<~EOH
+          #set -x
 
-        #. /etc/profile.d/pyenv.sh
-        #pyenv shell #{version}
-        #export PYTHON=python
+          homedir=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
+          export PYTHON=${homedir}/.pyenv/versions/#{version}/bin/python
 
-        ./uwsgi --build-plugin "plugins/python #{plugin_name}"
+          #. /etc/profile.d/pyenv.sh
+          #pyenv shell #{version}
+          #export PYTHON=python
 
-        #set +x
-        EOH
-      #user username
-      cwd uwsgi_dir
-      not_if { ::File.exist?(::File.join(uwsgi_dir, uwsgi_plugin_name)) }
+          ./uwsgi --build-plugin "plugins/#{plugin_builder} #{plugin_name}"
+
+          #set +x
+          EOH
+        #user username
+        cwd uwsgi_dir
+        not_if { ::File.exist?(::File.join(uwsgi_dir, uwsgi_plugin_name)) }
+      end
+
     end
 
   end
