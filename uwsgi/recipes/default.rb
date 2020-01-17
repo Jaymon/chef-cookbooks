@@ -122,10 +122,10 @@ n['servers'].each do |server_name, _config|
 
   server_config = {
     # this needs to come before plugin otherwise the plugin won't load, ugh
-    "plugins-dir" => n["dirs"]["installation"]
+    "plugins-dir" => n["dirs"]["installation"],
+    "procname-prefix" => "#{server_name} ",
   }
-
-
+  server_config.merge!(n["server_default"].to_hash)
   server_config.merge!(n["server"].to_hash)
   server_config.merge!(_config["server"])
 

@@ -2,18 +2,52 @@
 
 name = "uwsgi"
 
-default[name] = {}
+n = {
+  "version" => "latest",
+  "base_url" => "https://projects.unbit.it/downloads/",
+  "user" => "www-data",
+}
 
-default[name]["version"] = "latest"
-default[name]["user"] = "www-data"
-default[name]["init"] = {}
-default[name]["init"]["command"] = "uwsgi"
-default[name]["server"] = {}
-default[name]["servers"] = {}
+# configuration for the daemon script
+n["init"] = {
+  "command" => "uwsgi",
+}
 
-default[name]["base_url"] = "https://projects.unbit.it/downloads/"
-
-default[name]["dirs"] = {
+# directory configuration
+n["dirs"] = {
   'configuration' => ::File.join("", "etc", name),
   'installation' => ::File.join("", "opt", name),
 }
+
+# configuration for each uwsgi server will go in here, with the server name as the key
+n["servers"] = {}
+
+# global configuration for each server in servers can go in here, this is meant to 
+# be defined by the user which is why it is separate from server_default
+n["server"] = {}
+
+# default configuration that will be merged with server, then the specific key under servers
+# goes here, this is internal
+# this contains default configuration that can be overridden in both server and 
+# the server specific configuration, it's based on:
+# https://www.techatbloomberg.com/blog/configuring-uwsgi-production-deployment/
+n["server_default"] = {
+  "strict" => true,
+  "master" => true,
+  "no-orphans" => true,
+  "enable-threads" => true,
+  "vacuum" => true, # Delete sockets during shutdown
+  "single-interpreter" => true,
+  "die-on-term" => true, # Shutdown when receiving SIGTERM (default is respawn)
+  "need-app" => true,
+  "memory-report" => true,
+  "disable-logging" => true, # I'm not sure about keeping this one true
+  "log-4xx" => true,
+  "log-5xx" => true,
+  "auto-procname" => true,
+  "show-config" => true,
+  "plugins-list" => true,
+}
+
+default[name] = n
+
