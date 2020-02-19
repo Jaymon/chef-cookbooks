@@ -15,6 +15,9 @@ property :cert_root, String, required: true
 default_action :run
 
 action :run do
+  domain = new_resource.domain
+  snakeoil_root = new_resource.snakeoil_root
+  cert_root = new_resource.cert_root
 
   so_cert = Letsencrypt::Cert.new(snakeoil_root, domain)
 
@@ -51,7 +54,7 @@ action :run do
 #     #action :nothing
 #     not_if { le_cert.exists?() }
 #   end
-# 
+#
 #   link "#{name} #{rname} symlink cert #{domain}" do
 #     target_file ::File.join(cert_d, domain, so_cert.cert_name)
 #     to so_cert.cert_f
