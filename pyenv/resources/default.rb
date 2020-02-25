@@ -23,9 +23,8 @@ action :install do
   # https://github.com/pyenv/pyenv/issues/86#issuecomment-30906301
   # https://stackoverflow.com/a/42582713/5006
 
-
   venv_cmd = ""
-  if venv
+  if !venv.empty?
     venv_cmd = <<-EOH
       if [[ ! -d "$(pyenv root)/versions/#{version}/envs/#{venv}" ]]; then
         pyenv virtualenv #{version} #{venv}
@@ -43,7 +42,7 @@ action :install do
       export XDG_CACHE_HOME="#{cache_dir}"
 
       # we have to set the home directory otherwise it will use root's
-      #export HOME=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
+      export HOME=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
       . /etc/profile.d/pyenv.sh
 
       # we turn on sharing because certain things fail if the python libraries
