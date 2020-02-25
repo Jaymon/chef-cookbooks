@@ -9,6 +9,9 @@ property :root, String, required: true
 default_action :run
 
 action :run do
+  server = new_resource.server
+  root = new_resource.root
+
   # cleanup a failed attempt
   # TODO: check to make sure it is a webroot conf file
   renew_conf_f = ::File.join(root, "renewal", "#{server}.conf")
