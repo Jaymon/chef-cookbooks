@@ -17,12 +17,5 @@ n["dirs"] = {
 
 n["basename"] = "#{name}.sh"
 
-# default[name] = {}
-# default[name][:set] = {}
-# default[name][:file] = []
-# default[name]["global"] = {}
-# default[name]["global"][:set] = {}
-# default[name]["global"][:file] = []
-
-
 default[name] = n
+

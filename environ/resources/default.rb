@@ -2,12 +2,11 @@
 # https://docs.chef.io/custom_resources.html
 property :name, String, name_property: true
 property :value, String, required: true
-#property :path, String, default: lazy { ::File.join(node["dirs"]["configuration"], node["basename"]) }
 property :environ, ::EnvironHash, required: true
+
 
 default_action :install
 
-#e = ::EnvironHash.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
 
 action :set do
   env_name = new_resource.name

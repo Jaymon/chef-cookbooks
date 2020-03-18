@@ -40,6 +40,12 @@ module UWSGI
     end
 
 
+    # get the configuration for the uwsgi server and the service that will manage it
+    #
+    # @param [string] name: the name of the uwsgi server
+    # @param [hash] local: the local "server" configuration for the server name
+    # @param [hash] global: the global "server" config block for all the servers
+    # @returns [hash]: all the configuration for the service and uwsgi server
     def self.get_config(name, local, global)
 
       config = {
@@ -76,6 +82,11 @@ module UWSGI
 
     end
 
+    # get the environment the service will use to run the uwsgi server
+    #
+    # @param [hash] local: the local "server" configuration for the server name
+    # @param [hash] global: the global "server" config block for all the servers
+    # @returns [hash]: the environment configuration that can be passed to the service template
     def self.get_environ(local, global)
       environs = local.fetch("environ", global.fetch("environ", []))
 
@@ -108,7 +119,19 @@ module UWSGI
 
     end
 
-    # normalize the configuration
+    # normalize the uwsgi ini configuration
+    #
+    # basically, order matters in uwsgi:
+    #   https://uwsgi-docs.readthedocs.io/en/latest/ParsingOrder.html
+    #   https://github.com/unbit/uwsgi/issues/1074
+    #
+    # but sometimes that is really annoying to keep straight when configuring a server
+    # so this tries to do its best to order common values correctly so uwsgi won't
+    # barf because you had your python plugin defined after your virtualenv
+    #
+    # @param [hash] server_config: the server config that was put together in get_config()
+    # @returns [array]: a list of tuples (key, val) that can be passed to the ini
+    #   template to create the uwsgi ini config file
     def self.get_server_config(server_config)
 
       config_variables = []
@@ -129,6 +152,14 @@ module UWSGI
 
     end
 
+    # normalizes a specific ini value
+    #
+    # this is meant to be used by get_server_config()
+    #
+    # @param [string] key: the key value
+    # @param [mixed] val: the value that will be normalized so ini can handle it
+    # @returns [array] a list of tuples (key, val) that can be merged into a main
+    #   config list and passed to the ini template
     def self.get_ini_value(key, val)
       if val.is_a?(TrueClass)
         r = [[key, 1]]
@@ -149,53 +180,6 @@ module UWSGI
       return r
 
     end
-
-
-
-
-    # Returns the unified uwsgi/server ini config defined in the local and global blocks
-#     def self.get_uwsgi_config(name, local, global)
-#       config = {
-#         # this needs to come before plugin otherwise the plugin won't load, ugh
-#         "plugins-dir" => global["dirs"]["installation"],
-#         "procname-prefix" => "#{name} ",
-#       }
-#       config.merge!(global["server_default"].to_hash)
-#       config.merge!(global["server"].to_hash)
-#       config.merge!(local.fetch("server", {}))
-#       return config
-#     end
-# 
-#     # Returns the environment the uwsgi server will run in, this can then be used
-#     # to create the service environment
-#     def self.get_environ(name, uwsgi, local, global)
-# 
-#       variables = {}
-#       environs = local.fetch("environ", global.fetch("environ", []))
-# 
-#       ['chdir'].each do |key|
-#         if uwsgi.has_key?(key)
-#           variables[key] = uwsgi.delete(key)
-#         end
-#       end
-# 
-#       # setup any environment
-#       variables['environ_files'] = []
-#       variables['environ_vars'] = []
-#       environs.each do |environ|
-#         if ::File.directory?(environ)
-#           variables['environ_files'] << "for f in #{::File.join(environ, "*")}; do . $f; done"
-#         elsif environ =~ /\S+\s*=\s*\S+/
-#           variables['environ_vars'] << environ
-#         else
-#           variables['environ_files'] << ". #{environ}"
-#         end
-#       end
-# 
-#       return variables
-# 
-#     end
-
   end
 end
 

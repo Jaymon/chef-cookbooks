@@ -14,11 +14,6 @@ n["environ"] = []
 # the binary that will be ran to start uwsgi
 n["command"] = ::File.join("", "usr", "local", "bin", "uwsgi")
 
-# configuration for the daemon script
-# n["init"] = {
-#   "command" => "uwsgi",
-# }
-
 # directory configuration
 n["dirs"] = {
   "configuration" => ::File.join("", "etc", name),

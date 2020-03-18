@@ -2,13 +2,43 @@
 
 Installs uWSGI
 
+## Links
+
+* [uWSGI docs](https://uwsgi-docs.readthedocs.io/en/latest/)
+* [uWSGI versions](https://uwsgi-docs.readthedocs.io/en/latest/index.html#stable-releases)
+* [uWSGI systemd docs](https://uwsgi-docs.readthedocs.io/en/latest/Systemd.html)
+
+
+## Configuration block
+
+```ruby
+{
+  "uwsgi" => {
+      "version" => "MAJOR.MINOR.POINT",
+      "user" => "",
+      "environ" => ,
+      "command" => "/path/to/uwsgi",
+      "server" => {
+        # common uwsgi server configuration would go here
+      },
+      "servers" => {
+        "<SERVER_NAME>" => {
+          "environ" => "/override/global/environ"
+          "server" => {
+            # specific uwsgi configuration for <SERVER_NAME> would go here
+          }
+        }
+      }
+    }
+}
+```
 
 ## Attributes
 
 
 ### version
 
-string -- what version of uWSGI to install
+string -- what [version of uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/index.html#stable-releases) to install
 
     node["uwsgi"]["version"] = "2.0.11.1"
 
@@ -20,16 +50,9 @@ string -- the user uWSGI will run as
     node["uwsgi"]["user"] = "www-data"
 
 
--------------------------------------------------------------------------------
+### environ
 
-### init
-
-dict -- any specific init script configuration, this block can affect how the Upstart script is configured.
-
-
-#### env
-
-list -- a directory, list, or files that will be sourced before calling `command`
+list or string -- a list of directories, `key=val` strings, or files that will be sourced before starting `uwsgi`
 
     "env" => [
       "/any/files/in/directory/will/be/sourced",
@@ -37,56 +60,43 @@ list -- a directory, list, or files that will be sourced before calling `command
       "VALUE=will_be_added_to_environment"
     ]
 
-
-#### command
-
-string -- the command, defaults to `uwsgi`
+__NOTE__ -- This can also be just a string path or a hash of `key => val` pairs.
 
 
--------------------------------------------------------------------------------
+### command
+
+string -- the full path to the `uwsgi` binary.
+
 
 ### server
 
-dict -- any common configuration you want all the individual `server` keys to share. This has the same structure as the `server` dict in the individual server configuration dicts.
+hash -- any common configuration you want all the individual `server` keys to share. This has the same structure as the `server` hash in the individual server configuration dicts.
 
 
 ### servers
 
-dict -- the keys are the server names, the value is a dict that can have two keys: `init` and `server` which can contain custom values for this server.
+hash -- the keys are the server names, the value is a hash that can have two keys: `environ` and `server` which can contain custom values for this server.
 
-#### init
-
-See the common `init`
 
 #### server
 
 the key/values for the different uWSGI settings you want to use.
 
     "servers" => {
-      "server1" => {
-        "init" => {
-          "command" => "/usr/local/bin/uwsgi"
-        },
+      "uwsgi1" => {
+        "environ" => "/path/to/environ/file/for/server1",
         "server" => {
           "http" => ":9001",
-          "die-on-term" => true,
-          "master" => true,
           "processes" => 1,
-          "cpu-affinity" => 1,
-          "thunder-lock" => true,
           "chdir" => "/some/path1",
           "uid" => "someuser1",
           "wsgi-file" => "server1.py",
         }
       },
-      "server2" => {
+      "uwsgi2" => {
         "server" => {
           "http" => ":9002",
-          "die-on-term" => true,
-          "master" => true,
           "processes" => 1,
-          "cpu-affinity" => 1,
-          "thunder-lock" => true,
           "chdir" => "/some/path2",
           "uid" => "someuser2",
           "wsgi-file" => "server1.py",
@@ -96,44 +106,19 @@ the key/values for the different uWSGI settings you want to use.
 
 Anything available on the command line (run `uwsgi --help` to see all the options) can be defined here.
 
-A full configuration block would look something like this:
-
-    "uwsgi" => {
-      "init" => {
-        # common init configuration would go here
-      },
-      "server" => {
-        # common uwsgi server configuration would go here
-      },
-      "servers" => {
-        "server_name" => {
-          "init" => {
-            # specific init configuration for server_name would go here
-          },
-          "server" => {
-            # specific uwsgi configuration for server_name would go here
-          }
-        }
-      }
-    }
-
 
 ## Using 
 
 Each server name under the `servers` configuration can be started and stopped using Upstart:
 
-    $ sudo start server1
+    $ sudo systemctl start server1
 
 and stop it:
 
-    $ sudo stop server2
-
-and you can manage all installed uWSGI servers using `uwsgi`:
-
-    $ sudo start uwsgi
+    $ sudo systemctl stop server2
 
 
 ## Platform
 
-Ubuntu 14.04 is what we run.
+Ubuntu 18.04 is what we run.
 

@@ -73,6 +73,7 @@ class EnvironHash
         # is using shell by running `echo $0`
         #process = shell_out(". #{@file} && echo $#{key}")
         #val = process.stdout.strip()
+        # ??? 3-2020, Why do we use backticks instead of shell_out here?
         val = `. #{@file} && echo $#{key}`.strip()
         @hash[key] = val
 

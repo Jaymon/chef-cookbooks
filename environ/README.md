@@ -2,18 +2,28 @@
 
 Manipulate environments and environment variables.
 
-This will set all variables into `node["environ_path"]` as `KEY=val` on each line, it will also add an `node["profile_path"]` script that should source your environment variables into each new shell session.
 
-```sh
-set -a
-source /opt/environ/environ.sh
-set +a  # Require export again, if desired
+## Configuration block
+
+```ruby
+{
+  "environ" => {
+    :set => {
+      "KEY" => "VALUE",
+    },
+    :file => [
+      "/full/path",
+    ],
+    "notifies" => [
+      [:restart, "resource[RESOURCE_NAME]", :delayed],
+    ],
+  }
+}
 ```
-
 
 ## Attributes
 
-#### :set
+### :set
 
 `node["environ"][:set]` -- a hash of global environment variables to set
 
@@ -23,7 +33,7 @@ set +a  # Require export again, if desired
     }
 
 
-#### :file
+### :file
 
 `node["environ"][:file]` -- a list of files to merge into the global environment variables
 
@@ -44,16 +54,7 @@ set +a  # Require export again, if desired
     }
 
 
-## Resource and Provider
-
-This cookbook creates an `environ` resource and provider that can be used in other cookbooks to set environment variables:
-
-    environ 'ENVIRONMENT_VARIABLE_NAME' do
-      value 'environment variable value'
-    end
-
-Using the environ resource will also set `ENVIRONMENT_VARIABLE_NAME` in the Ruby environment, so it would be available in Ruby's `ENV` variable. See [here](https://github.com/customink-webops/magic_shell) and [here](http://stackoverflow.com/questions/6284517/how-can-you-use-a-chef-recipe-to-set-an-environment-variable) for more details.
-
+-----------------------------------
 
 ## Tips
 
@@ -68,9 +69,16 @@ By default, Environ will escape each value so you don't have to worry about manu
 The above snippet will pass the unescaped string to the environ and so any time the file is sourced that code will be run and a value will be set for FOO.
 
 
+### File locations
+
+By default, all your environment files are written to `/etc/environ/environ.sh` and a wrapper script is placed in `/etc/profile.d/environ.sh` that handles environment setup for things like bash.
+
+If you would like to use the set environment in other places, you should use the `/etc/environ/environ.sh` file.
+
+
 ## Platform
 
-Ubuntu 14.04
+Ubuntu 18.04
 
 
 ## Notes

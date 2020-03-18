@@ -18,9 +18,6 @@ environ = ::EnvironHash.new(configuration_path, false)
 
 
 # first add all the files to the environment
-#fs = []
-#fs.concat(n["global"].fetch(:file, []))
-#fs.concat(n.fetch(:file, []))
 fs = n.fetch(:file, [])
 
 fs.each do |file_name|
@@ -39,9 +36,6 @@ end
 
 
 # after files are added, then add the explicitely set variables since they have precedence
-# d = {}
-# d.merge!(n["global"].fetch(:set, {}))
-# d.merge!(n.fetch(:set, {}))
 d = n.fetch(:set, {})
 
 d.each do |key, val|

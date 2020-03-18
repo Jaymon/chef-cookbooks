@@ -157,6 +157,8 @@ n['servers'].each do |server_name, _config|
 
 end
 
+# TODO -- March 2020, this was removed when systemd support was added, hopefully it can
+# be added back in the future
 # global script that will start/stop/restart all servers at once
 # service name do
 #   service_name name
