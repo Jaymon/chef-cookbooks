@@ -1,35 +1,42 @@
 # http://docs.opscode.com/essentials_cookbook_attribute_files.html
 name = "redis"
 
-default[name] = {}
+n = {}
 
-default[name]["version"] = "2.6.16"
-default[name]["user"] = "redis"
+n["version"] = "5.0.8"
+n["user"] = "redis"
 
-# these will be added to the redis-server prestart code block in the Upstart script
-# TODO -- we can probably get rid of this since we've added sysctl cookbook
-default[name]["kernel_options"] = []
-#   "echo never > /sys/kernel/mm/transparent_hugepage/enabled",
-#   "sysctl vm.overcommit_memory=1",
-#   "sysctl -w net.core.somaxconn=1024",
-# ]
+n['command'] = ::File.join("", "usr", "local", "bin", "redis-server")
+n['command_shutdown'] = ::File.join("", "usr", "local", "bin", "redis-cli")
+
+n["dirs"] = {
+  'etc' => ::File.join("", "etc", "redis"),
+  'log' =>  ::File.join("", "var", "log", "redis"),
+  'lib' => ::File.join("", "var", "lib", "redis"),
+  'conf.d' =>  ::File.join("", "etc", "redis", "conf.d"),
+  'src' => ::File.join(::Chef::Config[:file_cache_path], name),
+  "service" => ::File.join("", "etc", "systemd", "system"),
+}
 
 # I wouldn't mess with these specific values, but that's just me
-default[name]["conf"] = {
+n["config_default"] = {
   'dir' => ::File.join("", "var", "lib", "redis"),
-  'dbfilename' => 'redis.db', # this is for compatibility with Chris's ubuntu packages
+  'dbfilename' => 'redis.db',
   'logfile' => ::File.join("", "var", "log", "redis", "redis.log"),
-  'daemonize' => 'yes',
-  'pidfile' => ::File.join("", "var", "run", "redis", "redis.pid")
+  # this is needed for systemd https://gist.github.com/hackedunit/a53f0b5376b3772d278078f686b04d38#gistcomment-2816179
+  "supervised" => "systemd",
 }
 
 # these will be added to the dest_conf_file using Redis's include feature
 # it is often much better to use this then to completely replace the dest_conf_file
 # with your own custom conf_file
-default[name]['include_conf_files'] = []
+n['config_files'] = []
+
+# most configuration will go here as key => val
+n['config'] = {}
 
 # I wouldn't override these unless you know what you're doing:
-default[name]["src_dir"] = ::File.join(::Chef::Config[:file_cache_path], name)
-default[name]["src_repo"] = "https://github.com/antirez/redis.git"
+n["src_repo"] = "https://github.com/antirez/redis.git"
 
+default[name] = n
 

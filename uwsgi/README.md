@@ -12,24 +12,22 @@ Installs uWSGI
 ## Configuration block
 
 ```ruby
-{
-  "uwsgi" => {
-      "version" => "MAJOR.MINOR.POINT",
-      "user" => "",
-      "environ" => ,
-      "command" => "/path/to/uwsgi",
+"uwsgi" => {
+  "version" => "MAJOR.MINOR.POINT",
+  "user" => "",
+  "environ" => ,
+  "command" => "/path/to/uwsgi",
+  "server" => {
+    # common uwsgi server configuration would go here
+  },
+  "servers" => {
+    "<SERVER_NAME>" => {
+      "environ" => "/override/global/environ"
       "server" => {
-        # common uwsgi server configuration would go here
-      },
-      "servers" => {
-        "<SERVER_NAME>" => {
-          "environ" => "/override/global/environ"
-          "server" => {
-            # specific uwsgi configuration for <SERVER_NAME> would go here
-          }
-        }
+        # specific uwsgi configuration for <SERVER_NAME> would go here
       }
     }
+  }
 }
 ```
 
