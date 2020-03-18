@@ -13,7 +13,6 @@ n = node[name]
 
 ::Chef::Recipe.send(:include, ::Chef::Mixin::ShellOut)
 
-
 common_config = n.fetch("common", {})
 
 n.fetch("environments", {}).each do |venv_name, venv_config|
@@ -34,28 +33,45 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
     #    stages
     uwsgi_dir = node.fetch("uwsgi", {}).fetch("dirs", {})["installation"]
     if !uwsgi_dir
-      cmd = shell_out!("which uwsgi")
-      uwsgi_path = cmd.stdout.strip
-      if uwsgi_path
-        uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
-
-      else
-
-        ruby_block "#{name}_find_uwsgi_dir" do
-          block do
-            cmd = shell_out!("which uwsgi")
-            uwsgi_path = cmd.stdout.strip
-            if uwsgi_path
-              uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
-            else
-              ::Chef::Application.fatal!('Could not find uWSGI installation directory')
-            end
-
+      ruby_block "#{name}_find_uwsgi_dir" do
+        block do
+          cmd = shell_out!("which uwsgi")
+          uwsgi_path = cmd.stdout.strip
+          if uwsgi_path
+            uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
+          else
+            ::Chef::Application.fatal!('Could not find uWSGI installation directory')
           end
-        end
 
+        end
       end
     end
+
+
+    # original code that works but I think the above is more concise and works the same
+#     if !uwsgi_dir
+#       cmd = shell_out!("which uwsgi", { :returns => [0,1] })
+#       uwsgi_path = cmd.stdout.strip
+#       if uwsgi_path
+#         uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
+# 
+#       else
+# 
+#         ruby_block "#{name}_find_uwsgi_dir" do
+#           block do
+#             cmd = shell_out!("which uwsgi")
+#             uwsgi_path = cmd.stdout.strip
+#             if uwsgi_path
+#               uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
+#             else
+#               ::Chef::Application.fatal!('Could not find uWSGI installation directory')
+#             end
+# 
+#           end
+#         end
+# 
+#       end
+#     end
 
     version = config["version"]
     username = config["user"]

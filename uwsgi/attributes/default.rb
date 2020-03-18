@@ -8,15 +8,22 @@ n = {
   "user" => "www-data",
 }
 
+# contains directories, files, or "KEY=VALUE" strings
+n["environ"] = []
+
+# the binary that will be ran to start uwsgi
+n["command"] = ::File.join("", "usr", "local", "bin", "uwsgi")
+
 # configuration for the daemon script
-n["init"] = {
-  "command" => "uwsgi",
-}
+# n["init"] = {
+#   "command" => "uwsgi",
+# }
 
 # directory configuration
 n["dirs"] = {
-  'configuration' => ::File.join("", "etc", name),
-  'installation' => ::File.join("", "opt", name),
+  "configuration" => ::File.join("", "etc", name),
+  "installation" => ::File.join("", "opt", name),
+  "service" => ::File.join("", "etc", "systemd", "system")
 }
 
 # configuration for each uwsgi server will go in here, with the server name as the key
@@ -26,8 +33,6 @@ n["servers"] = {}
 # be defined by the user which is why it is separate from server_default
 n["server"] = {}
 
-# default configuration that will be merged with server, then the specific key under servers
-# goes here, this is internal
 # this contains default configuration that can be overridden in both server and 
 # the server specific configuration, it's based on:
 # https://www.techatbloomberg.com/blog/configuring-uwsgi-production-deployment/

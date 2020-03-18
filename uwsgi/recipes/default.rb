@@ -104,7 +104,7 @@ end
 
 link "make_uwsgi_global" do
   to ::File.join(n["dirs"]["installation"], "uwsgi")
-  target_file ::File.join("", "usr", "local", "bin", "uwsgi")
+  target_file n["command"]
   link_type :symbolic
   action :nothing
 end
@@ -115,26 +115,9 @@ end
 ###############################################################################
 
 n['servers'].each do |server_name, _config|
-  variables = {}
 
-  init_config = n["init"].to_hash
-  init_config.merge!(_config.fetch("init", {}))
-
-  server_config = {
-    # this needs to come before plugin otherwise the plugin won't load, ugh
-    "plugins-dir" => n["dirs"]["installation"],
-    "procname-prefix" => "#{server_name} ",
-  }
-  server_config.merge!(n["server_default"].to_hash)
-  server_config.merge!(n["server"].to_hash)
-  server_config.merge!(_config["server"])
-
-  ['chdir'].each do |key|
-    if server_config.has_key?(key)
-      variables[key] = server_config[key]
-      server_config.delete(key)
-    end
-  end
+  config = UWSGI.get_config(server_name, _config, n)
+  server_config = config["server"]
 
   if server_config.has_key?("uid")
     # create the user that will manage uwsgi (if they don't already exist)
@@ -149,84 +132,43 @@ n['servers'].each do |server_name, _config|
     end
   end
 
-  if !server_config.has_key?("plugins-dir")
-    server_config["plugins-dir"] = n["dirs"]["installation"]
-  end
-
-  # normalize the configuration
-  config_variables = []
-  server_config.each do |key, val|
-    if val.is_a?(TrueClass)
-      config_variables << [key, 1]
-
-    elsif val.is_a?(FalseClass)
-      config_variables << [key, 0]
-
-    else
-      Array(val).each do |val|
-        config_variables << [key, val]
-
-      end
-    end
-  end
-
-  # setup any environment
-  variables['environ_files'] = []
-  variables['environ_vars'] = []
-  environs = init_config.fetch('env', [])
-  environs.each do |environ|
-    if ::File.directory?(environ)
-      variables['environ_files'] << "for f in #{::File.join(environ, "*")}; do . $f; done"
-    elsif environ =~ /\S+\s*=\s*\S+/
-      variables['environ_vars'] << environ
-    else
-      variables['environ_files'] << ". #{environ}"
-    end
-  end
-
-  config_path = ::File.join(n["dirs"]["configuration"], "#{server_name}.ini")
-  template config_path do
+  template config["server_path"] do
     source "ini.erb"
     mode "0644"
-    variables({"config_variables" => config_variables})
+    variables({"config_variables" => UWSGI.get_server_config(server_config)})
     notifies :stop, "service[#{server_name}]", :delayed
     notifies :start, "service[#{server_name}]", :delayed
   end
 
-  exec_str = "#{init_config["command"]} --ini #{config_path}"
-
-  variables['exec_str'] = exec_str
-  variables['server_name'] = server_name
-
+  # hooks to start/stop/restart this server
   service server_name do
     service_name server_name
-    provider Chef::Provider::Service::Upstart
     action :nothing
     supports :status => true, :start => true, :stop => true, :restart => true
   end
 
-  template ::File.join("", "etc", "init", "#{server_name}.conf") do
-    source "server.conf.erb"
+  template config["service_path"] do
+    source "server.service.erb"
     mode "0644"
-    variables(variables)
+    variables(config["service"])
     notifies :stop, "service[#{server_name}]", :delayed
     notifies :start, "service[#{server_name}]", :delayed
   end
 
 end
 
-service name do
-  service_name name
-  provider Chef::Provider::Service::Upstart
-  action :nothing
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
-template ::File.join("", "etc", "init", "#{name}.conf") do
-  source "servers.conf.erb"
-  mode "0644"
-  variables({"server_names" => n['servers'].keys})
-  #notifies :stop, "service[#{name}]", :delayed
-  notifies :start, "service[#{name}]", :delayed
-end
+# global script that will start/stop/restart all servers at once
+# service name do
+#   service_name name
+#   provider Chef::Provider::Service::Upstart
+#   action :nothing
+#   supports :status => true, :start => true, :stop => true, :restart => true
+# end
+# 
+# template ::File.join("", "etc", "init", "#{name}.conf") do
+#   source "servers.conf.erb"
+#   mode "0644"
+#   variables({"server_names" => n['servers'].keys})
+#   notifies :start, "service[#{name}]", :delayed
+# end
 

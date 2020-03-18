@@ -1,0 +1,25 @@
+[Unit]
+Description="uwsgi upstart for <%= @server_name %>"
+After=syslog.target network.target remote-fs.target
+Requires=network-online.target
+
+[Service]
+Type=notify
+NotifyAccess=all
+Restart=on-failure
+RestartSec=5
+<% if defined?(@chdir) %>
+WorkingDirectory=<%= @chdir %>
+<% end %>
+<% @environ_vars.each do |environ| %>
+Environment="<%= environ %>"
+<% end %>
+<% @environ_files.each do |environ| %>
+EnvironmentFile=<%= environ %>
+<% end %>
+LimitNOFILE=100000
+ExecStart=<%= @exec_str %>
+
+[Install]
+WantedBy=mutli-user.target
+

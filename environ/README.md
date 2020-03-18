@@ -1,6 +1,14 @@
 # Environ Cookbook
 
-Manipulate environments and environment variables
+Manipulate environments and environment variables.
+
+This will set all variables into `node["environ_path"]` as `KEY=val` on each line, it will also add an `node["profile_path"]` script that should source your environment variables into each new shell session.
+
+```sh
+set -a
+source /opt/environ/environ.sh
+set +a  # Require export again, if desired
+```
 
 
 ## Attributes

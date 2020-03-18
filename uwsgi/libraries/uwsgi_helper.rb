@@ -39,6 +39,163 @@ module UWSGI
       return v
     end
 
+
+    def self.get_config(name, local, global)
+
+      config = {
+        "server_path" => ::File.join(global["dirs"]["configuration"], "#{name}.ini"),
+        "service_path" => ::File.join(global["dirs"]["service"], "#{name}.service"),
+      }
+
+      server_config = {
+        # this needs to come before plugin otherwise the plugin won't load, ugh
+        "plugins-dir" => global["dirs"]["installation"],
+        "procname-prefix" => "#{name} ",
+      }
+      server_config.merge!(global["server_default"].to_hash)
+      server_config.merge!(global["server"].to_hash)
+      server_config.merge!(local.fetch("server", {}))
+
+      service_config = {}
+
+      # some server configuration can actually be done at the service level
+      ['chdir'].each do |key|
+        if server_config.has_key?(key)
+          service_config[key] = server_config.delete(key)
+        end
+      end
+
+      service_config.merge!(self.get_environ(local, global))
+
+      service_config["exec_str"] = "#{global["command"]} --ini #{config["server_path"]}"
+      service_config['server_name'] = name
+
+      config["server"] = server_config
+      config["service"] = service_config
+      return config
+
+    end
+
+    def self.get_environ(local, global)
+      environs = local.fetch("environ", global.fetch("environ", []))
+
+      config = {
+        "environ_files" => [],
+        "environ_vars" => [],
+      }
+
+      if environs.is_a?(Hash)
+        environs.each do |k, v|
+          config["environ_vars"] << "#{k}=#{v}"
+        end
+
+      else
+        Array(environs).each do |environ|
+          if ::File.directory?(environ)
+            config['environ_files'] << ::File.join(environ, "*")
+          elsif environ =~ /\S+\s*=\s*\S+/
+            config['environ_vars'] << environ
+          elsif ::File.exist?(environ)
+            config['environ_files'] << environ
+          else
+            ::Chef::Log.warn("uWSGI environ value #{environ} is not a KEY=<VAL> or directory/file path")
+          end
+        end
+
+      end
+
+      return config
+
+    end
+
+    # normalize the configuration
+    def self.get_server_config(server_config)
+
+      config_variables = []
+
+      # order matters in uwsgi and this fixes some of the more egregious order mistakes
+      %w[strict plugins-dir plugin-dir plugins plugin virtualenv].each do |k|
+        if server_config.has_key?(k)
+          config_variables.concat(self.get_ini_value(k, server_config.delete(k)))
+        end
+      end
+
+      # now just add the rest of the configuration
+      server_config.each do |key, val|
+        config_variables.concat(self.get_ini_value(key, val))
+      end
+
+      return config_variables
+
+    end
+
+    def self.get_ini_value(key, val)
+      if val.is_a?(TrueClass)
+        r = [[key, 1]]
+
+      elsif val.is_a?(FalseClass)
+        r = [[key, 0]]
+
+      elsif val.is_a?(Array)
+        r = []
+        val.each do |v|
+          r.concat(self.get_ini_value(key, v))
+        end
+
+      else
+        r = [[key, val]]
+      end
+
+      return r
+
+    end
+
+
+
+
+    # Returns the unified uwsgi/server ini config defined in the local and global blocks
+#     def self.get_uwsgi_config(name, local, global)
+#       config = {
+#         # this needs to come before plugin otherwise the plugin won't load, ugh
+#         "plugins-dir" => global["dirs"]["installation"],
+#         "procname-prefix" => "#{name} ",
+#       }
+#       config.merge!(global["server_default"].to_hash)
+#       config.merge!(global["server"].to_hash)
+#       config.merge!(local.fetch("server", {}))
+#       return config
+#     end
+# 
+#     # Returns the environment the uwsgi server will run in, this can then be used
+#     # to create the service environment
+#     def self.get_environ(name, uwsgi, local, global)
+# 
+#       variables = {}
+#       environs = local.fetch("environ", global.fetch("environ", []))
+# 
+#       ['chdir'].each do |key|
+#         if uwsgi.has_key?(key)
+#           variables[key] = uwsgi.delete(key)
+#         end
+#       end
+# 
+#       # setup any environment
+#       variables['environ_files'] = []
+#       variables['environ_vars'] = []
+#       environs.each do |environ|
+#         if ::File.directory?(environ)
+#           variables['environ_files'] << "for f in #{::File.join(environ, "*")}; do . $f; done"
+#         elsif environ =~ /\S+\s*=\s*\S+/
+#           variables['environ_vars'] << environ
+#         else
+#           variables['environ_files'] << ". #{environ}"
+#         end
+#       end
+# 
+#       return variables
+# 
+#     end
+
   end
 end
 

@@ -7,9 +7,15 @@ The common cookbooks I use to configure boxes. This repo is really designed to b
 Every cookbook should have a `README.md` file that should tell you how to configure it and what it does (if the name isn't self explanatory enough).
 
 
-## Common pitfalls when writing cookbooks
+## Tips and Common pitfalls when writing cookbooks
 
 these are things I always forget and have to remember time and time again.
+
+
+### Chef configuration in Vagrant
+
+* [Vagrant chef configuration options](https://www.vagrantup.com/docs/provisioning/chef_common.html)
+* [Other Vagrant chef configuration](https://www.vagrantup.com/docs/provisioning/chef_solo.html)
 
 
 ### Upstart and Vagrant shared folders
@@ -41,8 +47,33 @@ I don't know how many times I'm going to need to learn this, but on startup, thi
     end script
 
 
-### Running Chef if Vagrant Manually
-
+### Running Chef on Vagrant Manually
 
     $ cd /tmp/vagrant-chef
     $ chef-client --config solo.rb -j dna.json --local-mode
+
+
+### Printing out values in recipes
+
+```ruby
+require "pp"
+pp "======================================================================="
+pp node["<RECIPE_NAME>"]
+pp "======================================================================="
+```
+
+
+### Changes in Vagrant chef.json not propogating to chef run
+
+Sometimes, when I'm testing cookbooks and so I'm running `vagrant provision` a lot 
+the changes I make to the `chef.json` don't seem to propogate, this seems to be because
+of a cache file, something like:
+
+```
+/tmp/vagrant-chef/f8484c02f82283b9072da693e6402db9/nodes/vagrant-fb4087a6.json
+```
+
+That will have the original values of the `/tmp/vagrant-chef/dna.json` file.
+
+Deleting the `vagrant-fb4087a6.json` file seems to fix it.
+

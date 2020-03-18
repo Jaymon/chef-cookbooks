@@ -5,6 +5,7 @@
 require 'shellwords'
 require 'set'
 
+
 class EnvironHash
   #include ::Chef::Mixin::ShellOut
 

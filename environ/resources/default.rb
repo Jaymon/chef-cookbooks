@@ -2,14 +2,17 @@
 # https://docs.chef.io/custom_resources.html
 property :name, String, name_property: true
 property :value, String, required: true
+#property :path, String, default: lazy { ::File.join(node["dirs"]["configuration"], node["basename"]) }
+property :environ, ::EnvironHash, required: true
 
 default_action :install
 
-e = ::EnvironHash.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
+#e = ::EnvironHash.new(::File.join("", "etc", "profile.d", "environ.sh"), false)
 
 action :set do
   env_name = new_resource.name
   env_val = new_resource.value
+  e = new_resource.environ
 
   if e.set(env_name, env_val)
 
@@ -24,7 +27,7 @@ action :set do
         owner "root"
         group "root"
         mode "0644"
-        source "environment.erb"
+        source "configuration.erb"
         variables "environ" => e
       end
       #new_resource.updated_by_last_action(t.updated_by_last_action?)
@@ -37,6 +40,7 @@ action :set do
 
 end
 
+
 action :file do
   # file name is default name, but could be value
   file_name = new_resource.name
@@ -44,6 +48,7 @@ action :file do
     file_name = new_resource.value
   end
 
+  e = new_resource.environ
   e_new = ::EnvironHash.new(file_name)
   e_new.read_file()
 
@@ -66,7 +71,7 @@ action :file do
         backup false
         owner "root"
         group "root"
-        source "environment.erb"
+        source "configuration.erb"
         mode "0644"
         variables "environ" => e
       end
