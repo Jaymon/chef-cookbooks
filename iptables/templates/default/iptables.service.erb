@@ -1,0 +1,11 @@
+[Unit]
+Description=Spark service
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=<%= @start_script %>
+
+[Install]
+WantedBy=multi-user.target
+

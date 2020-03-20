@@ -65,7 +65,7 @@ For example, to have all daemons restart if some git repo changes, you could put
 Let's say our configuration is defined as such:
 
 ```ruby
-node["daemon"]["names"] => {
+node["daemon"] => {
   "default" => {
     "env" => "/etc/profile.d",
     "username" => "ubuntu",
