@@ -1,9 +1,0 @@
-start on (starting network-interface
-          or starting network-manager
-          or starting networking)
-
-stop on runlevel [!023456]
-
-console output
-pre-start exec <%= @start_script %>
-
