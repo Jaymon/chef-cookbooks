@@ -35,6 +35,33 @@ module NginxHelper
       return ret
     end
 
+    ##
+    # get the configuration for a server
+    #
+    # @param [string] server_name: the server name, which could be the host
+    # @param [hash] local: the server specific configuration
+    # @param [hash] global: the global/common configuration common across all servers
+    # @returns [hash]: the config block that will be used to configure the nginx server
+    def self.get_config(server_name, local, global)
+
+      variables = global.merge(local)
+
+      variables["server_name"] = server_name
+      if !variables.has_key?("host")
+          variables["host"] = server_name
+      end
+
+      # http://stackoverflow.com/a/1528891/5006
+      variables["port"] = [*variables["port"]]
+      variables["port"].map!(&:to_i)
+      if variables.has_key?("redirect")
+        variables["redirect"] = [*variables["redirect"]]
+      end
+
+      return variables
+
+    end
+
   end
 
 end

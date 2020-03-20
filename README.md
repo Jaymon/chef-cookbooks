@@ -77,3 +77,14 @@ That will have the original values of the `/tmp/vagrant-chef/dna.json` file.
 
 Deleting the `vagrant-fb4087a6.json` file seems to fix it.
 
+
+#### Search
+
+* vagrantfile removing key in chef.json doesn't get rid of value because of node
+
+
+### Chef OS Environment
+
+```ruby
+if platform?('ubuntu') && node['platform_version'].to_f <= 14.04
+```

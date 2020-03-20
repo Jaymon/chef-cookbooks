@@ -3,6 +3,27 @@
 Installs Nginx
 
 
+## Links
+
+* [Nginx versions](https://nginx.org/en/CHANGES)
+* [How to Install Nginx Latest Version on Ubuntu](https://www.linuxbabe.com/ubuntu/install-nginx-latest-version-ubuntu-18-04) - This is what the recipe uses to install Nginx though we originally did it this way for 14.04 it's nice that it is still current.
+
+
+## Configuration block
+
+```ruby
+"nginx" => {
+   "version" => string,
+	"servers" => {
+	  "localhost" => {
+	    "port" => int,
+	    "root" => "/path/to/root"
+	  },
+	},
+}
+```
+
+
 ## Attributes
 
 ------------------------------------------------------------------------------
@@ -144,7 +165,7 @@ try_files $uri $uri/ /index.html;
 
 -------------------------------------------------------------------------------
 
-### conf
+### config
 
 the conf dict holds configuration that is true for every site, it's basically the global configuration for nginx
 
@@ -183,18 +204,43 @@ Nginx comes with `/etc/nginx/mime.types` that has the most common extensions and
 
 Each server name under the `servers` configuration can be started, restarted, and stopped using init:
 
-    $ sudo /etc/init.d/nginx start
+    $ sudo systemctl start nginx
 
 and to restart it:
 
-    $ sudo /etc/init.d/nginx restart
+    $ sudo systemctl restart nginx
 
 and stop it:
 
-    $ sudo /etc/init.d/nginx stop
+    $ sudo systemctl stop nginx
+
+
+## Minimum Test
+
+If you want to make sure Nginx is installing correctly, use this config block:
+
+```ruby
+"nginx" => {
+	"servers" => {
+	  "localhost" => {
+	    "port" => 9091,
+	    "root" => "/opt/nginx/localhost"
+	  },
+	},
+}
+```
+
+Then, after the chef run, you can test:
+
+```
+$ mkdir -p /opt/nginx/localhost
+$ echo "hello world" > /opt/nginx/localhost/index.html
+$ curl http://localhost:9091/
+hello world
+```
 
 
 ## Platform
 
-Ubuntu 14.04 is what we run.
+Ubuntu 18.04.
 
