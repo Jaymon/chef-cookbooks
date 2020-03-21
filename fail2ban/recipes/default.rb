@@ -3,6 +3,7 @@ n = node[name]
 
 package "fail2ban"
 
+
 config_lines = []
 
 n['config'].each_key do |k|
@@ -15,22 +16,18 @@ n['config'].each_key do |k|
   config_lines << ""
 end
 
-cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "fail2ban.tmp")
-::File.open(cache_conf_file, 'w+')  do |f|
-  f.puts(config_lines)
+file config_conf do
+  backup false
+  content config_lines.join("\n")
+  mode '0644'
+  notifies :restart, "service[#{name}]", :delayed
 end
 
-remote_file n['conf_file'] do
-    source "file://#{cache_conf_file}"
-    mode "0644"
-    action :create
-    notifies :restart, "service[#{name}]", :delayed
-end
 
 # https://docs.chef.io/resource_service.html
 service name do
   service_name name
-  restart_command "/usr/sbin/service #{name} restart"
   action :nothing
   supports :start => true, :stop => true, :status => true, :restart => true
 end
+

@@ -1,10 +1,21 @@
 # Fail2ban Cookbook
 
-Install and configure fail2ban via /etc/fail2ban/jail.d/fo_config.local
+Install and configure fail2ban
 
-## Attributes
+## Links
 
-`node["fail2ban"]` -- a dict to configure fail2ban
+* [Fail2ban Manual](http://www.fail2ban.org/wiki/index.php/Manual)
+
+
+## Configuration block
+
+```ruby
+"fail2ban" => {
+  "<SERVICE_NAME>" => {
+  },
+}
+```
+
 
 ## Example
 
@@ -15,8 +26,7 @@ Install and configure fail2ban via /etc/fail2ban/jail.d/fo_config.local
       },
     },
 
-See [Fail2ban Manual](http://www.fail2ban.org/wiki/index.php/Manual) for more infomation.
 
 ## Platform
 
-Ubuntu 14.04, nothing else has been tested
+Ubuntu 18.04, nothing else has been tested
