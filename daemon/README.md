@@ -1,138 +1,73 @@
 # Daemon Cookbook
 
-allows you to create upstart managed daemon processes.
+allows you to create systemd managed daemon processes.
 
-## Attributes
+## Links
 
-### The daemon cookbook looks for these attributes
+* [RUN MULTIPLE INSTANCES OF THE SAME SYSTEMD UNIT](https://www.stevenrombauts.be/2019/01/run-multiple-instances-of-the-same-systemd-unit/) - This is the layout we use to manage multiple processes
 
----------
 
-`node["daemon"]["default"]` -- dict -- these are default options that will be merged into the individual options for each defined daemon under `names` dict.
-
----------
-
-`node["daemon"]["names"]` -- dict -- the key is the name of the daemon, which will also be used as the name of the upstart conf file.
-
-#### Keys
-
-These are the keys that can be either in the `default` dict, or in each of the individual `names` dict.
-
----------
-
-`dir` -- string -- the base dir that the `command` will execute in.
-
----------
-
-`username` -- string -- the user that will execute the `command`.
-
----------
-
-`env` -- string -- an environment file or directory (where all `.sh` files will be read in).
-
----------
-
-`subscribes` -- [chef specific notifications](http://docs.getchef.com/resource_common.html#subscribes-syntax), it allows you to specify notifications from other chef resources that will trigger the daemon to start, stop, or restart.
-
-For example, to have all daemons restart if some git repo changes, you could put this in `default`:
+## Configuration block
 
 ```ruby
-"subscribes" => [
-  [:stop, "git[some_repo]", :delayed],
-  [:start, "git[some_repo]", :delayed]
-]
-```
-
----------
-
-`desc` -- string -- a description of the daemon.
-
----------
-
-`command` -- string -- the command that the upstart wrapper will run.
-
----------
-
-`count` -- integer -- how many instances of the daemon you want to run.
-
----------
-
-`action` -- symbol -- defaults to `:nothing` but can be set to `:start` to have the daemon start once configured
-
-
-### Example
-
-Let's say our configuration is defined as such:
-
-```ruby
-node["daemon"] => {
-  "default" => {
-    "env" => "/etc/profile.d",
+"daemon" => {
+  "config" => {
+    "environ" => "/path/to/environ.file",
     "username" => "ubuntu",
-    "dir" => "/opt/your_code"
+    "chdir" => "/opt/your_code"
   },
-  "names" => {
-    "some-thing" => {
+  "services" => {
+    "<DAEMON_NAME>" => {
       "desc" => "this will run some thing",
       "command" => "/opt/your_code/your_script.py"
     },
-    "another-thing" => {
-      "desc" => "this will run another thing",
-      "command" => "/opt/your_code/another_script.sh",
-      "count" => 10
-    }
   }
 }
 ```
 
-Then the `some-thing` daemon will be configured with:
 
-```ruby
-{
-  "env" => "/etc/profile.d",
-  "username" => "ubuntu",
-  "dir" => "/opt/your_code",
-  "desc" => "this will run some thing",
-  "command" => "/opt/your_code/your_script.py",
-}
-```
+## Attributes
 
-and the `another-thing` daemon will be configured with:
+* `config` -- dict -- these are default options that will be merged into the individual options for each defined daemon under the `services` dict.
+* `services` -- dict -- the key is the name of the daemon, which will also be used as the name of the systemd service.
 
-```ruby
-{
-  "env" => "/etc/profile.d",
-  "username" => "ubuntu",
-  "dir" => "/opt/your_code",
-  "desc" => "this will run another thing",
-  "command" => "/opt/your_code/another_script.sh",
-  "count" => 10
-}
-```
+### config block
+
+These are the keys that can be either in the `config` dict, or in each of the individual `services` dict.
+
+* `chdir` -- string -- the base dir that the `command` will execute in.
+* `username` -- string -- the user that will execute the `command`.
+* `environ` -- string -- an environment file or directory.
+* `subscribes` -- [chef specific notifications](http://docs.getchef.com/resource_common.html#subscribes-syntax), it allows you to specify notifications from other chef resources that will trigger the daemon to start, stop, or restart.
+
+	For example, to have all daemons restart if some git repo changes, you could put this in `config`:
+	
+	```ruby
+	"subscribes" => [
+	  [:stop, "git[some_repo]", :delayed],
+	  [:start, "git[some_repo]", :delayed]
+	]
+	```
+
+* `desc` -- string -- a description of the daemon.
+* `command` -- string -- the command that will be run. Because Systemd is used, the path has to be absolute.
+* `count` -- integer -- how many instances of the daemon you want to run.
+* `action` -- symbol -- defaults to `:start` but can be set to `:nothing` to have the daemon not be started once configured
+
 
 ## Using
 
 You can start your daemons:
 
-    $ sudo start some-thing
-    $ sudo start another-thing
+    $ sudo systemctl start <DAEMON_NAME>.target
 
 and you can stop them
 
-    $ sudo stop some-thing
-    $ sudo stop another-thing
+    $ sudo systemctl stop <DAEMON_NAME>.target
 
-And, if you want to mess with the environment even more, you can pass them in also:
-
-    $ sudo start some-thing PYTHONPATH=some/dir/you/want/to/test
-
-## Logs
-
-Looks like, by default, upstart keeps the logs at:
-
-    /var/log/upstart
+You have to use `.target` at the end because of how multiple processes are managed by Systemd.
 
 ## Platform
 
-Ubuntu 12.04
+Ubuntu 18.04
 

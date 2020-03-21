@@ -15,14 +15,14 @@ n['dirs'] = {
 
 
 ###############################################################################
-# defaults dict
+# default config dict
 #
-# the defaults dict will be merged with each server dict and allows you to set
-# global defaults that each individual servers dict will inherit
+# the config dict will be merged with each server dict and allows you to set
+# global defaults that each individual server's dict will inherit
 ###############################################################################
-n["config_default"] = {}
-n["config_default"]["gzip"] = false
-n["config_default"]["gzip_types"] = [
+n["config"] = {}
+n["config"]["gzip"] = false
+n["config"]["gzip_types"] = [
   "text/plain",
   "text/css",
   "application/json",
@@ -38,7 +38,7 @@ n["config_default"]["gzip_types"] = [
 # it will use this, by default this will just return 404 but if you have a static
 # file you would rather server you can put the path (relative to root) here and if
 # it didn't find a real file it would fall back to that path
-n["config_default"]["fallback"] = "=404"
+n["config"]["fallback"] = "=404"
 
 
 ###############################################################################
@@ -47,9 +47,9 @@ n["config_default"]["fallback"] = "=404"
 # the conf dict holds configuration that is true for every site, it's basically
 # the global configuration for nginx
 ###############################################################################
-n["config"] = {}
+n["config_global"] = {}
 # this will set caching headers for these mimetypes
-n["config"]["expires"] = {
+n["config_global"]["expires"] = {
   "default" => "off",
   "text/html" => "epoch",
   "text/css" => "max",
@@ -58,7 +58,7 @@ n["config"]["expires"] = {
 }
 
 # any additional mime types you want nginx to recognize
-n["config"]["types"] = {
+n["config_global"]["types"] = {
   "application/x-font-ttf" => "ttc ttf",
   "application/x-font-otf" => "otf",
   #"application/font-woff2" => "woff2", # was getting this error: nginx: [warn] duplicate
@@ -66,10 +66,8 @@ n["config"]["types"] = {
   # "font/woff2" in /etc/nginx/conf.d/conf.conf:22
 }
 
-#default[name]["defaults"]["access_log_format"] = "duration"
-
-n["config"]["log_format"] = {
-  # the duration log format will allow 
+#n["config_global"]["access_log_format"] = "duration"
+n["config_global"]["log_format"] = {
   "duration" => [
     '$remote_addr - $remote_user [$time_local]',
     '"$request" $status $body_bytes_sent',

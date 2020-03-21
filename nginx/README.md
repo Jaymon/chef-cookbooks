@@ -14,6 +14,8 @@ Installs Nginx
 ```ruby
 "nginx" => {
    "version" => string,
+   "config" => {},
+   "config_global" => {},
 	"servers" => {
 	  "localhost" => {
 	    "port" => int,
@@ -28,7 +30,7 @@ Installs Nginx
 
 ------------------------------------------------------------------------------
 
-### defaults
+### config
 
 dict -- this will be merged into the values of each of the configured servers (with the server specific configuration taking precedence).
 
@@ -165,9 +167,9 @@ try_files $uri $uri/ /index.html;
 
 -------------------------------------------------------------------------------
 
-### config
+### config_global
 
-the conf dict holds configuration that is true for every site, it's basically the global configuration for nginx
+the `config_global` dict holds configuration that is true for every site, it's basically the global configuration for nginx.
 
 
 #### expires

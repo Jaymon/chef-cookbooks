@@ -1,0 +1,11 @@
+[Unit]
+<% if defined?(@desc) %>
+Description="<%= @desc %>"
+<% else %>
+Description="Daemon <%= @service_name %> handler"
+<% end %>
+Requires=<%= @requires %>
+
+[Install]
+WantedBy=multi-user.target
+

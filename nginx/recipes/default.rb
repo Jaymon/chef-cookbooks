@@ -75,7 +75,7 @@ execute "remove current nginx configs" do
 end
 
 # global configuration
-conf_d = n.fetch("config", {})
+conf_d = n.fetch("config_global", {})
 conf_path = ::File.join(n["dirs"]["conf.d"], "conf.conf")
 template conf_path do
   source "conf.conf.erb"
@@ -85,7 +85,7 @@ template conf_path do
 end
 
 # per server configuration
-default_options = n.fetch("config_default", {})
+default_options = n.fetch("config", {})
 n["servers"].each do |server_name, server_options|
 
   variables = Nginx.get_config(server_name, server_options, default_options)

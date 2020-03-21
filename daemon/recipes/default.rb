@@ -1,105 +1,51 @@
 name = cookbook_name.to_s
-#rname = recipe_name.to_s
 n = node[name]
-#u = n['user']['username']
 
 
-# p "==========================================================================="
-# p name
-# p rname
-# p n
-# p "==========================================================================="
+###############################################################################
+# Error handling
+###############################################################################
+if not n or (n.has_key?("names") and n["names"].empty?)
+  ::Chef::Log.warn("Included #{name} recipe with no configuration")
+  return
+end
 
-if n.has_key?('names')
 
-  service name do
-    service_name name
-    provider Chef::Provider::Service::Upstart
-    action :nothing
-    supports :status => true, :start => true, :stop => true, :restart => true
-  end
+###############################################################################
+# Configuration
+###############################################################################
+n['services'].each do |service_name, _options|
 
-  template ::File.join("", "etc", "init", "#{name}.conf") do
-    source "all.conf.erb"
+  options = DaemonHelper.get_config(service_name, _options, n)
+  service_name = options["service_name"]
+
+  template ::File.join(n["dirs"]["service"], "#{service_name}.target") do
+    source "service.service.erb"
     mode "0644"
-    variables({"instance_names" => n['names'].keys})
-    #notifies :stop, "service[#{name}]", :immediately
-    #notifies :start, "service[#{name}]", :immediately
+    variables options
   end
 
-  default_options = n.fetch('defaults', {})
-
-  n['names'].each do |service_name, _options|
-
-    # combine defaults with specific options
-    options = default_options.merge(_options)
-    options["recipe_name"] = name
-
-    count = options.fetch('count', 0)
-
-    # setup any environment
-    environ = options.fetch('env', nil)
-    if environ
-      if ::File.directory?(environ)
-        options['environ'] = "for f in #{::File.join(environ, "*")}; do . $f; done"
-      else
-        options['environ'] += ". #{environ}"
-      end
-    end
-
-    instance_name = service_name.to_s
-    count = options.fetch('count', 1)
-    if count == 1
-      path = ::File.join("", "etc", "init", "#{instance_name}.conf")
-      template path do
-        source "instance.conf.erb"
-        mode "0644"
-        variables options
-        notifies :run, "execute[verify #{path}]", :immediately
-      end
-
-      # https://askubuntu.com/a/640892
-      execute "verify #{path}" do
-        command "init-checkconf -d #{path}"
-        action :nothing
-      end
-
-    else
-      options['instance_name'] = instance_name
-
-      template ::File.join("", "etc", "init", "#{instance_name}.conf") do
-        source "instances.conf.erb"
-        mode "0644"
-        variables options
-      end
-
-      path = ::File.join("", "etc", "init", "child-#{instance_name}.conf")
-      template path do
-        source "instance.conf.erb"
-        mode "0644"
-        variables options
-        notifies :run, "execute[verify #{path}]", :immediately
-      end
-
-      execute "verify #{path}" do
-        command "init-checkconf -d #{path}"
-        action :nothing
-      end
-
-    end
-
-
-    r = service instance_name do
-      provider Chef::Provider::Service::Upstart
-      service_name instance_name
-      action options.fetch('action', :nothing)
-    end
-
-    options.fetch('subscribes', []).each do |params|
-      r.subscribes(*params)
-    end
-
+  path = ::File.join(n["dirs"]["service"], "#{service_name}@.service")
+  template path do
+    source "service@.service.erb"
+    mode "0644"
+    variables options
+    notifies :run, "execute[verify #{path}]", :immediately
   end
 
+  execute "verify #{path}" do
+    command "systemd-analyze verify #{path} > /dev/null 2>&1"
+    action :nothing
+  end
+
+  r = service service_name do
+    service_name "#{service_name}.target"
+    action options.fetch('action', :nothing).to_sym
+  end
+
+  options.fetch('subscribes', []).each do |params|
+    r.subscribes(*params)
+  end
 
 end
+

@@ -11,7 +11,7 @@ n[:file] = []
 
 
 n["dirs"] = {
-  "configuration" => ::File.join("", "etc", name),
+  "configuration" => ::File.join("", "opt", name),
   "installation" => ::File.join("", "etc", "profile.d")
 }
 
