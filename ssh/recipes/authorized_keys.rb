@@ -10,6 +10,9 @@ require 'digest'
 # load up all the keys
 authorized_keys = []
 keys = keys_d.fetch("keys", [])
+if keys.is_a?(String)
+  keys = Array(keys)
+end
 keys.each do |key_file|
 
   #authorized_keys << File.open(key_file, "r").read.strip

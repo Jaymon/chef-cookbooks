@@ -8,7 +8,7 @@ package "logrotate"
 [:set, :merge].each do |lr_action|
   n[lr_action].each do |logname, val|
 
-    resource_name = "#{name}-#{lr_action.to_s}-#{logname}"
+    resource_name = "#{name} #{lr_action.to_s} #{logname}"
     temp_path = ::File.join(Chef::Config[:file_cache_path], resource_name)
     path = ::Logrotate.new(logname).path()
 
@@ -39,7 +39,6 @@ package "logrotate"
       source "file://#{temp_path}"
       only_if "test -f '#{temp_path}'"
       action :nothing
-      #notifies :restart, "service[#{name}]", :delayed
     end
 
   end

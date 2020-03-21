@@ -32,5 +32,6 @@ Ubuntu 14.04, it will probably work on Ubuntu >=12.04, but we use it on 14.04.
 
 Some of the best tutorials on Logrotate I've found:
 
-http://www.rackspace.com/knowledge_center/article/understanding-logrotate-utility
-http://www.rackspace.com/knowledge_center/article/sample-logrotate-configuration-and-troubleshooting
+* http://www.rackspace.com/knowledge_center/article/understanding-logrotate-utility
+* http://www.rackspace.com/knowledge_center/article/sample-logrotate-configuration-and-troubleshooting
+
