@@ -17,14 +17,14 @@ Installs uWSGI
   "user" => "",
   "environ" => ,
   "command" => "/path/to/uwsgi",
-  "server" => {
+  "config" => {
     # common uwsgi server configuration would go here
   },
   "servers" => {
-    "<SERVER_NAME>" => {
+    "<SERVER NAME>" => {
       "environ" => "/override/global/environ"
-      "server" => {
-        # specific uwsgi configuration for <SERVER_NAME> would go here
+      "config" => {
+        # specific uwsgi configuration for <SERVER NAME> would go here
       }
     }
   }
@@ -66,24 +66,24 @@ __NOTE__ -- This can also be just a string path or a hash of `key => val` pairs.
 string -- the full path to the `uwsgi` binary.
 
 
-### server
+### config
 
-hash -- any common configuration you want all the individual `server` keys to share. This has the same structure as the `server` hash in the individual server configuration dicts.
+hash -- any common configuration you want all the individual `servers` keys to share. This has the same structure as the `config` hash in the individual server configuration dicts.
 
 
 ### servers
 
-hash -- the keys are the server names, the value is a hash that can have two keys: `environ` and `server` which can contain custom values for this server.
+hash -- the keys are the server names, the value is a hash that can have two keys: `environ` and `config` which can contain custom values for this server.
 
 
-#### server
+#### config
 
 the key/values for the different uWSGI settings you want to use.
 
     "servers" => {
       "uwsgi1" => {
         "environ" => "/path/to/environ/file/for/server1",
-        "server" => {
+        "config" => {
           "http" => ":9001",
           "processes" => 1,
           "chdir" => "/some/path1",
@@ -92,7 +92,7 @@ the key/values for the different uWSGI settings you want to use.
         }
       },
       "uwsgi2" => {
-        "server" => {
+        "config" => {
           "http" => ":9002",
           "processes" => 1,
           "chdir" => "/some/path2",
@@ -109,11 +109,11 @@ Anything available on the command line (run `uwsgi --help` to see all the option
 
 Each server name under the `servers` configuration can be started and stopped using Upstart:
 
-    $ sudo systemctl start server1
+    $ sudo systemctl start <SERVER NAME>
 
 and stop it:
 
-    $ sudo systemctl stop server2
+    $ sudo systemctl stop <SERVER NAME>
 
 
 ## Platform

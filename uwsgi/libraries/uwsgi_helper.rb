@@ -58,9 +58,9 @@ module UWSGI
         "plugins-dir" => global["dirs"]["installation"],
         "procname-prefix" => "#{name} ",
       }
-      server_config.merge!(global["server_default"].to_hash)
-      server_config.merge!(global["server"].to_hash)
-      server_config.merge!(local.fetch("server", {}))
+      server_config.merge!(global["config_default"].to_hash)
+      server_config.merge!(global["config"].to_hash)
+      server_config.merge!(local.fetch("config", {}))
 
       service_config = {}
 

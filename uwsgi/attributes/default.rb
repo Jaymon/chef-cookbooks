@@ -26,12 +26,12 @@ n["servers"] = {}
 
 # global configuration for each server in servers can go in here, this is meant to 
 # be defined by the user which is why it is separate from server_default
-n["server"] = {}
+n["config"] = {}
 
 # this contains default configuration that can be overridden in both server and 
 # the server specific configuration, it's based on:
 # https://www.techatbloomberg.com/blog/configuring-uwsgi-production-deployment/
-n["server_default"] = {
+n["config_default"] = {
   "strict" => true,
   "master" => true,
   "no-orphans" => true,
