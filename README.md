@@ -1,3 +1,5 @@
+__NOTE__ - This branch contains the final Ubuntu 14.04 versions of all the cookbooks, as of March 23, 2020 these are considered deprecated in favor of the master branch with Ubuntu 18.04+ support.
+
 # Cookbooks
 
 Writing a new cookbook? [Chef resources](https://docs.chef.io/resource.html)
