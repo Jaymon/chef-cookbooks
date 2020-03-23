@@ -71,9 +71,9 @@ The above snippet will pass the unescaped string to the environ and so any time 
 
 ### File locations
 
-By default, all your environment files are written to `/etc/environ/environ.sh` and a wrapper script is placed in `/etc/profile.d/environ.sh` that handles environment setup for things like bash.
+By default, all your environment variables/files are written to `/opt/environ/environ.sh` and a wrapper script is placed in `/etc/profile.d/environ.sh` that handles environment setup for things like bash.
 
-If you would like to use the set environment in other places, you should use the `/etc/environ/environ.sh` file.
+If you would like to use your environment variables in other places, you should source the `/opt/environ/environ.sh` file.
 
 
 ## Platform

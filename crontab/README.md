@@ -2,41 +2,57 @@
 
 manage crontabs
 
+
+## Configuration block
+
+```ruby
+"crontab" => {
+	"environ" => "/etc/profile.d",
+	"users" => {
+	  "<USERNAME 1>" => {
+	    "<CRON NAME 1>" => {
+	      "chdir" => "/path/to/directory/cron/should/run/in",
+	      "command" => 'echo Foo',
+	      "schedule" => "0 * * * *",
+	    },
+	    "<CRON NAME 2>" => {
+	      "chdir" => "/path/to/directory/cron/should/run/in",
+	      "command" => 'echo Bar',
+	      "schedule" => "5 * * * *",
+	    }
+	  },
+	  "<USERNAME 2>" => {...}
+	}
+}
+```
+
+
 ## Attributes
 
-`node["crontab"]["env"]` -- string -- a directory or file to be sourced in the crontab to set environment. I like to use the `/etc/profile.d` directory. This can be overriden per cron job.
+### environ
 
-`node["crontab"]["users"]` -- dict -- each key will be a username, with a dict value that will be of the form:
+string -- a directory or file to be sourced in the crontab to set environment. This can be overridden per cron job.
 
-    "cron_name" => {
-      "dir" => "/path/to/directory/cron/should/run/in",
+
+### chdir
+
+string -- the directory that `command` will run in.
+
+
+### logfile
+
+string -- the path you want output of `command` written to. If this is not specified then it will default to `/var/log/crontab/<USERNAME>-<CRON NAME>.log`.
+
+
+### users
+
+dict -- each key will be a username, with a dict value that will be of the form:
+
+    "<CRON NAME>" => {
+      "chdir" => "/path/to/directory/cron/should/run/in",
       "command" => 'echo Hi Mom', # the actual command you want to run
       "schedule" => "* * * * *",
     }
-
-
-So, you would configure the crontab like this (in an environment file):
-
-    default_attributes(
-      "crontab" => {
-        "env" => "/etc/profile.d",
-        "users" => {
-          "username" => {
-            "cron_name" => {
-              "dir" => "/path/to/directory/cron/should/run/in",
-              "command" => 'echo Foo',
-              "schedule" => "0 * * * *",
-            },
-            "cron_name_2" => {
-              "dir" => "/path/to/directory/cron/should/run/in",
-              "command" => 'echo Bar',
-              "schedule" => "5 * * * *",
-            }
-          },
-          "username2" => {...}
-        }
-      }
-    )
 
 
 ## Cron scheduling format
@@ -65,7 +81,8 @@ The recipe will try and remove any stray cron jobs after you've removed or comme
 
 Otherwise the cron jobs will remain even though they've been removed in your configuration
 
+
 ## Platform
 
-Ubuntu 14.04, nothing else has been tested
+Ubuntu 18.04, nothing else has been tested
 
