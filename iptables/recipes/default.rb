@@ -26,7 +26,6 @@ end
 ###############################################################################
 service_name = n["service_name"]
 config_path = ::File.join(n["dirs"]["opt"], "#{service_name}.sh")
-service_path = ::File.join(n["dirs"]["service"], "#{service_name}.service")
 
 rules = []
 
@@ -55,19 +54,26 @@ template config_path do
   variables(
     "rules" => rules,
   )
-  notifies :restart, "service[#{service_name}]", :delayed
+  notifies :start, "service[#{service_name}]", :delayed
 end
 
 # Why do we wrap this into a service? So a box restart can pick up our config
 # and restore all our set rules
-template service_path do
-  source "iptables.service.erb"
-  mode "0644"
-  variables(
-    "start_script" => config_path
+systemd_unit "#{service_name}.service" do
+  content(
+    "Unit" => {
+      "Description" => "Manages iptables chef cookbook configuration",
+    },
+    "Service" => {
+      "Type" => "oneshot",
+      "RemainAfterExit" => "no",
+      "ExecStart" => config_path,
+    },
+    "Install" => {
+      "WantedBy" => "multi-user.target",
+    }
   )
-  notifies :stop, "service[#{service_name}]", :delayed
-  notifies :start, "service[#{service_name}]", :delayed
+  action [:create, :enable]
 end
 
 service service_name do
