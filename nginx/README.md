@@ -204,7 +204,7 @@ Nginx comes with `/etc/nginx/mime.types` that has the most common extensions and
 
 ## Using 
 
-Each server name under the `servers` configuration can be started, restarted, and stopped using init:
+Each server name under the `servers` configuration can be started, restarted, and stopped using the Nginx systemd unit:
 
     $ sudo systemctl start nginx
 

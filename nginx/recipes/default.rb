@@ -105,6 +105,6 @@ end
 service name do
   service_name name
   action :nothing
-  supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
+  #supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
 end
 
