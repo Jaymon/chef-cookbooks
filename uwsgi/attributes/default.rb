@@ -38,7 +38,6 @@ n["config_default"] = {
   "enable-threads" => true,
   "vacuum" => true, # Delete sockets during shutdown
   "single-interpreter" => true,
-  "die-on-term" => true, # Shutdown when receiving SIGTERM (default is respawn)
   "need-app" => true,
   "memory-report" => true,
   "disable-logging" => true, # I'm not sure about keeping this one true
@@ -48,6 +47,12 @@ n["config_default"] = {
   "show-config" => true,
   "plugins-list" => true,
 }
+
+# on 3-25-2020 I removed die-on-term from config_default because it seems like it
+# was a legacy thing needed for upstart:
+# https://uwsgi-docs.readthedocs.io/en/latest/Upstart.html#what-is-die-on-term
+# but not systemd
+# "die-on-term" => true, # Shutdown when receiving SIGTERM (default is respawn)
 
 default[name] = n
 
