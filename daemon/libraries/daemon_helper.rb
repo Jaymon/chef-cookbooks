@@ -67,6 +67,68 @@ module DaemonHelper
 
     end
 
+    # create a <NAME>.target systemd file
+    #
+    # https://docs.chef.io/resources/systemd_unit/
+    #
+    # @param [hash] config: the shared service/target configuration
+    # @returns [hash]: a block for the systemd_unit content block
+    def self.get_target_config(config)
+      return {
+        "Unit" => {
+          "Description" => config.has_key?("desc") ? config["desc"] : "Daemon #{config["service_name"]} handler",
+          "Requires" => config["requires"],
+        },
+        "Install" => {
+          "WantedBy" => "multi-user.target",
+        }
+      }
+    end
+
+    # create a <NAME>@.service systemd file
+    #
+    # https://docs.chef.io/resources/systemd_unit/
+    #
+    # @param [hash] config: the shared service/target configuration
+    # @returns [hash]: a block for the systemd_unit content block
+    def self.get_service_config(config)
+      ret = {
+        "Unit" => {
+          "Description" => "Daemon #{config["service_name"]} instance",
+          "PartOf" => config["partof"],
+        },
+        "Service" => {
+          "Type" => "simple",
+          "Restart" => "on-success",
+          "RestartSec" => 5,
+          "LimitNOFILE" => 100000,
+          "ExecStart" => config["command"],
+        },
+      }
+
+      if config.has_key?("chdir")
+        ret["Service"]["WorkingDirectory"] = config["chdir"]
+      end
+
+      if config.has_key?("environ_vars")
+        ret["Service"]["Environment"] = config["environ_vars"]
+      end
+
+      if config.has_key?("environ_files")
+        ret["Service"]["EnvironmentFile"] = config["environ_files"]
+      end
+
+      if config.has_key?("username")
+        ret["Service"]["User"] = config["username"]
+      end
+
+      if config.has_key?("group")
+        ret["Service"]["Group"] = config["group"]
+      end
+
+      return ret
+
+    end
   end
 end
 

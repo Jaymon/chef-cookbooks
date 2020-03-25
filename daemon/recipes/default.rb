@@ -18,28 +18,20 @@ n['services'].each do |service_name, _options|
 
   options = DaemonHelper.get_config(service_name, _options, n)
   service_name = options["service_name"]
+  target_name = "#{service_name}.target"
 
-  template ::File.join(n["dirs"]["service"], "#{service_name}.target") do
-    source "service.service.erb"
-    mode "0644"
-    variables options
+  systemd_unit "#{service_name}@.service" do
+    content lazy { DaemonHelper.get_service_config(options) }
+    action [:create]
   end
 
-  path = ::File.join(n["dirs"]["service"], "#{service_name}@.service")
-  template path do
-    source "service@.service.erb"
-    mode "0644"
-    variables options
-    notifies :run, "execute[verify #{path}]", :immediately
-  end
-
-  execute "verify #{path}" do
-    command "systemd-analyze verify #{path} > /dev/null 2>&1"
-    action :nothing
+  systemd_unit target_name do
+    content lazy { DaemonHelper.get_target_config(options) }
+    action [:create, :enable]
   end
 
   r = service service_name do
-    service_name "#{service_name}.target"
+    service_name target_name
     action options.fetch('action', :nothing).to_sym
   end
 
