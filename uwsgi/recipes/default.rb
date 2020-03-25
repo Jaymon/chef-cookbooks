@@ -79,23 +79,6 @@ execute "make_uwsgi" do
   notifies :run, "execute[copy_uwsgi_dir]", :immediately
 end
 
-
-# TODO -- this might not be needed anymore
-# make sure current uwsgi isn't running if we are changing it
-# ruby_block 'uwsgi_stop' do
-#   block do
-#     n['servers'].keys.each do |server_name|
-#       ::Chef::Log.info "stopping service #{server_name}"
-#       r = resources("service[#{server_name}]")
-#       r.run_action(:stop)
-#     end
-#   end
-#   only_if { version != UWSGI.current_version() }
-#   not_if "uwsgi --version | grep -q \"^#{n["version"]}$\""
-#   only_if "which uwsgi"
-# end
-
-
 execute "copy_uwsgi_dir" do
   command lazy { "cp -R \"#{uwsgi_dir}\"/* \"#{n["dirs"]["installation"]}\"" }
   action :nothing
@@ -132,11 +115,18 @@ n['servers'].each do |server_name, _config|
     end
   end
 
+  # https://docs.chef.io/resources/systemd_unit/
+  systemd_unit config["service_name"] do
+    content lazy { UWSGI.get_service_config(config["service"], _config, n) }
+    action [:create, :enable]
+    notifies :stop, "service[#{server_name}]", :delayed
+    notifies :start, "service[#{server_name}]", :delayed
+  end
+
   template config["server_path"] do
     source "ini.erb"
     mode "0644"
     variables({"config_variables" => UWSGI.get_server_config(server_config)})
-    notifies :reload, "service[#{server_name}]", :immediately
     notifies :stop, "service[#{server_name}]", :delayed
     notifies :start, "service[#{server_name}]", :delayed
   end
@@ -145,35 +135,7 @@ n['servers'].each do |server_name, _config|
   service server_name do
     service_name server_name
     action :nothing
-    reload_command 'systemctl daemon-reload'
-    #supports :status => true, :start => true, :stop => true, :restart => true
-  end
-
-  template config["service_path"] do
-    source "server.service.erb"
-    mode "0644"
-    #variables(config["service"])
-    variables(lazy { UWSGI.get_service_config(config["service"], _config, n) })
-    notifies :stop, "service[#{server_name}]", :delayed
-    notifies :start, "service[#{server_name}]", :delayed
   end
 
 end
-
-# TODO -- March 2020, this was removed when systemd support was added, hopefully it can
-# be added back in the future
-# global script that will start/stop/restart all servers at once
-# service name do
-#   service_name name
-#   provider Chef::Provider::Service::Upstart
-#   action :nothing
-#   supports :status => true, :start => true, :stop => true, :restart => true
-# end
-# 
-# template ::File.join("", "etc", "init", "#{name}.conf") do
-#   source "servers.conf.erb"
-#   mode "0644"
-#   variables({"server_names" => n['servers'].keys})
-#   notifies :start, "service[#{name}]", :delayed
-# end
 

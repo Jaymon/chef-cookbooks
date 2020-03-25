@@ -51,12 +51,13 @@ module UWSGI
       config = {
         "server_path" => ::File.join(global["dirs"]["configuration"], "#{name}.ini"),
         "service_path" => ::File.join(global["dirs"]["service"], "#{name}.service"),
+        "service_name" => "#{name}.service",
       }
 
       server_config = {
         # this needs to come before plugin otherwise the plugin won't load, ugh
         "plugins-dir" => global["dirs"]["installation"],
-        "procname-prefix" => "#{name} ",
+        "procname-prefix" => "#{name}-",
       }
       server_config.merge!(global["config_default"].to_hash)
       server_config.merge!(global["config"].to_hash)
@@ -117,9 +118,50 @@ module UWSGI
 
     end
 
+    # get the service config that is suitable to pass to a systemd_unit block
+    #
+    # https://docs.chef.io/resources/systemd_unit/
+    #
+    # @param [hash] service_config: the service block returned from get_config()
+    # @param [hash] local: the environment config block for this server
+    # @param [hash] global: the entire environment config block
+    # @returns [hash]: a block that can be passed to systemd_unit content
     def self.get_service_config(service_config, local, global)
-      service_config.merge!(self.get_environ(local, global))
-      return service_config
+      ret = {
+        "Unit" => {
+          "Description" => "uwsgi upstart for #{service_config["server_name"]}",
+          "After" => "syslog.target network.target remote-fs.target",
+          "Requires" => "network-online.target",
+        },
+        "Service" => {
+          "Type" => "notify",
+          "NotifyAccess" => "all",
+          "KillSignal" => "SIGQUIT",
+          "Restart" => "on-success",
+          "RestartSec" => 5,
+          "LimitNOFILE" => 100000,
+          "ExecStart" => service_config["exec_str"],
+        },
+        "Install" => {
+          "WantedBy" => "mutli-user.target",
+        }
+      }
+
+      if service_config.has_key?("chdir")
+        ret["Service"]["WorkingDirectory"] = service_config["chdir"]
+      end
+
+      environ_d = self.get_environ(local, global)
+
+      if environ_d.has_key?("environ_vars")
+        ret["Service"]["Environment"] = environ_d["environ_vars"]
+      end
+
+      if environ_d.has_key?("environ_files")
+        ret["Service"]["EnvironmentFile"] = environ_d["environ_files"]
+      end
+
+      return ret
     end
 
     # normalize the uwsgi ini configuration

@@ -88,3 +88,21 @@ Deleting the `vagrant-fb4087a6.json` file seems to fix it.
 ```ruby
 if platform?('ubuntu') && node['platform_version'].to_f <= 14.04
 ```
+
+
+### Service stopping and starting
+
+When wanting to restart a service on change, it's usually better to do this:
+
+```ruby
+notifies :stop, "service[<NAME>]", :delayed
+notifies :start, "service[<NAME>]", :delayed
+```
+
+Over...
+
+```ruby
+notifies :restart, "service[<NAME>]", :delayed
+```
+
+The reason why is sometimes not everything is in place or the service isn't currently running when you want to restart, and so it will fail, but the stop then start method seems to mitigate this and reliably works with changes and stuff.
