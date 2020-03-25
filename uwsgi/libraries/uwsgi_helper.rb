@@ -71,8 +71,6 @@ module UWSGI
         end
       end
 
-      service_config.merge!(self.get_environ(local, global))
-
       service_config["exec_str"] = "#{global["command"]} --ini #{config["server_path"]}"
       service_config['server_name'] = name
 
@@ -109,7 +107,7 @@ module UWSGI
           elsif ::File.exist?(environ)
             config['environ_files'] << environ
           else
-            ::Chef::Log.warn("uWSGI environ value #{environ} is not a KEY=<VAL> or directory/file path")
+            ::Chef::Log.warn("uWSGI environ value #{environ} is not a KEY=<VAL>, directory, or file path")
           end
         end
 
@@ -117,6 +115,11 @@ module UWSGI
 
       return config
 
+    end
+
+    def self.get_service_config(service_config, local, global)
+      service_config.merge!(self.get_environ(local, global))
+      return service_config
     end
 
     # normalize the uwsgi ini configuration

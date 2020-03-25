@@ -136,6 +136,7 @@ n['servers'].each do |server_name, _config|
     source "ini.erb"
     mode "0644"
     variables({"config_variables" => UWSGI.get_server_config(server_config)})
+    notifies :reload, "service[#{server_name}]", :immediately
     notifies :stop, "service[#{server_name}]", :delayed
     notifies :start, "service[#{server_name}]", :delayed
   end
@@ -144,13 +145,15 @@ n['servers'].each do |server_name, _config|
   service server_name do
     service_name server_name
     action :nothing
-    supports :status => true, :start => true, :stop => true, :restart => true
+    reload_command 'systemctl daemon-reload'
+    #supports :status => true, :start => true, :stop => true, :restart => true
   end
 
   template config["service_path"] do
     source "server.service.erb"
     mode "0644"
-    variables(config["service"])
+    #variables(config["service"])
+    variables(lazy { UWSGI.get_service_config(config["service"], _config, n) })
     notifies :stop, "service[#{server_name}]", :delayed
     notifies :start, "service[#{server_name}]", :delayed
   end

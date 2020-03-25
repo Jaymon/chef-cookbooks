@@ -6,7 +6,8 @@ Requires=network-online.target
 [Service]
 Type=notify
 NotifyAccess=all
-Restart=on-failure
+KillSignal=SIGQUIT
+Restart=on-success
 RestartSec=5
 <% if defined?(@chdir) %>
 WorkingDirectory=<%= @chdir %>
