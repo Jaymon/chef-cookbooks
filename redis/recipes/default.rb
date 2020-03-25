@@ -168,16 +168,9 @@ end
 
 # configure systemd service
 
-template ::File.join(n["dirs"]["service"], "#{name}.service") do
-  source "redis-server.service.erb"
-  mode "0644"
-  variables(
-    "command" => n["command"],
-    "command_shutdown" => n["command_shutdown"],
-    "username" => u,
-    "group" => u,
-    "config" => dest_redis_conf,
-  )
+systemd_unit "#{name}.service" do
+  content lazy { Redis.get_service_config(u, dest_redis_conf, n) }
+  action [:create, :enable]
   notifies :stop, "service[#{name}]", :delayed
   notifies :start, "service[#{name}]", :delayed
 end
@@ -188,6 +181,6 @@ service "#{name}" do
   #service_name "redis"
   service_name name
   action :nothing
-  supports :start => true, :stop => true, :status => true, :restart => true
+  #supports :start => true, :stop => true, :status => true, :restart => true
 end
 

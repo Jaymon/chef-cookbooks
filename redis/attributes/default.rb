@@ -7,7 +7,7 @@ n["version"] = "5.0.8"
 n["user"] = "redis"
 
 n['command'] = ::File.join("", "usr", "local", "bin", "redis-server")
-n['command_shutdown'] = ::File.join("", "usr", "local", "bin", "redis-cli")
+n['command_shutdown'] = "#{::File.join("", "usr", "local", "bin", "redis-cli")} shutdown"
 
 n["dirs"] = {
   'etc' => ::File.join("", "etc", "redis"),

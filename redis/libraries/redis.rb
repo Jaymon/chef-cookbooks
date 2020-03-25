@@ -1,6 +1,43 @@
 require 'set'
 
 
+class Redis
+
+  # get the hash suitable for the content block of systemd_unit
+  #
+  # https://docs.chef.io/resources/systemd_unit/
+  #
+  # @param [string] username: the redis user
+  # @param [string] redis_conf: the redis configuration path
+  # @param [hash] global: the global environment redis config block
+  # @returns [hash]
+  def self.get_service_config(username, redis_conf, global)
+    return {
+      "Unit" => {
+        "Description" => "Redis systemd script for redis chef cookbook",
+        "After" => "syslog.target network.target remote-fs.target",
+        "Requires" => "network-online.target",
+      },
+      "Service" => {
+        "Type" => "notify",
+        "NotifyAccess" => "all",
+        "Restart" => "on-success",
+        "RestartSec" => 5,
+        "User" => username,
+        "Group" => username,
+        "LimitNOFILE" => 65000,
+        "ExecStart" => "#{global["command"]} #{redis_conf}",
+        "ExecStop" => global["command_shutdown"],
+      },
+      "Install" => {
+        "WantedBy" => "mutli-user.target",
+      },
+    }
+  end
+
+end
+
+
 # read/write redis config files
 class RedisConf
 
