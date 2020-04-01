@@ -6,6 +6,12 @@ n = {}
 
 n["version"] = "1.17.9"
 
+n["release"] = "mainline"
+n["release_bases"] = {
+  "stable" => "https://nginx.org/packages", # stable
+  "mainline" => "http://nginx.org/packages/mainline", # mainline
+}
+
 n['dirs'] = {
   'available' => ::File.join("", "etc", name, "sites-available"),
   'enabled' => ::File.join("", "etc", name, "sites-enabled"),

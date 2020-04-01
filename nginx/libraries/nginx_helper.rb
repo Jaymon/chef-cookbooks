@@ -7,10 +7,8 @@ module NginxHelper
 
   class Nginx
 
-    ##
     # get the full version string from a simple version like 1.10.0, basically, if you
     # have a version like 1.10.0 this would return 1.10.3-1~trusty
-    ##
     def self.get_version(simple_version)
       begin
         cmd = "apt-cache policy nginx | grep #{simple_version}"
@@ -24,6 +22,7 @@ module NginxHelper
       #return version_str.stdout
     end
 
+    # @returns [boolean]: true if nginx is installed, false otherwise
     def self.is_installed()
       begin
         version_str = shell_out!("which nginx")
@@ -35,7 +34,19 @@ module NginxHelper
       return ret
     end
 
-    ##
+    # @returns [string]: the name of the os, usually something like "ubuntu"
+    def self.get_os()
+      output = shell_out!("lsb_release -si | tr '[:upper:]' '[:lower:]'")
+      return output.stdout.strip()
+    end
+
+    # @returns [string]: the release version of the os, eg, bionic, trusty
+    def self.get_os_release()
+      output = shell_out!("lsb_release -sc")
+      return output.stdout.strip()
+    end
+
+
     # get the configuration for a server
     #
     # @param [string] server_name: the server name, which could be the host

@@ -1,12 +1,17 @@
 # Nginx Cookbook
 
-Installs Nginx
+Installs and configures Nginx.
 
 
-## Links
+## Versions
 
-* [Nginx versions](https://nginx.org/en/CHANGES)
-* [How to Install Nginx Latest Version on Ubuntu](https://www.linuxbabe.com/ubuntu/install-nginx-latest-version-ubuntu-18-04) - This is what the recipe uses to install Nginx though we originally did it this way for 14.04 it's nice that it is still current.
+Nginx versioning uses an [even/odd mechanic](https://www.nginx.com/blog/nginx-1-16-1-17-released/#NGINX-Versioning-Explained) where the [odd version](https://nginx.org/en/CHANGES) is for active development, and the even version is stable with major bugfixes:
+
+> Mainline is the active development branch where the latest features and bug fixes get added. It is denoted by an odd number in the second part of the version number, for example 1.17.0.
+> 
+> Stable receives fixes for high‑severity bugs, but is not updated with new features. It is denoted by an even number in the second part of the version number, for example 1.16.0.
+
+This recipe roughly follows [this method of installing Nginx](https://www.linuxbabe.com/ubuntu/install-nginx-latest-version-ubuntu-18-04).
 
 
 ## Configuration block
@@ -14,6 +19,7 @@ Installs Nginx
 ```ruby
 "nginx" => {
    "version" => string,
+   "release" => string,
    "config" => {},
    "config_global" => {},
 	"servers" => {
@@ -29,6 +35,16 @@ Installs Nginx
 ## Attributes
 
 ------------------------------------------------------------------------------
+
+### version
+
+The Nginx version you want to install, [mainline versions list](https://nginx.org/en/CHANGES)
+
+
+### release
+
+Defaults to `mainline` but can be changed to `stable`. If you do change to `stable` you'll have to set the version also since the default version is a mainline version.
+
 
 ### config
 
