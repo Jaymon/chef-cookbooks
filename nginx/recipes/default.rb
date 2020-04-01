@@ -5,7 +5,6 @@ n = node[name]
 ###############################################################################
 # Initial setup and pre-requisites
 ###############################################################################
-
 apt_repository 'nginx' do
   uri "#{n["release_bases"][n["release"]]}/#{Nginx.get_os()}/"
   components ['nginx']
@@ -16,73 +15,8 @@ apt_repository 'nginx' do
 end
 
 apt_update "#{name}-repo-update" do
-  #action :update
   action :nothing
 end
-
-
-
-
-# https://www.linuxbabe.com/ubuntu/install-nginx-latest-version-ubuntu-18-04
-# package "#{name}-lsb-release" do
-#   package_name "lsb-release"
-# end
-# 
-# os = Nginx.get_os()
-# os_release = Nginx.get_os_release()
-# lines = [
-#   "deb #{n["release_bases"][n["release"]]}/#{os}/ #{os_release} nginx",
-#   "deb-src #{n["release_bases"][n["release"]]}/#{os}/ #{os_release} nginx"
-# ]
-# file "/etc/apt/sources.list.d/nginx.list" do
-#   content lines.join("\n")
-#   #notifies :run, "execute[#{name}-repo-key]", :immediately
-#   notifies :create, "remote_file[#{name}-download-key]", :immediately
-# end
-# 
-# key_file = ::File.join(::Chef::Config[:file_cache_path], "nginx_signing.key")
-# remote_file "#{name}-download-key" do
-#   path key_file
-#   source "https://nginx.org/keys/nginx_signing.key"
-#   notifies :run, "execute[#{name}-add-key]", :immediately
-#   action :nothing
-# end
-# 
-# execute "#{name}-add-key" do
-#   command "apt-key add #{key_file}"
-#   notifies :run, "execute[#{name}-repo-update]", :immediately
-#   action :nothing
-# end
-# 
-# execute "#{name}-repo-update" do
-#   command "apt-get update"
-#   action :nothing
-# end
-
-
-
-
-# ######################333
-# nginx_path = "/etc/apt/sources.list.d/nginx.list"
-# bash "#{name}-repo-install" do
-#   code <<-EOH
-#     LIST="#{nginx_path}"
-#     OS=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
-#     RELEASE=$(lsb_release -sc)
-#     if [ ! -f $LIST ]; then
-#       echo -e "deb https://nginx.org/packages/$OS/ $RELEASE nginx\ndeb-src https://nginx.org/packages/$OS/ $RELEASE nginx" > $LIST;
-#     fi
-#     EOH
-#   notifies :run, "execute[#{name}-repo-key]", :immediately
-#   not_if { ::File.exists?(nginx_path) }
-# end
-
-# execute "#{name}-repo-key" do
-#   command "wget -q -O- https://nginx.org/keys/nginx_signing.key | apt-key add -"
-#   notifies :run, "execute[#{name}-repo-update]", :immediately
-#   action :nothing
-# end
-# ######################333
 
 # set permissions on first nginx install
 directory n["dirs"]["log"] do

@@ -1,6 +1,8 @@
 ##
 # run apt-get upgrade
 ##
+name = cookbook_name.to_s
+n = node[name]
 
 # From the apt-get manual
 # upgrade
@@ -18,7 +20,13 @@
 # only do this at some interval
 check_filepath = ::File.join(Chef::Config[:file_cache_path], node["package"]["check_upgrade"])
 
-execute "apt-get upgrade" do
+apt_update "#{name}-upgrade-update" do
+  action :update
+  not_if { ::File.exists?(check_filepath) }
+end
+
+execute "#{name}-upgrade" do
+  command "apt-get upgrade"
   not_if { ::File.exists?(check_filepath) }
 end
 

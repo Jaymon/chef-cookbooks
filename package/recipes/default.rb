@@ -18,7 +18,7 @@ include_recipe "package::update"
 [:install, :upgrade, :remove, :purge].each do |package_action|
   if n.has_key?(package_action)
     n[package_action].each do |p|
-      package "package #{package_action} #{p}" do
+      package "#{name} #{package_action} #{p}" do
         package_name p
         action package_action.to_sym
         # goal is to keep the boxes lean, so don't bother with non-essential, if
