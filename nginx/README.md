@@ -38,7 +38,7 @@ This recipe roughly follows [this method of installing Nginx](https://www.linuxb
 
 ### version
 
-The Nginx version you want to install, [mainline versions list](https://nginx.org/en/CHANGES)
+The Nginx version you want to install, [mainline versions list](https://nginx.org/en/CHANGES). you could also get the latest versions of each branch from [the downloads page](http://nginx.org/en/download.html)
 
 
 ### release
