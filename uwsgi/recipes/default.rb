@@ -119,22 +119,25 @@ n['servers'].each do |server_name, _config|
   systemd_unit config["service_name"] do
     content lazy { UWSGI.get_service_config(config["service"], _config, n) }
     action [:create, :enable]
-    notifies :stop, "service[#{server_name}]", :delayed
-    notifies :start, "service[#{server_name}]", :delayed
+    #notifies :stop, "service[#{server_name}]", :delayed
+    #notifies :start, "service[#{server_name}]", :delayed
+    notifies :reload, "service[#{server_name}]", :delayed
   end
 
   template config["server_path"] do
     source "ini.erb"
     mode "0644"
     variables({"config_variables" => UWSGI.get_server_config(server_config)})
-    notifies :stop, "service[#{server_name}]", :delayed
-    notifies :start, "service[#{server_name}]", :delayed
+    #notifies :stop, "service[#{server_name}]", :delayed
+    #notifies :start, "service[#{server_name}]", :delayed
+    notifies :reload, "service[#{server_name}]", :delayed
   end
 
   # hooks to start/stop/restart this server
   service server_name do
     service_name server_name
     action :nothing
+    reload_command "systemctl stop #{server_name}; systemctl start #{server_name}"
   end
 
 end
