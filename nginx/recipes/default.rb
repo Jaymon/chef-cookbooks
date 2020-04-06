@@ -62,8 +62,9 @@ conf_path = ::File.join(n["dirs"]["conf.d"], "conf.conf")
 template conf_path do
   source "conf.conf.erb"
   variables(conf_d)
-  notifies :stop, "service[#{name}]", :delayed
-  notifies :start, "service[#{name}]", :delayed
+  #notifies :stop, "service[#{name}]", :delayed
+  #notifies :start, "service[#{name}]", :delayed
+  notifies :reload, "service[#{name}]", :delayed
 end
 
 # per server configuration
@@ -77,8 +78,9 @@ n["servers"].each do |server_name, server_options|
   template server_path do
     source "server.conf.erb"
     variables(variables)
-    notifies :stop, "service[#{name}]", :delayed
-    notifies :start, "service[#{name}]", :delayed
+    #notifies :stop, "service[#{name}]", :delayed
+    #notifies :start, "service[#{name}]", :delayed
+    notifies :reload, "service[#{name}]", :delayed
   end
 
 end
@@ -87,6 +89,7 @@ end
 service name do
   service_name name
   action :nothing
+  reload_command "systemctl stop #{name}; systemctl start #{name}"
   #supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
 end
 
