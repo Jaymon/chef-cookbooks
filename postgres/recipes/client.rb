@@ -12,7 +12,7 @@ version = n_pg["version"]
 system_conf_dir = Postgres.get_system_conf_dir(version)
 
 
-["postgresql-client"].each do |p|
+["postgresql-client-#{version}"].each do |p|
   package p
 end
 
@@ -34,7 +34,7 @@ cookbook_file ::File.join(system_conf_dir, "psqlrc") do
   mode "0644"
   action :create
 end
-# there could also one be placed somewhere and PSQLRC environment variable set
+# you could also place a PSQLRC environment variable
 # to that location
 # http://www.postgresql.org/docs/9.2/static/app-psql.html
 
@@ -44,6 +44,7 @@ n_pg["users"].each do |username, options|
   user = PostgresUser.new(username)
   user_home = user.homedir
 
+  # we only want to add a pgpass for the user if they exist on the system
   if !user_home.empty?
     # http://wiki.opscode.com/display/ChefCN/Templates
     # https://www.postgresql.org/docs/9.5/static/libpq-pgpass.html
@@ -60,7 +61,6 @@ n_pg["users"].each do |username, options|
       action :create
       only_if "test -d #{user_home}"
     end
-
   end
 
 end

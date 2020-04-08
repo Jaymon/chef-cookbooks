@@ -89,13 +89,16 @@ Users that have readonly access to the database
 
 #### encoding
 
-The db encoding, defaults to `UTF8`
+The db encoding, defaults to the encoding value in `template1`. Which you can see with:
+
+    $ psql -qtAX -c "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname='template1'"
 
 
 #### locale
 
-The db locale, defaults to `en_US.UTF-8`
+The db locale, defaults to the locale value in `template1`. Which you can see with:
 
+    $ psql -qtAX -c "SELECT datcollate FROM pg_database WHERE datname='template1'"
 
 -------------------------------------------------------------------------------
 

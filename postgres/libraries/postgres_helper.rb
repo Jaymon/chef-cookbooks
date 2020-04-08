@@ -39,6 +39,12 @@ module PostgresHelper
       return ::File.join(self.get_main_dir(version), "pg_hba.conf")
     end
 
+    # @returns [string]: the release version of the os, eg, bionic, trusty
+    def self.get_os_release()
+      output = shell_out!("lsb_release -sc")
+      return output.stdout.strip()
+    end
+
   end
 
   ##
@@ -150,10 +156,58 @@ module PostgresHelper
     # returns a command to create a database, owned by owner (username)
     ##
     def create_db_command(dbname, owner, options)
-      encoding = options.fetch("encoding", "UTF8")
-      pg_locale = options.fetch("locale", "en_US.UTF-8")
-      cmd = "#{@cmd_user} createdb -E #{encoding} --locale=#{pg_locale} -O #{owner} #{dbname}"
+      #encoding = options.fetch("encoding", "UTF8")
+      #pg_locale = options.fetch("locale", "en_US.UTF-8")
+      #cmd = "#{@cmd_user} createdb -E #{encoding} --locale=#{pg_locale} -O #{owner} #{dbname} --template=template0"
+
+      #pg_locale = options.fetch("locale", "C.UTF-8")
+
+      cmd = "#{@cmd_user} createdb"
+
+      encoding = options.fetch("encoding", "")
+      if !encoding.empty?
+        cmd += " -E #{encoding}"
+      end
+
+      pg_locale = options.fetch("locale", "")
+      if !pg_locale.empty?
+        cmd += " --locale=#{pg_locale}"
+      end
+
+      # TODO -- if you change the locale and/or encoding we might need to switch template?
+
+      cmd += " -O #{owner} #{dbname}"
       return cmd
+
+#       encoding = options.fetch("encoding", "")
+#       if encoding.empty?
+#         encoding = self.get_default_encoding()
+#       end
+# 
+#       pg_locale = options.fetch("locale", "")
+#       if pg_locale.empty?
+#         pg_locale = options.get_default_locale()
+#       end
+# 
+#       cmd = "#{@cmd_user} createdb -E #{encoding} --locale=#{pg_locale} -O #{owner} #{dbname}"
+# 
+#       return cmd
+    end
+
+    # Return the encoding for the given db template
+    #
+    # @link https://stackoverflow.com/a/6477516/5006
+    def get_default_encoding(template="template1")
+      query = "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname='#{template}'"
+      cmd = "#{@cmd_user} psql -qtAX -c \"#{query}\""
+      return shell_out!(cmd).stdout.strip
+    end
+
+    # Return the collation and sorting locale for the given db template
+    def get_default_locale(template="template1")
+      query = "SELECT datcollate FROM pg_database WHERE datname='#{template}'"
+      cmd = "#{@cmd_user} psql -qtAX -c \"#{query}\""
+      return shell_out!(cmd).stdout.strip
     end
 
     ##

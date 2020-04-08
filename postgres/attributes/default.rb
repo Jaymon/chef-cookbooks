@@ -1,22 +1,21 @@
 # http://docs.opscode.com/essentials_cookbook_attribute_files.html
 name = "postgres"
-pg_port = 5432
-pgbouncer_port = 6432
+
+n = {}
 
 # the user that will run postgres, best not to change this
-default[name]["user"] = "postgres"
+n["user"] = "postgres"
 
-default[name]["users"] = {}
-default[name]["databases"] = {}
-default[name]["replication"] = {}
+n["users"] = {}
+n["databases"] = {}
 
-default[name]["version"] = "9.6"
+n["version"] = "12"
 
-default[name]["conf"] = {}
-default[name]["conf"]["listen_addresses"] = "'*'"
-default[name]["conf"]["port"] = pg_port
+n["conf"] = {}
+n["conf"]["listen_addresses"] = "'*'"
+n["conf"]["port"] = 5432
 
-default[name]["hba"] = []
+n["hba"] = []
 
 # so here's the problem, I want these to pretty much always be around in the majority
 # of the cases. The problem is if we add any hba values in a config, it would overwrite these :(
@@ -25,7 +24,7 @@ default[name]["hba"] = []
 # is this hack, these will be added to the hba file and then the hba values will be added
 # to the file, which can overwrite these values. It's a hack, but it works and allows you to
 # completely blow the defaults away by setting it to an empty list
-default[name]["hba_default"] = [
+n["hba_default"] = [
   { # this makes postgres operate easier in the environment we've set up (.pgpass files work as expected)
     'connection' => 'local',
     'database' => 'all',
@@ -41,37 +40,5 @@ default[name]["hba_default"] = [
   },
 ]
 
-# pgbouncer specific configuration
-default[name]["pgbouncer"] = {}
-default[name]["pgbouncer"]["src_dir"] = ::File.join(::Chef::Config[:file_cache_path], "pgbouncer")
-default[name]["pgbouncer"]["src_repo"] = "https://github.com/markokr/pgbouncer-dev.git"
-default[name]["pgbouncer"]["version"] = "1.5.4"
-default[name]["pgbouncer"]["user"] = "postgres"
-
-default[name]["pgbouncer"]["databases"] = {
-  '*' => "host=127.0.0.1 port=#{pg_port}", # fallback connection string
-}
-
-default[name]["pgbouncer"]["pgbouncer"] = {
-  'logfile' => ::File.join("", "var", "log", "pgbouncer", "pgbouncer.log"),
-  'pidfile' => ::File.join("", "var", "run", "pgbouncer", "pgbouncer.pid"),
-  'unix_socket_dir' => ::File.join("", "var", "run", "pgbouncer"),
-  'auth_file' => ::File.join("", "etc", "pgbouncer", "userlist.txt"),
-  "listen_addr" => "127.0.0.1", # "*" might be better default
-  "listen_port" => pgbouncer_port,
-  "pool_mode" => "session",
-  "max_client_conn" => 100,
-  "default_pool_size" => 20,
-  "log_connections" => 1, 
-  "log_disconnections" => 1, 
-  "log_pooler_errors" => 1,
-  "server_check_delay" => 30,
-  "server_lifetime" => 3600,
-  "server_idle_timeout" => 600,
-  "client_login_timeout" => 60,
-  "listen_backlog" => 200
-  #"server_reset_query" => "DISCARD ALL",
-  #"auth_type" => "md5",
-}
-
+default[name] = n
 

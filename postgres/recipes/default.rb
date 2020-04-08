@@ -13,8 +13,33 @@ version = n["version"]
 
 
 ###############################################################################
-# actually install postgres db
+# installation
 ###############################################################################
+
+# TODO -- check for an existing postgres installation and if version and current_version
+# are different then we would need to uninstall the current postgres in order to
+# upgrade, what it currently does is install the new version but keeps the existing
+# version, which is strange
+# https://stackoverflow.com/questions/13733719/which-version-of-postgresql-am-i-running
+
+# https://www.postgresql.org/download/linux/ubuntu/
+# https://askubuntu.com/questions/633919/how-install-postgresql-9-4
+# https://askubuntu.com/questions/638725/install-postgres-9-4-on-ubuntu-14-04-2
+
+# deb <uri> <distribution> <components>
+# /etc/apt/sources.list.d/pgdg.list
+apt_repository 'pgdg' do
+  uri "http://apt.postgresql.org/pub/repos/apt/"
+  distribution "#{Postgres.get_os_release()}-pgdg"
+  components ['main']
+  key "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+  keyserver false
+  notifies :update, "apt_update[#{name}-repo-update]", :immediately
+end
+
+apt_update "#{name}-repo-update" do
+  action :nothing
+end
 
 
 # TODO -- check for an existing postgres installation and if version and current_version
@@ -26,48 +51,51 @@ version = n["version"]
 # https://www.postgresql.org/download/linux/ubuntu/
 # https://askubuntu.com/questions/633919/how-install-postgresql-9-4
 # https://askubuntu.com/questions/638725/install-postgres-9-4-on-ubuntu-14-04-2
-sources_path = "/etc/apt/sources.list.d/pgdg.list"
-execute "#{name}-sources-install" do
-  command "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" > #{sources_path}"
-  notifies :run, "execute[#{name}-sources-key]", :immediately
-  not_if { ::File.exists?(sources_path) }
+
+# sources_path = "/etc/apt/sources.list.d/pgdg.list"
+# execute "#{name}-sources-install" do
+#   command "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" > #{sources_path}"
+#   notifies :run, "execute[#{name}-sources-key]", :immediately
+#   not_if { ::File.exists?(sources_path) }
+# end
+# 
+# execute "#{name}-sources-key" do
+#   command "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
+#   notifies :run, "execute[#{name}-sources-update]", :immediately
+#   action :nothing
+# end
+# 
+# execute "#{name}-sources-update" do
+#   command "apt-get update"
+#   action :nothing
+# end
+
+
+if ::Chef::VersionString.new(version) < ::Chef::VersionString.new("10")
+
+  ["postgresql-#{version}", "postgresql-contrib-#{version}"].each do |p|
+    package p
+  end
+
+else
+
+  # the contrib package is included in the default package in 10+
+  package "postgresql-#{version}"
+
 end
 
-execute "#{name}-sources-key" do
-  command "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
-  notifies :run, "execute[#{name}-sources-update]", :immediately
-  action :nothing
-end
 
-execute "#{name}-sources-update" do
-  command "apt-get update"
-  action :nothing
-end
-
-["postgresql-#{version}", "postgresql-contrib-#{version}"].each do |p|
-  package p
-end
-
+###############################################################################
+# setup
+###############################################################################
 
 include_recipe "#{name}::users"
-include_recipe "#{name}::client" # this configures the client
+include_recipe "#{name}::client"
 include_recipe "#{name}::databases"
 
 
 ###############################################################################
-# manage the postgres service
-###############################################################################
-
-# http://wiki.opscode.com/display/chef/Resources#Resources-Service
-service name do
-  service_name "postgresql"
-  supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
-  action :nothing
-end
-
-
-###############################################################################
-# reconfigure postgres
+# deal with the postgres configuration file
 ###############################################################################
 
 # the code to configure postgres is kind of a chicken/egg problem, on first run
@@ -76,7 +104,7 @@ end
 # and get_conf_file() are pointing to files that don't actually exist, which is 
 # why we use a ruby_block and notifications
 
-if n.has_key?("conf")
+if false && n.has_key?("conf")
 
   conf_file = Postgres.get_conf_file(version)
   cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
@@ -184,7 +212,7 @@ end
 # reconfigure pg_hba
 ###############################################################################
 # http://stackoverflow.com/questions/1287067/unable-to-connect-postgresql-to-remote-database-using-pgadmin
-if n.has_key?("hba")
+if false && n.has_key?("hba")
 
   # same issue as with conf
 
@@ -315,4 +343,15 @@ if n.has_key?("hba")
 
 end
 
+
+###############################################################################
+# manage the postgres service
+###############################################################################
+
+# http://wiki.opscode.com/display/chef/Resources#Resources-Service
+service name do
+  service_name "postgresql"
+  #supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
+  #action :nothing
+end
 

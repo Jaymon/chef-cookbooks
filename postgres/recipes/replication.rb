@@ -1,3 +1,11 @@
+
+# TODO -- update this recipe to work with Ubuntu 18.04 and PostgreSQL 10+
+::Chef::Application.fatal!('Replication recipe is way out of date and cannot be used as of April 2020')
+
+# from attributes/default.rb
+default[name]["replication"] = {}
+
+
 ###############################################################################
 # configures replication for this database installation
 #
