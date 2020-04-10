@@ -11,9 +11,9 @@ n["databases"] = {}
 
 n["version"] = "12"
 
-n["conf"] = {}
-n["conf"]["listen_addresses"] = "'*'"
-n["conf"]["port"] = 5432
+n["config"] = {}
+n["config"]["listen_addresses"] = "*"
+n["config"]["port"] = 5432
 
 n["hba"] = []
 

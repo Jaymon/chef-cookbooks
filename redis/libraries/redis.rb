@@ -118,7 +118,7 @@ class RedisConf
       if v.is_a?(TrueClass)
         v = "on"
 
-      elsif val.is_a?(FalseClass)
+      elsif v.is_a?(FalseClass)
         v = "off"
       end
       new_conf_lines << "#{key} #{v}"

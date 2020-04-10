@@ -1,7 +1,7 @@
 ###############################################################################
 # installs the postgresql db on ubuntu
 #
-# This recipe will also run users and databases, you will have to run any other
+# This recipe will also run client, users, and databases, you will have to run any other
 # recipes separately
 #
 ###############################################################################
@@ -42,37 +42,9 @@ apt_update "#{name}-repo-update" do
 end
 
 
-# TODO -- check for an existing postgres installation and if version and current_version
-# are different then we would need to uninstall the current postgres in order to
-# upgrade, what it currently does is install the new version but keeps the existing
-# version, which is strange
-# https://stackoverflow.com/questions/13733719/which-version-of-postgresql-am-i-running
-
-# https://www.postgresql.org/download/linux/ubuntu/
-# https://askubuntu.com/questions/633919/how-install-postgresql-9-4
-# https://askubuntu.com/questions/638725/install-postgres-9-4-on-ubuntu-14-04-2
-
-# sources_path = "/etc/apt/sources.list.d/pgdg.list"
-# execute "#{name}-sources-install" do
-#   command "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" > #{sources_path}"
-#   notifies :run, "execute[#{name}-sources-key]", :immediately
-#   not_if { ::File.exists?(sources_path) }
-# end
-# 
-# execute "#{name}-sources-key" do
-#   command "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -"
-#   notifies :run, "execute[#{name}-sources-update]", :immediately
-#   action :nothing
-# end
-# 
-# execute "#{name}-sources-update" do
-#   command "apt-get update"
-#   action :nothing
-# end
-
-
 if ::Chef::VersionString.new(version) < ::Chef::VersionString.new("10")
 
+  ::Chef::Log.warn("Support for postgres < 10 with this cookbook is NOT tested")
   ["postgresql-#{version}", "postgresql-contrib-#{version}"].each do |p|
     package p
   end
@@ -104,106 +76,128 @@ include_recipe "#{name}::databases"
 # and get_conf_file() are pointing to files that don't actually exist, which is 
 # why we use a ruby_block and notifications
 
-if false && n.has_key?("conf")
+if n.has_key?("config")
 
-  conf_file = Postgres.get_conf_file(version)
-  cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
+  #conf_file = Postgres.get_conf_file(version)
+  #cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
 
   # copy ssl cert if in conf
-  if n["ssl_files"] and n["ssl_files"]["ssl_cert_file"]
-    if not n["conf"]["ssl_cert_file"]
-      raise("ssl_cert_file has not been specified in postgres config")
-    end
+#   if n["ssl_files"] and n["ssl_files"]["ssl_cert_file"]
+#     if not n["conf"]["ssl_cert_file"]
+#       raise("ssl_cert_file has not been specified in postgres config")
+#     end
+# 
+#     # remove the single-quotes on the ssl_cert_file value
+#     remote_file n["conf"]["ssl_cert_file"].tr("'", "") do
+#       source "file://#{ n["ssl_files"]["ssl_cert_file"]}"
+#       owner "root"
+#       group "root"
+#       mode "0644"
+#       action :create
+#     end
+#   end
+# 
+#   # copy ssl key if in conf
+#   if n["ssl_files"] and n["ssl_files"]["ssl_key_file"]
+#     if not n["conf"]["ssl_key_file"]
+#       raise("ssl_key_file has not been specified in postgres config")
+#     end
+# 
+#     # remove the single-quotes on the ssl_key_file value
+#     remote_file n["conf"]["ssl_key_file"].tr("'", "") do
+#       source "file://#{n["ssl_files"]["ssl_key_file"]}"
+#       owner "root"
+#       group "ssl-cert"
+#       mode "0640"
+#       action :create
+#     end
+#   end
 
-    # remove the single-quotes on the ssl_cert_file value
-    remote_file n["conf"]["ssl_cert_file"].tr("'", "") do
-      source "file://#{ n["ssl_files"]["ssl_cert_file"]}"
-      owner "root"
-      group "root"
-      mode "0644"
-      action :create
-    end
-  end
+  conf = nil
 
-  # copy ssl key if in conf
-  if n["ssl_files"] and n["ssl_files"]["ssl_key_file"]
-    if not n["conf"]["ssl_key_file"]
-      raise("ssl_key_file has not been specified in postgres config")
-    end
-
-    # remove the single-quotes on the ssl_key_file value
-    remote_file n["conf"]["ssl_key_file"].tr("'", "") do
-      source "file://#{n["ssl_files"]["ssl_key_file"]}"
-      owner "root"
-      group "ssl-cert"
-      mode "0640"
-      action :create
-    end
-  end
-
-  ruby_block "configure postgres" do
+  # setting the configuration is in a block because we need postgres to be installed
+  # because the path to the configuration is dependant on the installed version, so
+  # we use the block to make sure the paths exist
+  ruby_block "#{name} configure" do
     block do
-
-      # build a config file mapping we can manipulate
-      conf_lines = []
-      conf_lookup = {}
-      ::File.read(conf_file).each_line.with_index do |conf_line, index|
-        if conf_line.match(/^\S+\s*=/)
-          conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
-          conf_val, conf_comment = conf_val.split(/#/, 2)
-
-          #conf_val.rstrip!
-          if conf_comment
-            conf_comment.rstrip!
-          else
-            conf_comment = ''
-          end
-
-          if conf_var[0] == '#'
-            conf_var = conf_var[1..-1]
-          end
-          conf_lookup[conf_var] = [index, conf_comment]
-
-        end
-
-        conf_lines << conf_line
-
-      end
-
-      # modify our config file and write it out to our temp conf file
-      n["conf"].each do |key, val|
-        conf_line = "#{key} = #{val}"
-        if conf_lookup.has_key?(key)
-          cb = conf_lookup[key]
-          if !cb[1].empty?
-            conf_line += " ##{cb[1]}"
-          end
-          conf_lines[cb[0]] = conf_line
-
-        else
-          conf_lines << conf_line
-
-        end
-
-      end
-
-      ::File.open(cache_conf_file, "w+") do |f|
-        f.puts(conf_lines)
-      end
-
+      conf = PostgresConf.new(version)
+      conf.update!(n["conf"])
     end
-    notifies :create, "remote_file[#{conf_file}]", :delayed
-
   end
 
-  remote_file conf_file do
-    source "file://#{cache_conf_file}"
+  file "#{name} save configuration" do
+    path lazy { conf.path }
+    content lazy { conf.to_s }
     owner u
     group u
     mode "0644"
-    action :nothing
     notifies :restart, "service[#{name}]", :delayed
   end
+
+
+#   ruby_block "configure postgres" do
+#     block do
+# 
+#       # build a config file mapping we can manipulate
+#       conf_lines = []
+#       conf_lookup = {}
+#       ::File.read(conf_file).each_line.with_index do |conf_line, index|
+#         if conf_line.match(/^\S+\s*=/)
+#           conf_var, conf_val = conf_line.split(/\s*=\s*/, 2)
+#           conf_val, conf_comment = conf_val.split(/#/, 2)
+# 
+#           #conf_val.rstrip!
+#           if conf_comment
+#             conf_comment.rstrip!
+#           else
+#             conf_comment = ''
+#           end
+# 
+#           if conf_var[0] == '#'
+#             conf_var = conf_var[1..-1]
+#           end
+#           conf_lookup[conf_var] = [index, conf_comment]
+# 
+#         end
+# 
+#         conf_lines << conf_line
+# 
+#       end
+# 
+#       # modify our config file and write it out to our temp conf file
+#       n["conf"].each do |key, val|
+#         conf_line = "#{key} = #{val}"
+#         if conf_lookup.has_key?(key)
+#           cb = conf_lookup[key]
+#           if !cb[1].empty?
+#             conf_line += " ##{cb[1]}"
+#           end
+#           conf_lines[cb[0]] = conf_line
+# 
+#         else
+#           conf_lines << conf_line
+# 
+#         end
+# 
+#       end
+# 
+#       ::File.open(cache_conf_file, "w+") do |f|
+#         f.puts(conf_lines)
+#       end
+# 
+#     end
+#     notifies :create, "remote_file[#{conf_file}]", :delayed
+# 
+#   end
+# 
+#   remote_file conf_file do
+#     source "file://#{cache_conf_file}"
+#     owner u
+#     group u
+#     mode "0644"
+#     action :nothing
+#     notifies :restart, "service[#{name}]", :delayed
+#   end
 
 end
 
