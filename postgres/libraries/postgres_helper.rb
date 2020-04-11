@@ -6,6 +6,150 @@ include ::Chef::Mixin::ShellOut
 
 module PostgresHelper
 
+  class PostgresHba
+
+    attr_reader :path
+
+    def initialize(version)
+
+      @path = Postgres.get_hba_file(version)
+      self.read_file!(Postgres.get_hba_file(version))
+
+    end
+
+    def read_file!(path)
+      # holds each line of the original config file that was loaded with path, this
+      # will be empty if no original config file was parsed
+      @conf_lines = []
+
+      # this is a list of dicts that have an index key that correlates to the index
+      # in @conf_lines
+      @conf_lookup = []
+
+      @path = path
+
+      ::File.read(path).each_line.with_index do |conf_line, index|
+        conf_line.strip!
+        @conf_lines << conf_line
+
+        if conf_line =~ /^#/
+          next
+
+        elsif conf_line =~ /^\s*$/
+          next
+
+        else
+          conf_line.strip!
+          conn_type, database, user, remainder = conf_line.split(/\s+/, 4)
+          ip6 = false
+
+          if conn_type == 'local'
+            method, options = remainder.split(/\s+/, 2)
+            address = ''
+
+          else
+            address, method, options = remainder.split(/\s+/, 3)
+            if address =~ /^::/
+              ip6 = true
+            end
+
+          end
+
+          options ||= ''
+
+          d = {
+            'index' => index,
+            'ip6' => ip6,
+            'connection' => conn_type,
+            'database' => database,
+            'user' => user,
+            'method' => method,
+            'address' => address,
+            'options' => options
+          }
+          @conf_lookup << d
+        end
+      end
+
+    end
+
+    def set(row)
+      default_row = {
+        'method' => '',
+        'address' => '',
+        'options' => ''
+      }
+      index = -1
+
+      @conf_lookup.each do |conf_row|
+        is_match = true
+        ['connection', 'database', 'user'].each do |k|
+          if conf_row[k] != row[k]
+            is_match = false
+            break
+          end
+        end
+
+        if is_match
+          if row['address'] =~ /^::/
+            if conf_row['ip6']
+              index = conf_row['index']
+              break
+            end
+
+          else
+            index = conf_row['index']
+            break
+          end
+
+        end
+
+      end
+
+      ncrow = default_row.merge(row)
+      ncl = "#{ncrow['connection']} " + 
+        "#{ncrow['database']} " + 
+        "#{ncrow['user']} " + 
+        "#{ncrow['address']} " +
+        "#{ncrow['method']} " + 
+        "#{ncrow['options']}"
+
+      # NOTE -- if you set it to active=false and then back to active=true it
+      # will make another row, this is a bug, but a forgivable one for now
+      if !ncrow.fetch('active', true)
+        ncl = "##{ncl}"
+      end
+
+      if index >= 0
+        @conf_lines[index] = ncl
+
+      else
+        @conf_lines << ncl
+
+        d = {"index" => @conf_lines.length}
+        d.merge(ncl)
+        @conf_lookup[@conf_lines.length] = d
+
+      end
+
+    end
+
+    def update!(rows)
+      rows.each do |row|
+        self.set(row)
+      end
+    end
+
+    # convert everything to a string so it can be written to a file
+    #
+    # @returns [string]: all the configuration in the format needed
+    def to_s()
+      return @conf_lines.join("\n") + "\n"
+    end
+
+  end
+
+
   class PostgresConf
 
     attr_reader :path
@@ -65,22 +209,26 @@ module PostgresHelper
     # @param [mixed] val: the value you want to set for key
     def set(key, val)
 
-      if val.is_a?(TrueClass) || val == "on"
-        val = "on"
-
-      elsif val.is_a?(FalseClass) || val == "off"
-        val = "off"
-
-      elsif val.is_a?(Integer) || val.is_a?(Float)
-        val = val
-
-      elsif val.is_a?(String)
-        if !val.match(/^-?\d+/)
-          val = "'#{val.gsub(/^'|'$/, "")}'"
+      #::Chef::Log.info("#{key} = #{val}")
+      if val.is_a?(String)
+        if val != "on" && val != "off"
+          if !val.match(/^-?\d+/)
+            val = "'#{val.gsub(/^'|'$/, "")}'"
+          end
         end
 
+      elsif val.is_a?(TrueClass)
+        #::Chef::Log.info("#{key} is true")
+        val = "on"
+
+      elsif val.is_a?(FalseClass)
+        #::Chef::Log.info("#{key} is false")
+        val = "off"
+
       else
-        raise ::Errno::ENOENT.new("Unsupported config type at key #{key}")
+        if !val.is_a?(Integer) && !val.is_a?(Float)
+          raise ::Errno::ENOENT.new("Unsupported config type at key #{key}")
+        end
       end
 
       conf_line = "#{key} = #{val}"
@@ -93,6 +241,7 @@ module PostgresHelper
 
       else
         @conf_lines << conf_line
+        @conf_lookup[key] = [@conf_lines.length, ""]
 
       end
 
@@ -108,7 +257,7 @@ module PostgresHelper
     #
     # @returns [string]: all the configuration in the format needed
     def to_s()
-      return @conf_lines.join("\n")
+      return @conf_lines.join("\n") + "\n"
     end
 
   end

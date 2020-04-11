@@ -35,7 +35,14 @@ n["hba_default"] = [
     'connection' => 'host',
     'database' => 'all',
     'user' => 'all',
-    'address' => '0.0.0.0/0',
+    'address' => '0.0.0.0/0', # '127.0.0.1/32' would allow only local connections
+    'method' => 'md5',
+  },
+  { # allow remote host connection using ssl
+    'connection' => 'hostssl',
+    'database' => 'all',
+    'user' => 'all',
+    'address' => "0.0.0.0/0",
     'method' => 'md5',
   },
 ]
