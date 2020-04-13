@@ -1,6 +1,29 @@
 # Postgres Cookbook
 
-Install and configure Postgres and various other helper libraries
+Install and configure Postgres.
+
+
+## Configuration block
+
+```ruby
+"postgres" => {
+  "users" => {
+    "<USERNAME>" => {
+  	   "password" => "<PASSWORD>"
+  	 },
+  },
+  "databases" => {
+    "<DATABASE NAME" => {
+      "owner" => "<USERNAME>",
+      "read" => ["<USERNAME>"],
+    },
+  },
+  "config" => {},
+  "hba" => [],
+  "ssl_key" => "<PATH TO KEY>",
+  "ssl_cert" => "<PATH TO CERTIFICATE>",  
+}
+```
 
 
 ## Attributes
@@ -11,7 +34,7 @@ The `postgres` attributes dictionary has a few top level keys that you can use t
 
 ### users
 
-`default["postgres"]["users"]` -- A users hash is in username => options format.
+`default["postgres"]["users"]` -- A users hash is in `username => hash` format.
 
 Example:
 
@@ -58,7 +81,7 @@ A list of dictionary values you would like put into a `~/.pgpass` file for the u
 
 ### databases
 
-`default["postgres"]["databases"]` -- A databases hash is in dbname => options format.
+`default["postgres"]["databases"]` -- A databases hash is in `dbname => hash` format.
 
 Example:
 
@@ -102,18 +125,9 @@ The db locale, defaults to the locale value in `template1`. Which you can see wi
 
 -------------------------------------------------------------------------------
 
-### conf
+### config
 
-`default["postgres"]["conf"]` -- A hash of variables and their values
-
-For strings, you need to make sure the single quotes are there, so to change logging, you would do:
-
-    default["postgres"]["conf"] = {
-      "log_statement" => "'mod'"
-    }
-
-Notice that `'mod'` is the value (it has quotes), not `mod`.
-
+`default["postgres"]["config"]` -- A hash of variables and their values. These will be written to a configuration file located at `/etc/postgresql/<VERSION>/main/conf.d/postgres.conf`.
 
 -------------------------------------------------------------------------------
 
@@ -133,35 +147,17 @@ Refer to the comments in the installed `pg_hba.conf` file or the **Client Authen
 
 -------------------------------------------------------------------------------
 
-### ssl_files
+### ssl_cert
 
-`default["postgres"]["ssl_files"]` -- Source of SSL certificate and key files. The destination
-for these files must be specified in `default["postgres"]["conf"]`, basically, the `ssl_files` block provides the source for the paths that are specified in the conf block because Postgres is super picky about the location of the ssl files.
-
-* ssl_key_file -- path to the ssl key that should be copied to the location specified in `default["postgres"]["conf"]["ssl_key_file"]`.
-* ssl_cert_file -- path to ssl certificate that should be copied to the location specified in `default["postgres"]["conf"]["ssl_cert_file"]`.
-
-#### Example
-
-It might be easier to understand this with an example, so suppose your ssl configuration was:
+Contains the SSL Certificate you want to use for SSL connections to the database.
 
 
-```ruby
-"conf" => {
-  "ssl" => "true",
-  "ssl_cert_file" => "'/etc/ssl/certs/postgres.crt'",
-  "ssl_key_file" => "'/etc/ssl/private/postgres.key'",
-},
-"ssl_files" => {
-  "ssl_cert_file" => '/source/postgres.crt',
-  "ssl_key_file" => /source/postgres.key',
-},
-```
+### ssl_key
 
-So `/source/postgres.crt` (the value in _ssl_files.ssl_cert_file_ ) will be moved to `/etc/ssl/certs/postgres.crt` (the value in _conf.ssl_cert_file_ ) and likewise for the `ssl_key_file` values.
+Contains the SSL key you want to use for SSL connections to the database.
 
 
-### Helpful
+## Helpful
 
 Check what version of postgres you have installed:
 
@@ -174,11 +170,17 @@ and check the client version:
 
 [via](https://chartio.com/resources/tutorials/how-to-view-which-postgres-version-is-running/)
 
--------------------------------------------------------------------------------
+To verify you can connect using SSL:
+
+    $ psql "sslmode=prefer host=localhost"
+    ...
+    SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
+    ...
+
 
 ## Platform
 
-Ubuntu 14.04, nothing else has been tested
+Ubuntu 18.04.
 
 If you need a more full featured (or just different) Postgres cookbook,
 use the [Official Opscode Cookbook](https://github.com/opscode-cookbooks/postgresql).

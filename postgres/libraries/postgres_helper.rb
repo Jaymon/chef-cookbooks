@@ -6,6 +6,7 @@ include ::Chef::Mixin::ShellOut
 
 module PostgresHelper
 
+  # handles reading/writing the pg_hba.conf file
   class PostgresHba
 
     attr_reader :path
@@ -127,7 +128,7 @@ module PostgresHelper
         @conf_lines << ncl
 
         d = {"index" => @conf_lines.length}
-        d.merge(ncl)
+        d.merge(ncrow)
         @conf_lookup[@conf_lines.length] = d
 
       end
@@ -150,6 +151,7 @@ module PostgresHelper
   end
 
 
+  # handles writing a postgresql.conf compatible file to conf.d
   class PostgresConf
 
     attr_reader :path
@@ -171,6 +173,7 @@ module PostgresHelper
 
     end
 
+    # NOTE -- this is here but we don't use it (as of April 2020)
     def read_file!(path)
 
       if !::File.file?(path)
@@ -263,6 +266,7 @@ module PostgresHelper
   end
 
 
+  # namespace for postgres specific static methods
   class Postgres
 
     ##

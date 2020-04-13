@@ -70,43 +70,38 @@ include_recipe "#{name}::databases"
 # deal with the postgres configuration file
 ###############################################################################
 
-
-  #conf_file = Postgres.get_conf_file(version)
-  #cache_conf_file = ::File.join(Chef::Config[:file_cache_path], "postgresql.conf")
-
-  # copy ssl cert if in conf
-#   if n["ssl_files"] and n["ssl_files"]["ssl_cert_file"]
-#     if not n["conf"]["ssl_cert_file"]
-#       raise("ssl_cert_file has not been specified in postgres config")
-#     end
-# 
-#     # remove the single-quotes on the ssl_cert_file value
-#     remote_file n["conf"]["ssl_cert_file"].tr("'", "") do
-#       source "file://#{ n["ssl_files"]["ssl_cert_file"]}"
-#       owner "root"
-#       group "root"
-#       mode "0644"
-#       action :create
-#     end
-#   end
-# 
-#   # copy ssl key if in conf
-#   if n["ssl_files"] and n["ssl_files"]["ssl_key_file"]
-#     if not n["conf"]["ssl_key_file"]
-#       raise("ssl_key_file has not been specified in postgres config")
-#     end
-# 
-#     # remove the single-quotes on the ssl_key_file value
-#     remote_file n["conf"]["ssl_key_file"].tr("'", "") do
-#       source "file://#{n["ssl_files"]["ssl_key_file"]}"
-#       owner "root"
-#       group "ssl-cert"
-#       mode "0640"
-#       action :create
-#     end
-#   end
-
 conf = nil
+config = n["config"].to_h
+
+# we will modify the config hash here to make sure ssl is setup if we have defined
+# the ssl key/cert in the postgres configuration block. Our modified config hash
+# will be passed to PostgresConf to generate the configuration file PostgreSQL will
+# ultimately use
+if n.has_key?("ssl_key") && n.has_key?("ssl_cert")
+
+  config["ssl"] = true
+
+  ssl_key_path = config.has_key?("ssl_key_file") ? config["ssl_key_file"] : n["ssl_key_default_path"]
+  config["ssl_key_file"] = ssl_key_path
+
+  ssl_cert_path = config.has_key?("ssl_cert_file") ? config["ssl_cert_file"] : n["ssl_cert_default_path"]
+  config["ssl_cert_file"] = ssl_cert_path
+
+  remote_file ssl_key_path do
+    source "file://#{n["ssl_key"]}"
+    group "ssl-cert"
+    mode "0640"
+    action :create
+  end
+
+  remote_file ssl_cert_path do
+    source "file://#{n["ssl_cert"]}"
+    mode "0644"
+    action :create
+  end
+
+end
+
 
 # setting the configuration is in a block because we need postgres to be installed
 # because the path to the configuration is dependant on the installed version, so
@@ -114,7 +109,7 @@ conf = nil
 ruby_block "#{name} configure" do
   block do
     conf = PostgresConf.new(version)
-    conf.update!(n["config"])
+    conf.update!(config)
   end
 end
 
@@ -152,133 +147,6 @@ file "#{name} save hba" do
 end
 
 
-
-#   hba_file = Postgres.get_hba_file(version)
-#   cache_hba_file = ::File.join(Chef::Config[:file_cache_path], "pg_hba.conf")
-# 
-#   ruby_block "configure pg_hba" do
-#     block do
-#       # build a file mapping we can manipulate
-#       conf_lines = []
-#       conf_lookup = []
-#       ::File.read(hba_file).each_line.with_index do |conf_line, index|
-#         conf_line.strip!
-#         conf_lines << conf_line
-# 
-#         if conf_line =~ /^#/
-#           next
-# 
-#         elsif conf_line =~ /^\s*$/
-#           next
-# 
-#         else
-#           conf_line.strip!
-#           conn_type, database, user, remainder = conf_line.split(/\s+/, 4)
-#           ip6 = false
-# 
-#           if conn_type == 'local'
-#             method, options = remainder.split(/\s+/, 2)
-#             address = ''
-# 
-#           else
-#             address, method, options = remainder.split(/\s+/, 3)
-#             if address =~ /^::/
-#               ip6 = true
-#             end
-# 
-#           end
-# 
-#           options ||= ''
-# 
-#           d = {
-#             'index' => index,
-#             'ip6' => ip6,
-#             'connection' => conn_type,
-#             'database' => database,
-#             'user' => user,
-#             'method' => method,
-#             'address' => address,
-#             'options' => options
-#           }
-#           conf_lookup << d
-#         end
-#       end
-# 
-#       default_row = {
-#         'method' => '',
-#         'address' => '',
-#         'options' => ''
-#       }
-# 
-#       (n['hba_default'] + n['hba']).each do |row|
-#         index = -1
-#         conf_lookup.each do |conf_row|
-#           is_match = true
-#           ['connection', 'database', 'user'].each do |k|
-#             if conf_row[k] != row[k]
-#               is_match = false
-#               break
-#             end
-#           end
-# 
-#           if is_match
-#             if row['address'] =~ /^::/
-#               if conf_row['ip6']
-#                 index = conf_row['index']
-#                 break
-#               end
-# 
-#             else
-#               index = conf_row['index']
-#               break
-#             end
-# 
-#           end
-# 
-#         end
-# 
-#         ncrow = default_row.merge(row)
-#         ncl = "#{ncrow['connection']} " + 
-#           "#{ncrow['database']} " + 
-#           "#{ncrow['user']} " + 
-#           "#{ncrow['address']} " +
-#           "#{ncrow['method']} " + 
-#           "#{ncrow['options']}"
-# 
-#         # NOTE -- if you set it to active=false and then back to active=true it
-#         # will make another row, this is a bug, but a forgivable one for now
-#         if !ncrow.fetch('active', true)
-#           ncl = "##{ncl}"
-#         end
-# 
-#         if index >= 0
-#           conf_lines[index] = ncl
-# 
-#         else
-#           conf_lines << ncl
-# 
-#         end
-# 
-#       end
-# 
-#       ::File.open(cache_hba_file, "w+") do |f|
-#         f.puts(conf_lines)
-#       end
-# 
-#     end
-#     notifies :create, "remote_file[#{hba_file}]", :delayed
-#   end
-# 
-#   remote_file hba_file do
-#     source "file://#{cache_hba_file}"
-#     owner u
-#     group u
-#     mode "0644"
-#     action :nothing
-#     notifies :restart, "service[#{name}]", :delayed
-#   end
-
-
 ###############################################################################
 # manage the postgres service
 ###############################################################################
@@ -286,7 +154,5 @@ end
 # http://wiki.opscode.com/display/chef/Resources#Resources-Service
 service name do
   service_name "postgresql"
-  #supports :restart => true, :reload => false, :start => true, :stop => true, :status => true
-  #action :nothing
 end
 

@@ -15,6 +15,9 @@ n["config"] = {}
 n["config"]["listen_addresses"] = "*"
 n["config"]["port"] = 5432
 
+n["ssl_cert_default_path"] = "/etc/ssl/certs/postgres.crt"
+n["ssl_key_default_path"] = "/etc/ssl/private/postgres.key"
+
 n["hba"] = []
 
 # so here's the problem, I want these to pretty much always be around in the majority
