@@ -25,12 +25,9 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
     if config.has_key?(k)
       config[k].each do |package_name|
 
-        # get the actual package name from things like foo==N.N.N
-        recipe_name = "package_#{package_name.downcase.match('^[a-z][a-z0-9_]*')}"
+        recipe_names, package_names = PythonHelper.get_recipes_packages(name, node, package_name)
 
-        # via: https://discourse.chef.io/t/getting-cookbookversion-at-runtime/5250/3
-        # https://discourse.chef.io/t/getting-cookbookversion-at-runtime/5250/2
-        if node.run_context.cookbook_collection[name].recipe_filenames_by_name.has_key?(recipe_name)
+        recipe_names.each do |recipe_name, package_name|
           node.run_state[name] = {
             "package_name" => package_name,
             "version" => version,
@@ -40,13 +37,14 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
           }
           include_recipe "#{name}::#{recipe_name}"
 
-        else
+        end
+
+        package_names.each do |package_name|
           pyenv_package package_name do
             user username
             version version
             virtualenv venv_name
           end
-
         end
 
       end
