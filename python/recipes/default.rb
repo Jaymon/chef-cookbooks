@@ -27,13 +27,10 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
 
         # get the actual package name from things like foo==N.N.N
         recipe_name = "package_#{package_name.downcase.match('^[a-z][a-z0-9_]*')}"
-        if recipe_name
-          recipe_name = recipe_name[0]
-        end
 
         # via: https://discourse.chef.io/t/getting-cookbookversion-at-runtime/5250/3
         # https://discourse.chef.io/t/getting-cookbookversion-at-runtime/5250/2
-        if recipe_name && node.run_context.cookbook_collection[name].recipe_filenames_by_name.has_key?(recipe_name)
+        if node.run_context.cookbook_collection[name].recipe_filenames_by_name.has_key?(recipe_name)
           node.run_state[name] = {
             "package_name" => package_name,
             "version" => version,
