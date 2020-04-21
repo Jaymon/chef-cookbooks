@@ -48,6 +48,12 @@ n["accept"].each do |rule|
   rules.push("iptables -A INPUT #{protocol}#{source_ip}#{dest_port}-j ACCEPT #rule: #{name}")
 end
 
+cookbook_file ::File.join(n["dirs"]["opt"], "iptables-flush.sh") do
+  source "iptables-flush.sh"
+  mode "0644"
+  action :create
+end
+
 template config_path do
   source "iptables.sh.erb"
   mode "0700"
