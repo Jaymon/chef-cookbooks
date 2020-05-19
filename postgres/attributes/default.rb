@@ -15,6 +15,11 @@ n["config"] = {}
 n["config"]["listen_addresses"] = "*"
 n["config"]["port"] = 5432
 
+n["client"] = {
+  "host": "localhost",
+  "port": n["config"]["port"],
+}
+
 n["ssl_cert_default_path"] = "/etc/ssl/certs/postgres.crt"
 n["ssl_key_default_path"] = "/etc/ssl/private/postgres.key"
 

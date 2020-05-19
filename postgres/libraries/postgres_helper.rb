@@ -326,8 +326,10 @@ module PostgresHelper
 
     attr_accessor :username, :cmd_user
 
-    def initialize(username)
+    def initialize(username, host, port)
       @username = username
+      @host = host
+      @port = port
 
       # the reason why we do sudo -u postgres is because setting user "postgres"
       # doesn't work the way I thought it would work, so the only way to execute
@@ -363,7 +365,6 @@ module PostgresHelper
         }
       end
 
-      p pgpasses
       return pgpasses
 
     end
@@ -531,6 +532,16 @@ module PostgresHelper
       return query
 
     end
+
+    def make_cmdline(query, dbname="")
+      cmd = "#{@cmd_user} psql"
+
+      if !dbname.empty?
+        cmd += " -d \"#{dbname}\""
+      end
+
+      cmd += " -h \"#{@host}\""
+      cmd += " -p \"#{@port}\""
 
   end
 
