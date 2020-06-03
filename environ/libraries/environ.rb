@@ -5,9 +5,10 @@
 require 'shellwords'
 require 'set'
 
+include ::Chef::Mixin::ShellOut
+
 
 class EnvironHash
-  #include ::Chef::Mixin::ShellOut
 
   attr_accessor :hash, :file, :raw_keys
 
@@ -51,8 +52,6 @@ class EnvironHash
       if line.match(/^[a-z0-9_]+=/i)
         # line matches: ENV_NAME=...
         key, val = line.split('=', 2)
-        #p "load #{key} = #{val}"
-        #@hash[key.strip()] = val.strip()
 
       elsif line.match(/^#/i)
         if line.match(/environ.raw/i)
@@ -71,18 +70,14 @@ class EnvironHash
 
         # we have to use . here because "sh" doesn't have source, you can see it
         # is using shell by running `echo $0`
-        #process = shell_out(". #{@file} && echo $#{key}")
-        #val = process.stdout.strip()
-        # ??? 3-2020, Why do we use backticks instead of shell_out here?
-        val = `. #{@file} && echo $#{key}`.strip()
+        val = shell_out(". #{@file} && printf %s \"$#{key}\"")
+        val = val.stdout
+        # this stripped leading/trailing space from values that weren't all space
+        # but I decided on June 3, 2020 that I shouldn't mess with the value at all
+        #if val !~ /\A\s*\Z/
+        #  val.strip!
+        #end
         @hash[key] = val
-
-#         if val != ""
-#           ::Chef::Log.debug("Found #{is_raw_val ? "raw " : ""}#{key} = #{val}")
-#           @hash[key] = val
-#         else
-#           ::Chef::Log.warn("No value found for #{key}")
-#         end
 
         if is_raw_val
           is_raw_val = false
@@ -168,7 +163,7 @@ class EnvironHash
 
     instance = self.class.new("", false)
     instance.hash = vs
-    instance
+    return instance
 
   end
 
@@ -196,19 +191,7 @@ class EnvironHash
     end
     return vs
 
-
   end
-
-#   def select(*args, &block)
-#     self.read_file()
-#     if block_given?
-#       @hash.select(*args).each do |k, v|
-#         yield k, v
-#       end
-#     else
-#       @hash.select(*args)
-#     end
-#   end
 
 #   def to_str()
 #     self.read_file()
