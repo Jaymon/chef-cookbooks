@@ -5,7 +5,7 @@
 require 'shellwords'
 require 'set'
 
-include ::Chef::Mixin::ShellOut
+#include ::Chef::Mixin::ShellOut
 
 
 class EnvironHash
@@ -70,8 +70,13 @@ class EnvironHash
 
         # we have to use . here because "sh" doesn't have source, you can see it
         # is using shell by running `echo $0`
-        val = shell_out(". #{@file} && printf %s \"$#{key}\"")
-        val = val.stdout
+        val = `. #{@file} && printf %s "$#{key}"`
+
+
+        # we don't use Chef shell_out because we use this outside of chef
+        #val = shell_out(". #{@file} && printf %s \"$#{key}\"")
+        #val = val.stdout
+
         # this stripped leading/trailing space from values that weren't all space
         # but I decided on June 3, 2020 that I shouldn't mess with the value at all
         #if val !~ /\A\s*\Z/
