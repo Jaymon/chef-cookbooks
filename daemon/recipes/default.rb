@@ -5,7 +5,7 @@ n = node[name]
 ###############################################################################
 # Error handling
 ###############################################################################
-if not n or (n.has_key?("names") and n["names"].empty?)
+if n.has_key?("services") && n["services"].empty?
   ::Chef::Log.warn("Included #{name} recipe with no configuration")
   return
 end
