@@ -47,32 +47,6 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
       end
     end
 
-
-    # original code that works but I think the above is more concise and works the same
-#     if !uwsgi_dir
-#       cmd = shell_out!("which uwsgi", { :returns => [0,1] })
-#       uwsgi_path = cmd.stdout.strip
-#       if uwsgi_path
-#         uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
-# 
-#       else
-# 
-#         ruby_block "#{name}_find_uwsgi_dir" do
-#           block do
-#             cmd = shell_out!("which uwsgi")
-#             uwsgi_path = cmd.stdout.strip
-#             if uwsgi_path
-#               uwsgi_dir = ::File.dirname(::File.realpath(uwsgi_path))
-#             else
-#               ::Chef::Application.fatal!('Could not find uWSGI installation directory')
-#             end
-# 
-#           end
-#         end
-# 
-#       end
-#     end
-
     version = config["version"]
     username = config["user"]
 
@@ -87,15 +61,10 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
           homedir=$(grep -e "^#{username}:" /etc/passwd | cut -d":" -f6)
           export PYTHON=${homedir}/.pyenv/versions/#{version}/bin/python
 
-          #. /etc/profile.d/pyenv.sh
-          #pyenv shell #{version}
-          #export PYTHON=python
-
           ./uwsgi --build-plugin "plugins/#{plugin_builder} #{plugin_name}"
 
           #set +x
           EOH
-        #user username
         cwd uwsgi_dir
         not_if { ::File.exist?(::File.join(uwsgi_dir, uwsgi_plugin_name)) }
       end
