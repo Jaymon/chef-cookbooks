@@ -74,7 +74,7 @@ module DaemonHelper
     # @param [hash] config: the shared service/target configuration
     # @returns [hash]: a block for the systemd_unit content block
     def self.get_target_config(config)
-      return {
+      ret = {
         "Unit" => {
           "Description" => config.has_key?("desc") ? config["desc"] : "Daemon #{config["service_name"]} handler",
           "Requires" => config["requires"],
@@ -83,6 +83,17 @@ module DaemonHelper
           "WantedBy" => "multi-user.target",
         }
       }
+
+      if config.has_key?("Install")
+        ret["Install"].merge!(config["Install"])
+      end
+
+      if config.has_key?("Unit")
+        ret["Unit"].merge!(config["Unit"])
+      end
+
+      return ret
+
     end
 
     # create a <NAME>@.service systemd file
@@ -96,11 +107,16 @@ module DaemonHelper
         "Unit" => {
           "Description" => "Daemon #{config["service_name"]} instance",
           "PartOf" => config["partof"],
+          # if the script fails 5 times in 60 seconds then don't restart it anymore
+          # https://www.freedesktop.org/software/systemd/man/systemd.unit.html#StartLimitIntervalSec=interval
+          "StartLimitIntervalSec" => 60,
+          "StartLimitBurst" => 5,
         },
         "Service" => {
           "Type" => "simple",
-          "Restart" => "on-success",
-          "RestartSec" => 5,
+          "Restart" => "always", # https://www.freedesktop.org/software/systemd/man/systemd.service.html#Restart=
+          # https://www.freedesktop.org/software/systemd/man/systemd.service.html#RestartSec=
+          "RestartSec" => 5, # how long to wait before restarting
           "LimitNOFILE" => 100000,
           "ExecStart" => config["command"],
         },
@@ -124,6 +140,14 @@ module DaemonHelper
 
       if config.has_key?("group")
         ret["Service"]["Group"] = config["group"]
+      end
+
+      if config.has_key?("Service")
+        ret["Service"].merge!(config["Service"])
+      end
+
+      if config.has_key?("Unit")
+        ret["Unit"].merge!(config["Unit"])
       end
 
       return ret

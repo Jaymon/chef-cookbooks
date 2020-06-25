@@ -67,6 +67,11 @@ and you can stop them
 
 You have to use `.target` at the end because of how multiple processes are managed by Systemd.
 
+You can tail the output of any of the processes:
+
+    $ sudo journalctl -f -u <DAEMON_NAME>@<N>.service
+
+
 ## Platform
 
 Ubuntu 18.04

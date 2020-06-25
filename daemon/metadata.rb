@@ -3,7 +3,7 @@ name              "daemon"
 maintainer        "Jay Marcyes"
 maintainer_email  "jay@marcyes.com"
 description       "allows you to create systemd managed daemon processes."
-version           "0.3.1"
+version           "0.3.2"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 supports          "ubuntu", "18.04"
 
