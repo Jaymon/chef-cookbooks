@@ -1,7 +1,6 @@
 name = cookbook_name.to_s
 n = node[name]
 
-
 include_recipe "pyenv"
 
 common_config = n.fetch("common", {})
@@ -10,8 +9,11 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
 
   # unify the configuration for this environment
   config = {}
-  config.merge!(common_config)
-  config.merge!(venv_config)
+  config = ::Chef::Mixin::DeepMerge.merge(config, common_config)
+  config = ::Chef::Mixin::DeepMerge.merge(config, venv_config)
+  #p "========================================================================="
+  #p config
+  #p "========================================================================="
 
   version = config["version"]
   username = config["user"]

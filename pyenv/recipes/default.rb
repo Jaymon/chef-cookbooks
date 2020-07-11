@@ -15,6 +15,16 @@ n = node[name]
   end
 end
 
+# these packages provide support for pip installed packages (for example, libffi-dev
+# installs _ctypes which is often needed and needs to be installed before the python
+# versions are installed)
+%W{gcc libffi-dev python-dev}.each do |p|
+  package "#{name} #{p}" do
+    package_name p
+    options "--no-install-recommends"
+  end
+end
+
 directory n["dir"] do
   owner 'root'
   group 'root'
