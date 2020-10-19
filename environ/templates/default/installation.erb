@@ -2,6 +2,10 @@
 # overwritten on next Chef run, configuration can be done through Chef's environment
 # node["<%= @name %>"] value.
 set -a
-source <%= @path %>
+if which source; then
+  source <%= @path %>
+else
+  . <%= @path %>
+fi
 set +a
 

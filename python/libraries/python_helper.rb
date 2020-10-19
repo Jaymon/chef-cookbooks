@@ -10,7 +10,7 @@ module PythonHelper
     # packages and stuff can be installed as needed, this takes a package_name and
     # then figures out what recipes and packages should be installed (eg, if you
     # passed in requirements.txt that had `psycopg2` in it, this would return 
-    # `recipe_psycopg2` in the recipes and `requirements.txt` in the packages
+    # `package_psycopg2` in the recipes and `requirements.txt` in the packages
     #
     # @param [string] name: the recipe name
     # @param [hash] node: the root chef node
@@ -43,7 +43,7 @@ module PythonHelper
         if recipe_name.empty?
           package_names << package_name
         else
-          recipe_names << recipe_name
+          recipe_names << [recipe_name, package_name]
         end
 
       end

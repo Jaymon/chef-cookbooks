@@ -25,20 +25,13 @@ users.each do |username, cron_jobs|
   cron_jobs.each do |cron_name, options|
 
     existing_cron_jobs.delete(cron_name)
-    config = Crontab.get_config(cron_name, options, n)
 
-    cron_cmd = Crontab.get_environ(config)
+    cron_cmd = "" # we won't know the full command until the second pass
 
-    # change to the right directory
-    if config.has_key?('chdir') and !config['chdir'].empty?
-      cron_cmd += "cd #{config['chdir']};"
-    end
-
-    cron_cmd += config['command']
-
-    cron_logfile = Crontab.get_logfile(cron_name, username, config, n)
-    if !cron_logfile.empty?
-      cron_cmd += " >> #{cron_logfile} 2>&1"
+    ruby_block "build #{cron_name} command for user #{username}" do
+      block do
+        cron_cmd = Crontab.get_cmd(cron_name, username, options, n)
+      end
     end
 
     minute, hour, day_of_month, month, day_of_week = options['schedule'].split(%r{\s+}, 5)
@@ -51,7 +44,7 @@ users.each do |username, cron_jobs|
       month month
       weekday day_of_week
       user username
-      command cron_cmd
+      command lazy { cron_cmd }
     end
 
   end

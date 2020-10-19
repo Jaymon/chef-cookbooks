@@ -31,13 +31,13 @@ class Crontab
     if config.has_key?('environ') and !config['environ'].empty?
       e = config['environ']
       if ::File.directory?(e)
-        cron_env += "for f in #{::File.join(e, "*")}; do . $f; done;"
+        cron_env += "set -a; for f in #{::File.join(e, "*")}; do . $f; done; set +a;"
 
       elsif ::File.exist?(e)
-        cron_env += ". #{e};"
+        cron_env += "set -a; . #{e}; set +a;"
 
       else
-        cron_env += "#{e};"
+        cron_env += "#{e} "
       end
     end
 
@@ -79,6 +79,35 @@ class Crontab
       cronfile = ::File.join(global["dirs"]["log"], "#{username}-#{name}.log")
     end
     return cronfile
+
+  end
+
+  # Get the full command this cronjob will run
+  #
+  # @param [string] name: the name of the cronjob
+  # @param [string] username: the user who will run the cron job
+  # @param [hash] local: the local configuration for this specific cronjob
+  # @param [hash] global: the global "config" config block
+  # @returns [string]: the full cron command
+  def self.get_cmd(name, username, local, global)
+
+    config = self.get_config(name, local, global)
+
+    cron_cmd = self.get_environ(config)
+
+    # change to the right directory
+    if config.has_key?('chdir') and !config['chdir'].empty?
+      cron_cmd += "cd #{config['chdir']};"
+    end
+
+    cron_cmd += config['command']
+
+    cron_logfile = self.get_logfile(name, username, config, global)
+    if !cron_logfile.empty?
+      cron_cmd += " >> #{cron_logfile} 2>&1"
+    end
+
+    return cron_cmd
 
   end
 

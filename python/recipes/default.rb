@@ -29,6 +29,11 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
 
         recipe_names, package_names = PythonHelper.get_recipes_packages(name, node, package_name)
 
+        #p "==================================================================="
+        #pp recipe_names
+        #pp package_names
+        #p "==================================================================="
+
         recipe_names.each do |recipe_name, package_name|
           node.run_state[name] = {
             "package_name" => package_name,

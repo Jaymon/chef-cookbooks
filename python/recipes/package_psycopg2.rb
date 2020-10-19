@@ -12,6 +12,8 @@ username = n["username"]
 version = n["version"]
 venv_name = n["virtualenv"]
 
+pp n
+
 # prerequisites
 ["libpq-dev", "python-dev"].each do |p|
   package "#{name}::#{name_recipe} #{p}" do
