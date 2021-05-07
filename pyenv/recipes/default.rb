@@ -36,7 +36,7 @@ end
 ###############################################################################
 # pyenv installation
 ###############################################################################
-bash_lines = [n["bash"]]
+bash_lines = n["bash"]
 
 git n["dir"] do
   repository n["repo"]
@@ -49,9 +49,9 @@ n["plugins"].each do |plugin_name, plugin_config|
     action :sync
   end
 
-  bash_line = plugin_config.fetch("bash", "")
-  if bash_line
-    bash_lines << bash_line
+  plugin_bash_lines = plugin_config.fetch("bash", "")
+  if plugin_bash_lines
+    bash_lines += plugin_bash_lines
   end
 
 end
