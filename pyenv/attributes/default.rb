@@ -6,7 +6,7 @@ default[name]["versions"] = {} # username keys with a version array
 default[name]["dir"] = ::File.join("", "opt", "pyenv")
 default[name]["repo"] = "https://github.com/pyenv/pyenv.git"
 default[name]["bash"] = [
-  "eval \"$(pyenv init -)\"",
+  #"eval \"$(pyenv init -)\"",
   "eval \"$(pyenv init --path)\"",
 ]
 default[name]["plugins"] = {
