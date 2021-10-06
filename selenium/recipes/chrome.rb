@@ -34,6 +34,14 @@ end
   end
 end
 
+# these were in errors on 8-13-2021
+%W{libgbm1 libxshmfence1 libwayland-server0}.each do |p|
+  package "#{name} #{p}" do
+    package_name p
+    options "--no-install-recommends"
+  end
+end
+
 
 ###############################################################################
 # install chrome
