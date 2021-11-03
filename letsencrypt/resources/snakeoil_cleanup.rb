@@ -1,7 +1,7 @@
 # https://docs.chef.io/custom_resources.html
 # http://stackoverflow.com/questions/21725768/chef-libraries-or-definitions
 
-resource_name :snakeoil_cleanup # https://docs.chef.io/custom_resources.html#resource-name
+#resource_name :snakeoil_cleanup # https://docs.chef.io/custom_resources.html#resource-name
 
 property :server, String, name_property: true
 property :root, String, required: true

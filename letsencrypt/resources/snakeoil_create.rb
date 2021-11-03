@@ -1,7 +1,7 @@
 # https://docs.chef.io/custom_resources.html
 # http://stackoverflow.com/questions/21725768/chef-libraries-or-definitions
 
-resource_name :snakeoil_create # https://docs.chef.io/custom_resources.html#resource-name
+#resource_name :snakeoil_create # https://docs.chef.io/custom_resources.html#resource-name
 
 # the domain snakeoil certs should be created for (eg, example.com)
 property :domain, String, name_property: true
