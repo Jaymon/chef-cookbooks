@@ -52,7 +52,7 @@ class Crontab
   def self.get_existing_cronjobs(username)
     existing_cron_jobs = Set.new
 
-    cmd = shell_out!("sudo -u #{username} crontab -l 2>/dev/null", { :returns => [0,1] })
+    cmd = shell_out!("sudo -u #{username} crontab -l 2>/dev/null", :returns => [0,1])
     crontab = cmd.stdout.strip
     #crontab = %x(sudo -u #{username} crontab -l 2>/dev/null)
     crontab.each_line do |line|

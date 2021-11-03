@@ -384,7 +384,7 @@ module PostgresHelper
       #user_exists = "psql -c \"#{query}\" -d template1 | grep -w \"#{username}\""
       user_exists = "psql -c \"#{query}\" -d template1"
       ::Chef::Log.info(user_exists)
-      cmd = shell_out!("#{@cmd_user} #{user_exists}", {:returns => [0]})
+      cmd = shell_out!("#{@cmd_user} #{user_exists}", :returns => [0])
       #return cmd.stderr.empty? && (cmd.stdout =~ /\b#{username}\b/)
       return cmd.stdout =~ /\b#{username}\b/
     end
@@ -416,7 +416,7 @@ module PostgresHelper
       query = "select datname from pg_database where datname='#{dbname}'"
       db_exists = "psql -c \"#{query}\" -d template1 | grep -w \"#{dbname}\""
       ::Chef::Log.info(db_exists)
-      cmd = shell_out!("#{@cmd_user} #{db_exists}", {:returns => [0, 1]})
+      cmd = shell_out!("#{@cmd_user} #{db_exists}", :returns => [0, 1])
       return cmd.stdout =~ /\b#{dbname}\b/
     end
 

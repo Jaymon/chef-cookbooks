@@ -14,7 +14,8 @@ u = n['user']
 # Initial setup and pre-requisites
 ###############################################################################
 
-['git', 'make', 'tcl8.5', 'build-essential'].each do |p|
+#['git', 'make', 'tcl8.5', 'build-essential'].each do |p|
+['git', 'make', 'build-essential'].each do |p|
   package "#{name} #{p}" do
     package_name p
   end

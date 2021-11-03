@@ -22,18 +22,15 @@ module UWSGI
 
     # Returns the currently installed uwsgi version
     def self.current_version()
-      #cmd = shell_out!("which uwsgi && uwsgi --version | grep -q \"^#{n["version"]}$\""
-      cmd = shell_out!("which uwsgi >/dev/null && uwsgi --version", { :returns => [0,1] })
+      cmd = shell_out!("which uwsgi >/dev/null && uwsgi --version", :returns => [0,1])
       v = cmd.stdout.strip
       ::Chef::Log.debug("uWSGI version installed: #{v}")
       return v
-      #only_if "which uwsgi"
     end
 
     # Returns the uwsgi version that could be installed
     def self.install_version(directory)
-      print(directory)
-      cmd = shell_out!("grep '^Version:' PKG-INFO | cut -d: -f2 | tr -d '[:space:]'", { :cwd => directory })
+      cmd = shell_out!("grep '^Version:' PKG-INFO | cut -d: -f2 | tr -d '[:space:]'", :cwd => directory)
       v = cmd.stdout.strip
       ::Chef::Log.debug("uWSGI version to install: #{v}")
       return v
