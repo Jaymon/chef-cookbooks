@@ -17,7 +17,7 @@ n["domains"].each do |domain, _options|
   le_cert = Cert.new(n["archiveroot"], domain)
   arg_str = get_common_args(domain, options)
 
-  snakeoil_cleanup domain do
+  letsencrypt_snakeoil_cleanup domain do
     root n["root"]
     not_if { le_cert.exists?() }
   end

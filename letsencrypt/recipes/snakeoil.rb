@@ -14,7 +14,7 @@ n["domains"].each do |domain, options|
   so_cert = Letsencrypt::Cert.new(snakeoil_d, domain)
   le_cert = Letsencrypt::Cert.new(n["archiveroot"], domain)
 
-  snakeoil_create domain do
+  letsencrypt_snakeoil_create domain do
     snakeoil_root snakeoil_d
     cert_root cert_d
     not_if { le_cert.exists?() }
