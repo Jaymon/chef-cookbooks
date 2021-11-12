@@ -15,7 +15,7 @@ bin_cmd = n["bincmd"]
 # end
 
 execute "#{name} certbot install" do
-  command "snapd install --classic certbot"
+  command "snap install --classic certbot"
   notifies :create, "link[#{name} certbot link]", :immediately
 end
 
