@@ -10,14 +10,14 @@ bin_cmd = n["bincmd"]
 # https://certbot.eff.org/lets-encrypt/ubuntufocal-other
 snap_package "certbot" do
   options "--classic"
-  notifies :create, "link[#{name} certbot link]", :immediately
+  #notifies :create, "link[#{name} certbot link]", :immediately
 end
 
 link "#{name} certbot link" do
   to "/usr/bin/certbot"
   target_file "/snap/bin/certbot"
   link_type :symbolic
-  action :nothing
+  #action :nothing
 end
 
 
@@ -25,7 +25,6 @@ end
 # to handle any certificate revocations
 
 arg_str = "-q --noninteractive"
-
 
 ["pre-hook", "post-hook", "renew-hook"].each do |hook|
   hook_path = n["#{hook}_path"]
@@ -43,9 +42,10 @@ arg_str = "-q --noninteractive"
   end
 end
 
-
 cron "#{name} renew" do
   command "#{bin_cmd} renew #{arg_str}"
+  # http://stackoverflow.com/questions/2388087/how-to-get-cron-to-call-in-the-correct-paths
+  path ["/usr/bin", "/bin", "/usr/local/sbin", "/usr/sbin", "/sbin"].join(::File::PATH_SEPARATOR)
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
