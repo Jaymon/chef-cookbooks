@@ -16,14 +16,16 @@ bin_cmd = n["bincmd"]
 
 execute "#{name} certbot install" do
   command "snap install --classic certbot"
-  notifies :create, "link[#{name} certbot link]", :immediately
+  #notifies :create, "link[#{name} certbot link]", :immediately
 end
 
+source = "/snap/bin/certbot"
 link "#{name} certbot link" do
-  to "/usr/bin/certbot"
-  target_file "/snap/bin/certbot"
+  to bin_cmd
+  target_file source
   link_type :symbolic
-  action :nothing
+  only_if "test -f #{source}"
+  #action :nothing
 end
 
 
@@ -51,7 +53,7 @@ end
 cron "#{name} renew" do
   command "#{bin_cmd} renew #{arg_str}"
   # http://stackoverflow.com/questions/2388087/how-to-get-cron-to-call-in-the-correct-paths
-  path ["/usr/bin", "/bin", "/usr/local/sbin", "/usr/sbin", "/sbin"].join(::File::PATH_SEPARATOR)
+  #path ["/usr/bin", "/bin", "/usr/local/sbin", "/usr/sbin", "/sbin"].join(::File::PATH_SEPARATOR)
   hour "#{0 + rand(8)},#{12 + rand(8)}"
   minute "#{1 + rand(59)}"
   #day "1"
