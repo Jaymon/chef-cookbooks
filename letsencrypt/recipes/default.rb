@@ -19,14 +19,14 @@ execute "#{name} certbot install" do
   #notifies :create, "link[#{name} certbot link]", :immediately
 end
 
-source = "/snap/bin/certbot"
-link "#{name} certbot link" do
-  to bin_cmd
-  target_file source
-  link_type :symbolic
-  only_if "test -f #{source}"
-  #action :nothing
-end
+# source = "/snap/bin/certbot"
+# link "#{name} certbot link" do
+#   to bin_cmd
+#   target_file source
+#   link_type :symbolic
+#   only_if "test -f #{source}"
+#   #action :nothing
+# end
 
 
 # setup renew command to run twice a day, this is recommended by let's encrypt
