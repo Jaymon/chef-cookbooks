@@ -8,7 +8,8 @@ bin_cmd = n["bincmd"]
 ###############################################################################
 
 # https://certbot.eff.org/lets-encrypt/ubuntufocal-other
-snap_package "certbot" do
+snap_package "#{name} certbot install" do
+  package_name "certbot"
   options "--classic"
   #notifies :create, "link[#{name} certbot link]", :immediately
 end
