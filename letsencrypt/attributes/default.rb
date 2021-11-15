@@ -5,7 +5,6 @@ default[name] = {}
 
 binroot = ::File.join("", "opt", "letsencrypt")
 default[name]["binroot"] = binroot
-#default[name]["bincmd"] = ::File.join(binroot, "certbot-auto")
 default[name]["bincmd"] = "/snap/bin/certbot"
 
 root = ::File.join("", "etc", "letsencrypt")

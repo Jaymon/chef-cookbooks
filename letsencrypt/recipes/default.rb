@@ -7,26 +7,22 @@ bin_cmd = n["bincmd"]
 # Install let's encrypt
 ###############################################################################
 
+# 2021-11-12 this should've worked on Chef 16.16.x but didn't, gave error:
+# "wrong number of arguments (given 1, expected 2)"
+# so I've commented this out in favor of an execute resource
 # https://certbot.eff.org/lets-encrypt/ubuntufocal-other
+# https://docs.chef.io/resources/snap_package/
 # snap_package "#{name} certbot install" do
 #   package_name "certbot"
 #   options "--classic"
 #   #notifies :create, "link[#{name} certbot link]", :immediately
 # end
 
+# https://certbot.eff.org/lets-encrypt/ubuntufocal-other
 execute "#{name} certbot install" do
   command "snap install --classic certbot"
   #notifies :create, "link[#{name} certbot link]", :immediately
 end
-
-# source = "/snap/bin/certbot"
-# link "#{name} certbot link" do
-#   to bin_cmd
-#   target_file source
-#   link_type :symbolic
-#   only_if "test -f #{source}"
-#   #action :nothing
-# end
 
 
 # setup renew command to run twice a day, this is recommended by let's encrypt
