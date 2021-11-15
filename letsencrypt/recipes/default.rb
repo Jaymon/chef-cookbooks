@@ -30,6 +30,11 @@ end
 
 arg_str = "-q --noninteractive"
 
+directory n["binroot"] do
+  mode "0700"
+  recursive true
+end
+
 ["pre-hook", "post-hook", "renew-hook"].each do |hook|
   hook_path = n["#{hook}_path"]
   commands = n.fetch(hook, []).dup
