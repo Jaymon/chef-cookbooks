@@ -59,15 +59,22 @@ cron "#{name} renew" do
   minute "#{1 + rand(59)}"
   #day "1"
   only_if {
-    doit = false
-    n.fetch("domains", []).each do |server, options|
-      le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
-      if le_cert.exists?
-        doit = true
-        break
-      end
-    end
-    doit
+    n.fetch("domains", []).count > 0
+    # 2021-11-15 - We don't run the script until after this cookbook has run (see
+    # standalone.rb) so this cron is never added until the second chef run, I've
+    # switched this to just add the cron if there are domains instead of if there
+    # are active certs, but that can cause different problems, I'm not sure what
+    # the best solution is here but a more long term fix will eventually need to
+    # be worked out
+#     doit = false
+#     n.fetch("domains", []).each do |server, options|
+#       le_cert = Letsencrypt::Cert.new(n["archiveroot"], server)
+#       if le_cert.exists?
+#         doit = true
+#         break
+#       end
+#     end
+#     doit
   }
 end
 
