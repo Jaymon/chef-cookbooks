@@ -79,5 +79,11 @@ n.each do |dbname, options|
 
   end
 
+  # execute any defined queries on this db
+  queries = Array(options.fetch("queries", []))
+  queries.each do |query|
+    execute admin.get_command(query, dbname)
+  end
+
 end
 
