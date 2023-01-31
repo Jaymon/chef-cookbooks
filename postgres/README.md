@@ -107,7 +107,7 @@ The user that creates, and owns, the database.
 
 #### read
 
-Users that have readonly access to the database
+A list of users that have readonly access to the database
 
 
 #### encoding
@@ -122,6 +122,12 @@ The db encoding, defaults to the encoding value in `template1`. Which you can se
 The db locale, defaults to the locale value in `template1`. Which you can see with:
 
     $ psql -qtAX -c "SELECT datcollate FROM pg_database WHERE datname='template1'"
+    
+
+#### queries
+
+A list of queries you want to run on the db
+
 
 -------------------------------------------------------------------------------
 
