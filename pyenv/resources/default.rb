@@ -25,6 +25,12 @@ action :install do
 
   venv_cmd = ""
   if !venv.empty?
+    # this will force a reinstallation of the virtualenvironment if it already exists
+    # but I'm not sure we want that
+#     venv_cmd = <<-EOH
+#       pyenv virtualenv --force #{version} #{venv}
+#       EOH
+
     venv_cmd = <<-EOH
       if [[ ! -d "$(pyenv root)/versions/#{version}/envs/#{venv}" ]]; then
         pyenv virtualenv #{version} #{venv}

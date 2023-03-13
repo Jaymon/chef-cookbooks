@@ -52,10 +52,10 @@ module PythonHelper
 
     end
 
-    # given a pacakge_name return the internal recipe if it exists, "" otherwise
+    # given a package_name return the internal recipe if it exists, "" otherwise
     def self.get_recipe(name, node, package_name)
       # get the actual package name from things like foo==N.N.N
-      recipe_name = "package_#{package_name.downcase.match('^[a-z][a-z0-9_]*')}"
+      recipe_name = "package_#{package_name.downcase.match('^[a-z][a-z0-9_-]*')}"
       # via: https://discourse.chef.io/t/getting-cookbookversion-at-runtime/5250/3
       # https://discourse.chef.io/t/getting-cookbookversion-at-runtime/5250/2
       if node.run_context.cookbook_collection[name].recipe_filenames_by_name.has_key?(recipe_name)

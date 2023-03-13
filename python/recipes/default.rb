@@ -12,7 +12,7 @@ n.fetch("environments", {}).each do |venv_name, venv_config|
   config = ::Chef::Mixin::DeepMerge.merge(config, common_config)
   config = ::Chef::Mixin::DeepMerge.merge(config, venv_config)
   #p "========================================================================="
-  #p config
+  #pp config
   #p "========================================================================="
 
   version = config["version"]

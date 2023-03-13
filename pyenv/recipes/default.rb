@@ -15,6 +15,17 @@ n = node[name]
   end
 end
 
+
+# Fixes "The Python lzma extension was not compiled. Missing the lzma lib?" which
+# was causing python installation to fail
+# https://stackoverflow.com/a/62407114/5006
+%W{liblzma-dev lzma}.each do |p|
+  package "#{name} #{p}" do
+    package_name p
+    options "--no-install-recommends"
+  end
+end
+
 # these packages provide support for pip installed packages (for example, libffi-dev
 # installs _ctypes which is often needed and needs to be installed before the python
 # versions are installed)
