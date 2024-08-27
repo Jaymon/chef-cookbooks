@@ -5,7 +5,7 @@ property :value, String, required: true
 property :environ, ::EnvironHash, required: true
 
 
-default_action :install
+# default_action :install
 
 
 action :set do
@@ -17,7 +17,7 @@ action :set do
 
     ENV[env_name] = env_val # keep the RUBY env in sync
 
-    name = "set in #{e.file} #{env_name}=#{env_val}"
+    name = "environ set in #{e.file} #{env_name}=#{env_val}"
     converge_by(name) do
 
       t = template name do
@@ -63,7 +63,7 @@ action :file do
       ENV[k] = v 
     end
 
-    name = "merge #{file_name} into #{e.file}"
+    name = "environ merge #{file_name} into #{e.file}"
     converge_by(name) do
       t = template name do
         path e.file

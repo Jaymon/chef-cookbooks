@@ -2,7 +2,11 @@
 name = "iptables"
 
 n = {
-  "open_ports" => [],
+  "open_ports" => [
+    22, # ssh
+    80, # http
+    443, # https
+  ],
   "whitelist" => [],
   "accept" => [],
 }
@@ -13,7 +17,7 @@ n["dirs"] = {
 }
 
 # We can't use iptables because it's used by the actual iptables command
-n["service_name"] = "iptables-config"
+n["service_name"] = "#{name}-config"
 
 default[name] = n
 

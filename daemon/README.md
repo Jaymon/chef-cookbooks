@@ -4,7 +4,7 @@ allows you to create systemd managed daemon processes.
 
 ## Links
 
-* [RUN MULTIPLE INSTANCES OF THE SAME SYSTEMD UNIT](https://www.stevenrombauts.be/2019/01/run-multiple-instances-of-the-same-systemd-unit/) - This is the layout we use to manage multiple processes
+* [RUN MULTIPLE INSTANCES OF THE SAME SYSTEMD UNIT](https://www.stevenrombauts.be/2019/01/run-multiple-instances-of-the-same-systemd-unit/) - This is the layout used to manage multiple processes
 
 
 ## Configuration block
@@ -31,9 +31,13 @@ allows you to create systemd managed daemon processes.
 * `config` -- dict -- these are default options that will be merged into the individual options for each defined daemon under the `services` dict.
 * `services` -- dict -- the key is the name of the daemon, which will also be used as the name of the systemd service.
 
-### config block
 
-These are the keys that can be either in the `config` dict, or in each of the individual `services` dict.
+Basically, each `services` dict block is merged with the global `config` block and that's what is used to setup the `<DAEMON_NAME>` daemon.
+
+
+### configuration blocks
+
+These are the keys that can be either in the `config` dict, or in each of the individual `services` dict blocks.
 
 * `chdir` -- string -- the base dir that the `command` will execute in.
 * `username` -- string -- the user that will execute the `command`.

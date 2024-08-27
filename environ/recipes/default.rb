@@ -35,7 +35,8 @@ fs.each do |file_name|
 end
 
 
-# after files are added, then add the explicitely set variables since they have precedence
+# after files are added, then add the explicitely set variables since they have
+# precedence
 d = n.fetch(:set, {})
 
 d.each do |key, val|
@@ -46,7 +47,8 @@ d.each do |key, val|
     environ environ
   end
 
-  # set the notifies stuff to allow things to change based on changes to the environment
+  # set the notifies stuff to allow things to change based on changes to the
+  # environment
   n.fetch('notifies', []).each do |params|
     env.notifies(*params)
   end
