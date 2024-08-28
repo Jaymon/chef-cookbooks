@@ -5,7 +5,7 @@ name = "docker-config"
 n = {}
 
 n["version"] = ""
-
+n["users"] = []
 
 default[name] = n
 

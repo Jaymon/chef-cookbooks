@@ -57,6 +57,9 @@ These are the keys that can be either in the `config` dict, or in each of the in
 * `command` -- string -- the command that will be run. Because Systemd is used, the path has to be absolute.
 * `count` -- integer -- how many instances of the daemon you want to run.
 * `action` -- symbol -- defaults to `:start` but can be set to `:nothing` to have the daemon not be started once configured
+* `verify` -- boolean -- defaults to `true` which means all commands have to be valid and files have to exist. Sometimes you are creating a daemon for something that might not exist yet so set this to `false`. From [the docs](https://docs.chef.io/resources/systemd_unit/#unit-file-verification):
+
+    > Specifies if the unit will be verified before installation. Systemd can be overly strict when verifying units, so in certain cases it is preferable not to verify the unit. The unit file is verified using a `systemd-analyze verify` call before being written to disk. Be aware that the referenced commands and files need to already exist before verification.
 
 
 ## Using

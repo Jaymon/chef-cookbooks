@@ -8,7 +8,8 @@ module DaemonHelper
     #
     # @param [string] name: the name of the service
     # @param [hash] local: the local "service" configuration
-    # @param [hash] global: the global "config" config block for all the services
+    # @param [hash] global: the global "config" config block for all the
+    #  services
     # @returns [hash]: all the configuration for the service
     def self.get_config(name, local, global)
       config = global.fetch('config_default', {}).to_h
@@ -34,7 +35,8 @@ module DaemonHelper
     # get the environment the service will run in
     #
     # @param [hash] config: the full configuration for a service
-    # @returns [hash]: the environment configuration that can be passed to the template
+    # @returns [hash]: the environment configuration that can be passed to the
+    #  template
     def self.get_environ(config)
       environs = config.fetch("environ", [])
 
@@ -107,7 +109,8 @@ module DaemonHelper
         "Unit" => {
           "Description" => "Daemon #{config["service_name"]} instance",
           "PartOf" => config["partof"],
-          # if the script fails 5 times in 60 seconds then don't restart it anymore
+          # if the script fails 5 times in 60 seconds then don't restart it
+          # anymore
           # https://www.freedesktop.org/software/systemd/man/systemd.unit.html#StartLimitIntervalSec=interval
           "StartLimitIntervalSec" => 60,
           "StartLimitBurst" => 5,

@@ -1,7 +1,6 @@
 name = cookbook_name.to_s
 n = node["docker-config"]
 
-
 # installation directions comes from:
 # https://docs.docker.com/engine/install/ubuntu/
 
@@ -22,6 +21,7 @@ packages.each do |pkg|
   package pkg do
     action :remove
   end
+
 end
 
 
@@ -52,8 +52,8 @@ packages = [
 ]
 
 if n.has_key?("version") && !n["version"].empty?
-  packages[0] += "=#{n['version']}"
-  packages[1] += "=#{n['version']}"
+  packages[0] += "=#{n['version']}" # docker-ce
+  packages[1] += "=#{n['version']}" # docker-ce-cli
 
 end
 
@@ -67,5 +67,19 @@ service name do
   action :start
   #restart_command "systemctl stop #{name}; systemctl start #{name}"
   restart_command "service #{name} stop; service #{name} start"
+end
+
+
+###############################################################################
+# Manage
+###############################################################################
+# https://docs.chef.io/resources/group/
+if n.has_key?("users") && !n["users"].empty?
+  group name do
+    action :modify
+    members n["users"]
+    append true
+  end
+
 end
 
